@@ -1,0 +1,71 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backend (NestJS/Node.js)
+backend/node_modules/
+backend/dist/
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/.env
+backend/.env.local
+backend/.env.development.local
+backend/.env.test.local
+backend/.env.production.local
+
+# Frontend (Flutter)
+frontend/zoe/build/
+frontend/zoe/.dart_tool/
+frontend/zoe/.packages
+frontend/zoe/.pub-cache/
+frontend/zoe/.pub/
+frontend/zoe/pubspec.lock
+frontend/zoe/.flutter-plugins
+frontend/zoe/.flutter-plugins-dependencies
+frontend/zoe/.metadata
+
+# Flutter/Dart generated files
+frontend/zoe/ios/Flutter/Generated.xcconfig
+frontend/zoe/ios/Flutter/flutter_export_environment.sh
+frontend/zoe/ios/Runner/GeneratedPluginRegistrant.*
+frontend/zoe/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+frontend/zoe/android/.gradle/
+frontend/zoe/android/captures/
+frontend/zoe/android/gradlew
+frontend/zoe/android/gradlew.bat
+frontend/zoe/android/local.properties
+frontend/zoe/android/app/debug/
+frontend/zoe/android/app/profile/
+frontend/zoe/android/app/release/
+
+# Web
+frontend/zoe/web/manifest.json
+
+# Windows
+frontend/zoe/windows/flutter/generated_plugin_registrant.*
+
+# macOS
+frontend/zoe/macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Linux
+frontend/zoe/linux/flutter/generated_plugin_registrant.*
+
+# Coverage
+coverage/
+
+# Exceptions to above rules
+!frontend/zoe/android/app/src/main/AndroidManifest.xml
+!frontend/zoe/ios/Runner/Info.plist
