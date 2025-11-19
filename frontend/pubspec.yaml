@@ -45,6 +45,9 @@ dependencies:
   # SharedPreferences for local storage
   shared_preferences: ^2.3.3
 
+  # Google Nav Bar for beautiful bottom navigation
+  google_nav_bar: ^5.0.6
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

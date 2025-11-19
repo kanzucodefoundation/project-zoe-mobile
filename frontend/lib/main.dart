@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
-import 'package:frontend/auth/auth_screen.dart';
-import 'package:frontend/Screens/home_sceen.dart';
+import 'package:frontend/widgets/app_wrapper.dart';
+import 'package:frontend/api/api_client.dart';
+import 'package:frontend/screens/mc_report_screen.dart';
+import 'package:frontend/screens/garage_attendance_screen.dart';
+import 'package:frontend/screens/shepherds_details_screen.dart';
+import 'package:frontend/screens/reports_screen.dart';
+import 'package:frontend/screens/admin_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize API client
+  ApiClient().initialize();
+
   runApp(const MyApp());
 }
 
@@ -25,18 +34,14 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: Consumer<AuthProvider>(
-          builder: (context, authProvider, child) {
-            switch (authProvider.status) {
-              case AuthStatus.authenticated:
-                return const HomeSceen();
-              case AuthStatus.unauthenticated:
-              case AuthStatus.authenticating:
-              case AuthStatus.failed:
-                return const AuthScreen();
-            }
-          },
-        ),
+        home: const AppWrapper(),
+        routes: {
+          '/mc-report': (context) => const McReportScreen(),
+          '/garage-attendance': (context) => const GarageAttendanceScreen(),
+          '/shepherds-details': (context) => const ShepherdsDetailsScreen(),
+          '/reports': (context) => const ReportsScreen(),
+          '/admin': (context) => const AdminScreen(),
+        },
       ),
     );
   }

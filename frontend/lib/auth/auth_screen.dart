@@ -15,18 +15,35 @@ class _AuthScreenState extends State<AuthScreen> {
   bool isLogin = true;
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers for all fields
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _workPlaceController = TextEditingController();
+  // Controllers for all fields - nullable for safe disposal
+  TextEditingController? _emailController;
+  TextEditingController? _passwordController;
+  TextEditingController? _confirmPasswordController;
+  TextEditingController? _firstNameController;
+  TextEditingController? _lastNameController;
+  TextEditingController? _phoneController;
+  TextEditingController? _workPlaceController;
+
+  // Additional fields for API
+  TextEditingController? _dateOfBirthController;
+  String? selectedGender;
+  String? selectedCivilStatus;
+
+  // Gender options
+  final List<String> genders = ['Male', 'Female', 'Other'];
+
+  // Civil status options
+  final List<String> civilStatuses = [
+    'Single',
+    'Married',
+    'Divorced',
+    'Widowed',
+  ];
 
   // Church location dropdown
   String? selectedChurchLocation;
   final List<String> churchLocations = [
+    'demo',
     'WH Naalya',
     'WH Kisaasi',
     'WH Busega',
@@ -34,15 +51,47 @@ class _AuthScreenState extends State<AuthScreen> {
     'WH Downtown',
   ];
 
+  // Add cancellation tracking
+  bool _isDisposed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
+    _firstNameController = TextEditingController();
+    _lastNameController = TextEditingController();
+    _phoneController = TextEditingController();
+    _workPlaceController = TextEditingController();
+    _dateOfBirthController = TextEditingController();
+  }
+
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _phoneController.dispose();
-    _workPlaceController.dispose();
+    _isDisposed = true;
+    try {
+      _emailController?.dispose();
+      _passwordController?.dispose();
+      _confirmPasswordController?.dispose();
+      _firstNameController?.dispose();
+      _lastNameController?.dispose();
+      _phoneController?.dispose();
+      _workPlaceController?.dispose();
+      _dateOfBirthController?.dispose();
+    } catch (e) {
+      // Controllers might already be disposed, ignore errors
+      debugPrint('Controller disposal error (safe to ignore): $e');
+    }
+    // Set controllers to null to prevent further access
+    _emailController = null;
+    _passwordController = null;
+    _confirmPasswordController = null;
+    _firstNameController = null;
+    _lastNameController = null;
+    _phoneController = null;
+    _workPlaceController = null;
+    _dateOfBirthController = null;
     super.dispose();
   }
 
@@ -50,18 +99,154 @@ class _AuthScreenState extends State<AuthScreen> {
     if (_formKey.currentState!.validate()) {
       final authProvider = context.read<AuthProvider>();
 
-      if (isLogin) {
-        await authProvider.login(
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
-      } else {
-        // For signup, you can extend this with all the collected data
-        await authProvider.login(
-          _emailController.text.trim(),
-          _passwordController.text,
+      try {
+        if (isLogin) {
+          // Capture values before async operation to avoid disposal issues
+          final email = _emailController?.text.trim() ?? '';
+          final password = _passwordController?.text ?? '';
+          final churchName = selectedChurchLocation ?? 'demo';
+
+          if (_isDisposed || !mounted || email.isEmpty || password.isEmpty)
+            return;
+
+          // Login with church name from dropdown
+          await authProvider.login(email, password, churchName: churchName);
+
+          if (_isDisposed || !mounted || !context.mounted) return;
+
+          // Check if login was successful and widget is still mounted
+          if (authProvider.status == AuthStatus.authenticated &&
+              context.mounted) {
+            // Show success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Logged in successfully!'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+            // Modal will be closed automatically by the Consumer listener
+          } else if (authProvider.error != null && context.mounted) {
+            // Show error message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(authProvider.error!),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        } else {
+          // Capture values before async operation to avoid disposal issues
+          final firstName = _firstNameController?.text.trim() ?? '';
+          final lastName = _lastNameController?.text.trim() ?? '';
+          final email = _emailController?.text.trim() ?? '';
+          final phone = _phoneController?.text.trim() ?? '';
+          final gender = selectedGender ?? 'Other';
+          final civilStatus = selectedCivilStatus ?? 'Single';
+          final dateOfBirth = _dateOfBirthController?.text.trim() ?? '';
+          final churchName = selectedChurchLocation ?? 'demo';
+
+          if (_isDisposed || !mounted || email.isEmpty) return;
+          await authProvider.signup(
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            phone: phone,
+            gender: gender,
+            civilStatus: civilStatus,
+            dateOfBirth: dateOfBirth,
+            churchName: churchName,
+          );
+
+          if (_isDisposed || !mounted || !context.mounted) return;
+
+          // Show success message and switch to login
+          if (mounted && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Registration successful! Please log in.'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
+              ),
+            );
+            if (!_isDisposed && mounted) {
+              setState(() {
+                isLogin = true;
+              });
+            }
+          }
+        }
+      } catch (e) {
+        if (!_isDisposed && mounted && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
+  }
+
+  void _handleForgotPassword() async {
+    if (_isDisposed || !mounted) return;
+
+    // Capture email value before async operation
+    final email = _emailController?.text.trim() ?? '';
+
+    if (_isDisposed || !mounted || email.isEmpty) return;
+
+    if (email.isEmpty) {
+      if (!_isDisposed && mounted && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter your email first'),
+            backgroundColor: Colors.orange,
+          ),
         );
       }
+      return;
+    }
+
+    try {
+      if (_isDisposed || !mounted) return;
+
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.forgotPassword(email);
+
+      if (!_isDisposed && mounted && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password reset email sent!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!_isDisposed && mounted && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send reset email: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _selectDate() async {
+    if (_isDisposed || !mounted) return;
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().subtract(const Duration(days: 18 * 365)),
+      firstDate: DateTime(1920),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null && !_isDisposed && mounted) {
+      setState(() {
+        _dateOfBirthController?.text =
+            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      });
     }
   }
 
@@ -249,6 +434,18 @@ class _AuthScreenState extends State<AuthScreen> {
                   padding: const EdgeInsets.all(24),
                   child: Consumer<AuthProvider>(
                     builder: (context, authProvider, child) {
+                      // Check if authentication succeeded and close modal
+                      if (authProvider.status == AuthStatus.authenticated) {
+                        // Use addPostFrameCallback to ensure we don't interrupt the build process
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (Navigator.canPop(context) && mounted) {
+                            debugPrint(
+                              'AuthProvider status is authenticated, closing modal automatically...',
+                            );
+                            Navigator.of(context).pop();
+                          }
+                        });
+                      }
                       return Form(
                         key: _formKey,
                         child: SingleChildScrollView(
@@ -382,6 +579,180 @@ class _AuthScreenState extends State<AuthScreen> {
                                   },
                                 ),
                                 const SizedBox(height: 16),
+
+                                // Gender Dropdown
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.grey[300]!,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: DropdownButtonFormField<String>(
+                                    initialValue: selectedGender,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Gender',
+                                      prefixIcon: Icon(
+                                        Icons.person_outline,
+                                        color: Colors.grey,
+                                      ),
+                                      border: InputBorder.none,
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 16,
+                                      ),
+                                    ),
+                                    dropdownColor: Colors.white,
+                                    items: genders.map((gender) {
+                                      return DropdownMenuItem(
+                                        value: gender,
+                                        child: Text(
+                                          gender,
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedGender = value;
+                                      });
+                                    },
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please select your gender';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Civil Status Dropdown
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.grey[300]!,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: DropdownButtonFormField<String>(
+                                    initialValue: selectedCivilStatus,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Civil Status',
+                                      prefixIcon: Icon(
+                                        Icons.favorite_outline,
+                                        color: Colors.grey,
+                                      ),
+                                      border: InputBorder.none,
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 16,
+                                      ),
+                                    ),
+                                    dropdownColor: Colors.white,
+                                    items: civilStatuses.map((status) {
+                                      return DropdownMenuItem(
+                                        value: status,
+                                        child: Text(
+                                          status,
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedCivilStatus = value;
+                                      });
+                                    },
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please select your civil status';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Date of Birth
+                                GestureDetector(
+                                  onTap: _selectDate,
+                                  child: AbsorbPointer(
+                                    child: CustomTextField(
+                                      hintText: 'Date of Birth',
+                                      prefixIcon: Icons.calendar_today_outlined,
+                                      controller: _dateOfBirthController,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please select your date of birth';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+
+                              // Church Location for Login (required by API)
+                              if (isLogin) ...[
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.grey[300]!,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: DropdownButtonFormField<String>(
+                                    initialValue: selectedChurchLocation,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Church Location',
+                                      prefixIcon: Icon(
+                                        Icons.location_on_outlined,
+                                        color: Colors.grey,
+                                      ),
+                                      border: InputBorder.none,
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 16,
+                                      ),
+                                    ),
+                                    dropdownColor: Colors.white,
+                                    items: churchLocations.map((location) {
+                                      return DropdownMenuItem(
+                                        value: location,
+                                        child: Text(
+                                          location,
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedChurchLocation = value;
+                                      });
+                                    },
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please select a church location';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
                               ],
 
                               // Password
@@ -410,7 +781,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                   obscureText: true,
                                   controller: _confirmPasswordController,
                                   validator: (value) {
-                                    if (value != _passwordController.text) {
+                                    if (value !=
+                                        (_passwordController?.text ?? '')) {
                                       return 'Passwords do not match';
                                     }
                                     return null;
@@ -424,7 +796,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   alignment: Alignment.centerRight,
                                   child: TextButton(
                                     onPressed: () {
-                                      // Handle forgot password
+                                      _handleForgotPassword();
                                     },
                                     child: const Text(
                                       'Forgot Password?',
