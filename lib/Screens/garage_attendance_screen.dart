@@ -6,16 +6,25 @@ class GarageAttendanceScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Garage Attendance'),
+        title: const Text(
+          'Garage',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        elevation: 1,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: const Center(
-        child: Text(
-          'Garage Attendance Screen',
-          style: TextStyle(fontSize: 18, color: Colors.black54),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [],
         ),
       ),
     );

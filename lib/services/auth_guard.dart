@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../entities/user.dart';
+import '../models/user.dart';
 
 /// Service to handle persistent authentication state
 class AuthGuard {
@@ -8,6 +8,8 @@ class AuthGuard {
   static const String _userIdKey = 'user_id';
   static const String _userNameKey = 'user_name';
   static const String _userEmailKey = 'user_email';
+  static const String _userRoleKey = 'user_role';
+  static const String _userDepartmentKey = 'user_department';
 
   /// Check if user is currently logged in
   static Future<bool> isLoggedIn() async {
@@ -22,28 +24,47 @@ class AuthGuard {
   }
 
   /// Save user authentication data
-  static Future<void> saveUserData(UserEntity user, String token) async {
+  static Future<void> saveUserData(User user, String token) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_tokenKey, token);
       await prefs.setString(_userIdKey, user.id);
       await prefs.setString(_userNameKey, user.name);
       await prefs.setString(_userEmailKey, user.email);
+      await prefs.setString(_userRoleKey, user.role.name);
+      await prefs.setString(_userDepartmentKey, user.department);
     } catch (e) {
       debugPrint('Error saving user data: $e');
     }
   }
 
   /// Get saved user data
-  static Future<UserEntity?> getSavedUser() async {
+  static Future<User?> getSavedUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getString(_userIdKey);
       final userName = prefs.getString(_userNameKey);
       final userEmail = prefs.getString(_userEmailKey);
+      final userRoleString = prefs.getString(_userRoleKey);
+      final userDepartment = prefs.getString(_userDepartmentKey);
 
-      if (userId != null && userName != null && userEmail != null) {
-        return UserEntity(id: userId, name: userName, email: userEmail);
+      if (userId != null &&
+          userName != null &&
+          userEmail != null &&
+          userRoleString != null &&
+          userDepartment != null) {
+        final userRole = UserRole.values.firstWhere(
+          (role) => role.name == userRoleString,
+          orElse: () => UserRole.restricted,
+        );
+
+        return User(
+          id: userId,
+          name: userName,
+          email: userEmail,
+          role: userRole,
+          department: userDepartment,
+        );
       }
       return null;
     } catch (e) {
@@ -71,6 +92,8 @@ class AuthGuard {
       await prefs.remove(_userIdKey);
       await prefs.remove(_userNameKey);
       await prefs.remove(_userEmailKey);
+      await prefs.remove(_userRoleKey);
+      await prefs.remove(_userDepartmentKey);
     } catch (e) {
       debugPrint('Error clearing user data: $e');
     }

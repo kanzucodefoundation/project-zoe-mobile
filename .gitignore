@@ -1,20 +1,3 @@
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# IDE/Editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Backend (NestJS/Node.js)
 # Miscellaneous
 *.class
 *.log
@@ -60,23 +43,3 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-
-
-# Web
-frontend/zoe/web/manifest.json
-
-# Windows
-frontend/zoe/windows/flutter/generated_plugin_registrant.*
-
-# macOS
-frontend/zoe/macos/Flutter/GeneratedPluginRegistrant.swift
-
-# Linux
-frontend/zoe/linux/flutter/generated_plugin_registrant.*
-
-# Coverage
-coverage/
-
-# Exceptions to above rules
-!frontend/zoe/android/app/src/main/AndroidManifest.xml
-!frontend/zoe/ios/Runner/Info.plist
