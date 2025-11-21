@@ -870,7 +870,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               const SizedBox(height: 24),
 
                               // Google sign in
-                              /*Container(
+                              Container(
                                 height: 56,
                                 decoration: BoxDecoration(
                                   border: Border.all(
@@ -902,7 +902,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                     ],
                                   ),
                                 ),
-                              ),*/
+                              ),
                               const SizedBox(height: 32),
                             ],
                           ),
