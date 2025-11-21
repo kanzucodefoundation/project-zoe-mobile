@@ -5,7 +5,7 @@ import 'package:frontend/widgets/app_wrapper.dart';
 import 'package:frontend/api/api_client.dart';
 import 'package:frontend/screens/mc_report_screen.dart';
 import 'package:frontend/screens/garage_attendance_screen.dart';
-import 'package:frontend/screens/shepherds_details_screen.dart';
+import 'package:frontend/screens/details_screens/shepherd_details_screen.dart';
 import 'package:frontend/screens/reports_screen.dart';
 import 'package:frontend/screens/admin_screen.dart';
 
@@ -38,7 +38,8 @@ class MyApp extends StatelessWidget {
         routes: {
           '/mc-report': (context) => const McReportScreen(),
           '/garage-attendance': (context) => const GarageAttendanceScreen(),
-          '/shepherds-details': (context) => const ShepherdsDetailsScreen(),
+          '/shepherds-details': (context) =>
+              const ShepherdDetailsScreen(shepherdId: ''),
           '/reports': (context) => const ReportsScreen(),
           '/admin': (context) => const AdminScreen(),
         },

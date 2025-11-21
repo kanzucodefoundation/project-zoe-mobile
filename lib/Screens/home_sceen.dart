@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/Screens/shepherds_screen.dart';
+import 'package:frontend/components/report_card.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/dashboard_cards.dart';
-import '../widgets/announcements_section.dart';
+import 'mc_report_screen.dart';
+import 'garage_attendance_screen.dart';
 
 class HomeSceen extends StatelessWidget {
   const HomeSceen({super.key});
@@ -78,7 +80,7 @@ class HomeSceen extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Text(
-              'Quick Actions',
+              'Reports',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -87,10 +89,58 @@ class HomeSceen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const DashboardCardsSection(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                ReportCard(
+                  reportTitle: 'MC Report',
+                  reportIcon: Icons.church,
+                  iconColor: Colors.black,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const McReportScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ReportCard(
+                  reportTitle: 'Garage',
+                  reportIcon: Icons.garage,
+                  iconColor: Colors.black,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const GarageAttendanceScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ReportCard(
+                  reportTitle: 'Shepherds',
+                  reportIcon: Icons.people,
+                  iconColor: Colors.black,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ShepherdsScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+          // const DashboardCardsSection(),
 
           // Announcements Section
-          const AnnouncementsSection(),
+          // const AnnouncementsSection(),
 
           // Bottom padding for navigation bar
           const SizedBox(height: 100),

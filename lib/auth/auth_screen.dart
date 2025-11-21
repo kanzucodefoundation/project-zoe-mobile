@@ -117,15 +117,8 @@ class _AuthScreenState extends State<AuthScreen> {
           // Check if login was successful and widget is still mounted
           if (authProvider.status == AuthStatus.authenticated &&
               context.mounted) {
-            // Show success message
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Logged in successfully!'),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 2),
-              ),
-            );
-            // Modal will be closed automatically by the Consumer listener
+            // Login successful - AppWrapper will automatically navigate to MainScaffold
+            // No need for manual navigation or SnackBar since navigation indicates success
           } else if (authProvider.error != null && context.mounted) {
             // Show error message
             ScaffoldMessenger.of(context).showSnackBar(
