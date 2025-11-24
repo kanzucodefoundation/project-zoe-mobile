@@ -1,5 +1,5 @@
 /// User roles enum to define permission levels
-enum UserRole { admin, restricted }
+enum UserRole { admin, restricted, moderator, viewer }
 
 /// User model for authentication and authorization
 class User {
@@ -27,9 +27,13 @@ class User {
   String get roleDisplayName {
     switch (role) {
       case UserRole.admin:
-        return 'Administrator';
+        return 'Admin';
       case UserRole.restricted:
         return 'Restricted User';
+      case UserRole.moderator:
+        return 'Moderator';
+      case UserRole.viewer:
+        return 'Viewer';
     }
   }
 

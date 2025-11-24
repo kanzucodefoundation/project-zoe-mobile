@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../models/user.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -123,6 +124,44 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     authProvider.user?.email ?? 'user@example.com',
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
+                  const SizedBox(height: 12),
+                  // User Role Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getRoleColor(
+                        authProvider.user?.role ?? UserRole.restricted,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _getRoleIcon(
+                            authProvider.user?.role ?? UserRole.restricted,
+                          ),
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          (authProvider.user?.roleDisplayName ??
+                                  'Restricted User')
+                              .toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -185,6 +224,34 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
 
     return 'U';
+  }
+
+  /// Get the color for a specific user role
+  Color _getRoleColor(UserRole role) {
+    switch (role) {
+      case UserRole.admin:
+        return const Color(0xFFE53E3E); // Red for admin
+      case UserRole.moderator:
+        return const Color(0xFF059669); // Green for moderator
+      case UserRole.viewer:
+        return const Color(0xFF7C3AED); // Purple for viewer
+      case UserRole.restricted:
+        return const Color(0xFF2563EB); // Blue for restricted
+    }
+  }
+
+  /// Get the icon for a specific user role
+  IconData _getRoleIcon(UserRole role) {
+    switch (role) {
+      case UserRole.admin:
+        return Icons.admin_panel_settings;
+      case UserRole.moderator:
+        return Icons.shield;
+      case UserRole.viewer:
+        return Icons.visibility;
+      case UserRole.restricted:
+        return Icons.person;
+    }
   }
 
   @override

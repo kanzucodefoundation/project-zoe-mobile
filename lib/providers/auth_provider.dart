@@ -51,9 +51,11 @@ class AuthProvider extends ChangeNotifier {
     String password, {
     String? churchName,
   }) async {
+    debugPrint('AuthProvider: Starting login for $email');
     _status = AuthStatus.authenticating;
     _error = null;
     notifyListeners();
+    debugPrint('AuthProvider: Status set to authenticating');
 
     try {
       // Demo credentials for development - support both admin and restricted users
@@ -82,6 +84,9 @@ class AuthProvider extends ChangeNotifier {
       }
 
       if (demoUser != null && (churchName == 'demo' || churchName == null)) {
+        debugPrint(
+          'AuthProvider: Valid credentials found, setting authenticated status',
+        );
         _user = demoUser;
         _status = AuthStatus.authenticated;
         _error = null;
@@ -96,7 +101,11 @@ class AuthProvider extends ChangeNotifier {
         await AuthGuard.saveUserData(_user!, token);
 
         // Notify listeners immediately after successful authentication
+        debugPrint(
+          'AuthProvider: About to notify listeners with authenticated status',
+        );
         notifyListeners();
+        debugPrint('AuthProvider: Login successful, status = $_status');
       } else {
         throw Exception(
           'Invalid credentials. Use one of:\n\n'
@@ -110,10 +119,12 @@ class AuthProvider extends ChangeNotifier {
         );
       }
     } catch (e) {
+      debugPrint('AuthProvider: Login failed with error: $e');
       _status = AuthStatus.failed;
       _error = e.toString();
     }
 
+    debugPrint('AuthProvider: Final login status = $_status');
     notifyListeners();
   }
 

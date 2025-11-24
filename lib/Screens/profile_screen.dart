@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../models/user.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -119,25 +120,45 @@ class ProfileScreen extends StatelessWidget {
                     color: Colors.black,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
 
-                // User Role Badge
+                // User Role Badge - Made more prominent
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                    horizontal: 20,
+                    vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: user.isAdmin ? Colors.red : Colors.blue,
-                    borderRadius: BorderRadius.circular(20),
+                    color: _getRoleColor(user.role),
+                    borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _getRoleColor(user.role).withValues(alpha: 0.3),
+                        spreadRadius: 1,
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    user.roleDisplayName,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _getRoleIcon(user.role),
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        user.roleDisplayName.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -323,5 +344,33 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Get the color for a specific user role
+  Color _getRoleColor(UserRole role) {
+    switch (role) {
+      case UserRole.admin:
+        return const Color(0xFFE53E3E); // Red for admin
+      case UserRole.moderator:
+        return const Color(0xFF059669); // Green for moderator
+      case UserRole.viewer:
+        return const Color(0xFF7C3AED); // Purple for viewer
+      case UserRole.restricted:
+        return const Color(0xFF2563EB); // Blue for restricted
+    }
+  }
+
+  /// Get the icon for a specific user role
+  IconData _getRoleIcon(UserRole role) {
+    switch (role) {
+      case UserRole.admin:
+        return Icons.admin_panel_settings;
+      case UserRole.moderator:
+        return Icons.shield;
+      case UserRole.viewer:
+        return Icons.visibility;
+      case UserRole.restricted:
+        return Icons.person;
+    }
   }
 }
