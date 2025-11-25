@@ -71,7 +71,7 @@ class ShepherdsTile extends StatelessWidget {
           ),
 
           // Contact Button
-          Container(
+          SizedBox(
             width: 80,
             height: 36,
             child: ElevatedButton(

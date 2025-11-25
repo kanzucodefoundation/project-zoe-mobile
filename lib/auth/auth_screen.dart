@@ -13,7 +13,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool isLogin = true;
-  final _formKey = GlobalKey<FormState>();
+  late GlobalKey<FormState> _formKey;
 
   // Controllers for all fields - nullable for safe disposal
   TextEditingController? _emailController;
@@ -49,6 +49,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   void initState() {
     super.initState();
+    _formKey = GlobalKey<FormState>();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
@@ -112,10 +113,13 @@ class _AuthScreenState extends State<AuthScreen> {
           // Check if login was successful and widget is still mounted
           if (authProvider.status == AuthStatus.authenticated &&
               context.mounted) {
-            // Login successful - AppWrapper will automatically navigate to MainScaffold
-            // No need for manual navigation or SnackBar since navigation indicates success
+            // Login successful - Close the bottom sheet
+            if (!_isDisposed && mounted) {
+              Navigator.pop(context);
+            }
+            // AppWrapper will automatically navigate to MainScaffold
           } else if (authProvider.error != null && context.mounted) {
-            // Show error message
+            // Login failed - Show error message and keep bottom sheet open
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(authProvider.error!),
@@ -238,6 +242,10 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  void _resetFormKey() {
+    _formKey = GlobalKey<FormState>();
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -322,6 +330,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       setState(() {
                         isLogin = true;
                       });
+                      _resetFormKey();
                       _showAuthBottomSheet();
                     },
                     backgroundColor: Colors.white,
@@ -338,6 +347,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       setState(() {
                         isLogin = false;
                       });
+                      _resetFormKey();
                       _showAuthBottomSheet();
                     },
                     isOutlined: true,

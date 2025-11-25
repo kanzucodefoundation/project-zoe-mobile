@@ -155,69 +155,64 @@ class AnnouncementsSection extends StatelessWidget {
               ],
             ),
           ),
-          ...announcements
-              .map(
-                (announcement) => Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: (announcement['isImportant'] as bool)
-                        ? Border.all(color: Colors.red, width: 1)
-                        : null,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          ...announcements.map(
+            (announcement) => Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: (announcement['isImportant'] as bool)
+                    ? Border.all(color: Colors.red, width: 1)
+                    : null,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          if (announcement['isImportant'] as bool)
-                            const Icon(
-                              Icons.priority_high,
-                              color: Colors.red,
-                              size: 20,
-                            ),
-                          if (announcement['isImportant'] as bool)
-                            const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              announcement['title'] as String,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: (announcement['isImportant'] as bool)
-                                    ? Colors.red
-                                    : Colors.black,
-                              ),
-                            ),
+                      if (announcement['isImportant'] as bool)
+                        const Icon(
+                          Icons.priority_high,
+                          color: Colors.red,
+                          size: 20,
+                        ),
+                      if (announcement['isImportant'] as bool)
+                        const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          announcement['title'] as String,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: (announcement['isImportant'] as bool)
+                                ? Colors.red
+                                : Colors.black,
                           ),
-                          Text(
-                            _formatDate(announcement['date'] as DateTime),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: 8),
                       Text(
-                        announcement['content'] as String,
+                        _formatDate(announcement['date'] as DateTime),
                         style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade800,
-                          height: 1.4,
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
                         ),
                       ),
                     ],
                   ),
-                ),
-              )
-              .toList(),
+                  const SizedBox(height: 8),
+                  Text(
+                    announcement['content'] as String,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade800,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 16),
         ],
       ),

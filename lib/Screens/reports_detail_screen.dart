@@ -489,7 +489,7 @@ class ReportDetailScreen extends StatelessWidget {
                 entry.key.toString().replaceAll('_', ' ').toUpperCase(),
                 entry.value.toString(),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
@@ -602,7 +602,7 @@ class ReportDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Text('• $item'),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -775,8 +775,9 @@ class ReportDetailScreen extends StatelessWidget {
       return Icons.attach_money;
     }
     if (lowerKey.contains('event')) return Icons.event;
-    if (lowerKey.contains('rate') || lowerKey.contains('percentage'))
+    if (lowerKey.contains('rate') || lowerKey.contains('percentage')) {
       return Icons.trending_up;
+    }
     return Icons.analytics;
   }
 

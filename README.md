@@ -72,7 +72,7 @@ lib/
 
    ```bash
    git clone https://github.com/kasujjabash/project-zoe-mobile-app.git
-   cd project-zoe-mobile-app/frontend
+   cd project-zoe-mobile-app
    ```
 
 2. **Install dependencies:**
