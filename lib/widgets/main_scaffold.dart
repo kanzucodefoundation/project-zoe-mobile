@@ -3,6 +3,7 @@ import 'custom_app_bar.dart';
 import 'custom_drawer.dart';
 import 'beautiful_bottom_nav.dart';
 import '../Screens/home_sceen.dart';
+import '../Screens/reports_screen.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -18,8 +19,8 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: CustomAppBar(title: _getTitle()),
-      drawer: const CustomDrawer(),
+      appBar: _currentIndex == 1 ? CustomAppBar(title: _getTitle()) : null,
+      drawer: _currentIndex == 1 ? const CustomDrawer() : null,
       body: _getBody(),
       bottomNavigationBar: BeautifulBottomNavBar(
         selectedIndex: _currentIndex,
@@ -44,12 +45,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget _getBody() {
     switch (_currentIndex) {
       case 0:
-        return const Center(
-          child: Text(
-            'Reports Screen',
-            style: TextStyle(fontSize: 18, color: Colors.black54),
-          ),
-        );
+        return const ReportsScreen();
       case 1:
         return const HomeSceen();
       case 2:

@@ -23,6 +23,7 @@ class _AuthScreenState extends State<AuthScreen> {
   TextEditingController? _lastNameController;
   TextEditingController? _phoneController;
   TextEditingController? _workPlaceController;
+  TextEditingController? _churchController;
 
   // Additional fields for API
   TextEditingController? _dateOfBirthController;
@@ -40,16 +41,7 @@ class _AuthScreenState extends State<AuthScreen> {
     'Widowed',
   ];
 
-  // Church location dropdown
-  String? selectedChurchLocation;
-  final List<String> churchLocations = [
-    'demo',
-    'WH Naalya',
-    'WH Kisaasi',
-    'WH Busega',
-    'WH Gayaza',
-    'WH Downtown',
-  ];
+  // Church location text field
 
   // Add cancellation tracking
   bool _isDisposed = false;
@@ -64,6 +56,7 @@ class _AuthScreenState extends State<AuthScreen> {
     _lastNameController = TextEditingController();
     _phoneController = TextEditingController();
     _workPlaceController = TextEditingController();
+    _churchController = TextEditingController();
     _dateOfBirthController = TextEditingController();
   }
 
@@ -78,6 +71,7 @@ class _AuthScreenState extends State<AuthScreen> {
       _lastNameController?.dispose();
       _phoneController?.dispose();
       _workPlaceController?.dispose();
+      _churchController?.dispose();
       _dateOfBirthController?.dispose();
     } catch (e) {
       // Controllers might already be disposed, ignore errors
@@ -91,6 +85,7 @@ class _AuthScreenState extends State<AuthScreen> {
     _lastNameController = null;
     _phoneController = null;
     _workPlaceController = null;
+    _churchController = null;
     _dateOfBirthController = null;
     super.dispose();
   }
@@ -104,7 +99,7 @@ class _AuthScreenState extends State<AuthScreen> {
           // Capture values before async operation to avoid disposal issues
           final email = _emailController?.text.trim() ?? '';
           final password = _passwordController?.text ?? '';
-          final churchName = selectedChurchLocation ?? 'demo';
+          final churchName = _churchController?.text.trim() ?? 'demo';
 
           if (_isDisposed || !mounted || email.isEmpty || password.isEmpty)
             return;
@@ -137,7 +132,7 @@ class _AuthScreenState extends State<AuthScreen> {
           final gender = selectedGender ?? 'Other';
           final civilStatus = selectedCivilStatus ?? 'Single';
           final dateOfBirth = _dateOfBirthController?.text.trim() ?? '';
-          final churchName = selectedChurchLocation ?? 'demo';
+          final churchName = _churchController?.text.trim() ?? 'demo';
 
           if (_isDisposed || !mounted || email.isEmpty) return;
           await authProvider.signup(
@@ -388,9 +383,8 @@ class _AuthScreenState extends State<AuthScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(width: 24),
                     Text(
                       isLogin ? 'LOG IN' : 'SIGN UP',
                       style: const TextStyle(
@@ -398,10 +392,6 @@ class _AuthScreenState extends State<AuthScreen> {
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, color: Colors.black),
                     ),
                   ],
                 ),
@@ -427,18 +417,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   padding: const EdgeInsets.all(24),
                   child: Consumer<AuthProvider>(
                     builder: (context, authProvider, child) {
-                      // Check if authentication succeeded and close modal
-                      if (authProvider.status == AuthStatus.authenticated) {
-                        // Use addPostFrameCallback to ensure we don't interrupt the build process
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (Navigator.canPop(context) && mounted) {
-                            debugPrint(
-                              'AuthProvider status is authenticated, closing modal automatically...',
-                            );
-                            Navigator.of(context).pop();
-                          }
-                        });
-                      }
+                      // Authentication state is handled by AppWrapper, no need for manual navigation
                       return Form(
                         key: _formKey,
                         child: SingleChildScrollView(
@@ -467,6 +446,22 @@ class _AuthScreenState extends State<AuthScreen> {
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter your last name';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+
+                              // Church Location (first for login)
+                              if (isLogin) ...[
+                                CustomTextField(
+                                  hintText: 'Church Location',
+                                  prefixIcon: Icons.location_on_outlined,
+                                  controller: _churchController,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter church location';
                                     }
                                     return null;
                                   },
@@ -508,54 +503,17 @@ class _AuthScreenState extends State<AuthScreen> {
                                 ),
                                 const SizedBox(height: 16),
 
-                                // Church Location Dropdown
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: Colors.grey[300]!,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: DropdownButtonFormField<String>(
-                                    initialValue: selectedChurchLocation,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Church Location',
-                                      prefixIcon: Icon(
-                                        Icons.location_on_outlined,
-                                        color: Colors.grey,
-                                      ),
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 16,
-                                      ),
-                                    ),
-                                    dropdownColor: Colors.white,
-                                    items: churchLocations.map((location) {
-                                      return DropdownMenuItem(
-                                        value: location,
-                                        child: Text(
-                                          location,
-                                          style: const TextStyle(
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        selectedChurchLocation = value;
-                                      });
-                                    },
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please select a church location';
-                                      }
-                                      return null;
-                                    },
-                                  ),
+                                // Church Location
+                                CustomTextField(
+                                  hintText: 'Church Location',
+                                  prefixIcon: Icons.location_on_outlined,
+                                  controller: _churchController,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter church location';
+                                    }
+                                    return null;
+                                  },
                                 ),
                                 const SizedBox(height: 16),
 
@@ -690,59 +648,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                         return null;
                                       },
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                              ],
-
-                              // Church Location for Login (required by API)
-                              if (isLogin) ...[
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: Colors.grey[300]!,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: DropdownButtonFormField<String>(
-                                    initialValue: selectedChurchLocation,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Church Location',
-                                      prefixIcon: Icon(
-                                        Icons.location_on_outlined,
-                                        color: Colors.grey,
-                                      ),
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 16,
-                                      ),
-                                    ),
-                                    dropdownColor: Colors.white,
-                                    items: churchLocations.map((location) {
-                                      return DropdownMenuItem(
-                                        value: location,
-                                        child: Text(
-                                          location,
-                                          style: const TextStyle(
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        selectedChurchLocation = value;
-                                      });
-                                    },
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please select a church location';
-                                      }
-                                      return null;
-                                    },
                                   ),
                                 ),
                                 const SizedBox(height: 16),
