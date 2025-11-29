@@ -31,49 +31,12 @@ class AuthService {
         throw Exception(response.message ?? 'Login failed');
       }
     } catch (e) {
-      // Handle network connection errors with fallback authentication
-      String errorMessage = e.toString().toLowerCase();
-
-      if (errorMessage.contains('connection') ||
-          errorMessage.contains('network') ||
-          errorMessage.contains('internet') ||
-          errorMessage.contains('timeout') ||
-          errorMessage.contains('dio')) {
-        // Fallback authentication for development/testing
-        if (_isValidTestCredentials(email, password, churchName)) {
-          return UserEntity(
-            id: 'test-user-id',
-            name: 'Test User',
-            email: email,
-          );
-        } else {
-          throw Exception(
-            'Cannot connect to server. Please check your internet connection and try again.',
-          );
-        }
-      }
-
       // Re-throw with more specific error message
       if (e is ApiErrorResponse) {
         throw Exception(e.message);
       }
       throw Exception('Login failed: ${e.toString()}');
     }
-  }
-
-  /// Check if credentials are valid for fallback authentication
-  static bool _isValidTestCredentials(
-    String email,
-    String password,
-    String churchName,
-  ) {
-    // Allow some test credentials for development
-    return (email == 'john.doe@kanzucodefoundation.org' &&
-            password == 'Xpass@123' &&
-            churchName == 'demo') ||
-        (email == 'test@example.com' &&
-            password == 'test123' &&
-            churchName == 'demo');
   }
 
   /// Register user and return success status

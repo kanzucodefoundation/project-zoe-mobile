@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'api_client.dart';
-import 'api_endpoints.dart';
+import 'endpoints/auth_endpoints.dart';
 import 'api_models.dart';
 
 class AuthApi {
@@ -14,7 +14,7 @@ class AuthApi {
   static Future<LoginResponse> login(LoginRequest request) async {
     try {
       final response = await _dio.post(
-        ApiEndpoints.login,
+        AuthEndpoints.login,
         data: request.toJson(),
       );
 
@@ -36,7 +36,7 @@ class AuthApi {
   static Future<RegisterResponse> register(RegisterRequest request) async {
     try {
       final response = await _dio.post(
-        ApiEndpoints.register,
+        AuthEndpoints.register,
         data: request.toJson(),
       );
 
@@ -60,7 +60,7 @@ class AuthApi {
   ) async {
     try {
       final response = await _dio.post(
-        ApiEndpoints.forgotPassword,
+        AuthEndpoints.forgotPassword,
         data: request.toJson(),
       );
 
@@ -85,7 +85,7 @@ class AuthApi {
   ) async {
     try {
       final response = await _dio.put(
-        ApiEndpoints.resetPasswordWithToken(token),
+        AuthEndpoints.resetPasswordWithToken(token),
         data: request.toJson(),
       );
 

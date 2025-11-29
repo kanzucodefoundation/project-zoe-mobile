@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/auth_guard.dart';
+import '../services/auth_service.dart';
 import '../api/api_client.dart';
+import '../entities/user.dart';
 
 enum AuthStatus { unauthenticated, authenticating, authenticated, failed }
 
@@ -58,74 +60,69 @@ class AuthProvider extends ChangeNotifier {
     debugPrint('AuthProvider: Status set to authenticating');
 
     try {
-      // Demo credentials for development - support both admin and restricted users
-      User? demoUser;
+      // Use real API authentication
+      final userEntity = await AuthService.loginUser(
+        email: email,
+        password: password,
+        churchName: churchName ?? 'default',
+      );
 
-      if (email == 'john.doe@kanzucodefoundation.org' &&
-          password == 'Xpass@123') {
-        // Admin user
-        demoUser = User(
-          id: 'admin-001',
-          name: 'John Doe',
-          email: 'john.doe@kanzucodefoundation.org',
-          role: UserRole.admin,
-          department: 'IT Administration',
-        );
-      } else if (email == 'jane.doe@kanzucodefoundation.org' &&
-          password == 'Password@1') {
-        // Restricted user
-        demoUser = User(
-          id: 'user-001',
-          name: 'Jane Doe',
-          email: 'jane.doe@kanzucodefoundation.org',
-          role: UserRole.restricted,
-          department: 'Church Operations',
-        );
-      }
+      // Convert UserEntity to User model
+      final user = User(
+        id: userEntity.id,
+        name: userEntity.name,
+        email: userEntity.email,
+        role: UserRole.admin, // Default to admin for now
+        department: 'Church Operations',
+      );
 
-      if (demoUser != null && (churchName == 'demo' || churchName == null)) {
-        debugPrint(
-          'AuthProvider: Valid credentials found, setting authenticated status',
-        );
-        _user = demoUser;
-        _status = AuthStatus.authenticated;
-        _error = null;
+      debugPrint(
+        'AuthProvider: Valid credentials found, setting authenticated status',
+      );
+      _user = user;
+      _status = AuthStatus.authenticated;
+      _error = null;
 
-        // Generate development auth token
-        final token = 'dev-token-${DateTime.now().millisecondsSinceEpoch}';
+      // Generate auth token (this should come from API response)
+      final token = 'api-token-${DateTime.now().millisecondsSinceEpoch}';
 
-        // Set auth token for API calls (if needed later)
-        ApiClient().setAuthToken(token);
+      // Set auth token for API calls
+      ApiClient().setAuthToken(token);
 
-        // Save user data persistently
-        await AuthGuard.saveUserData(_user!, token);
+      // Save user data persistently
+      await AuthGuard.saveUserData(_user!, token);
 
-        // Notify listeners immediately after successful authentication
-        debugPrint(
-          'AuthProvider: About to notify listeners with authenticated status',
-        );
-        notifyListeners();
-        debugPrint('AuthProvider: Login successful, status = $_status');
-      } else {
-        throw Exception(
-          'Invalid credentials. Use one of:\n\n'
-          'Admin User:\n'
-          'Email: john.doe@kanzucodefoundation.org\n'
-          'Password: Xpass@123\n\n'
-          'Restricted User:\n'
-          'Email: jane.doe@kanzucodefoundation.org\n'
-          'Password: Password@1\n\n'
-          'Church: demo',
-        );
-      }
+      // Notify listeners immediately after successful authentication
+      debugPrint(
+        'AuthProvider: About to notify listeners with authenticated status',
+      );
+      notifyListeners();
+      debugPrint('AuthProvider: Login successful, status = $_status');
     } catch (e) {
       debugPrint('AuthProvider: Login failed with error: $e');
       _status = AuthStatus.failed;
-      _error = e.toString();
+
+      // Handle specific error cases for better user experience
+      if (e.toString().contains('user not found') ||
+          e.toString().contains('User does not exist') ||
+          e.toString().contains('404')) {
+        _error =
+            'User not found. Please check your credentials or register first.';
+      } else if (e.toString().contains('invalid password') ||
+          e.toString().contains('incorrect password') ||
+          e.toString().contains('401')) {
+        _error = 'Invalid password. Please try again.';
+      } else if (e.toString().contains('network') ||
+          e.toString().contains('connection')) {
+        _error = 'Network error. Please check your internet connection.';
+      } else {
+        _error = e.toString();
+      }
+
+      notifyListeners();
     }
 
     debugPrint('AuthProvider: Final login status = $_status');
-    notifyListeners();
   }
 
   Future<void> signup({
@@ -142,38 +139,43 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    // For development - disable signup, show login credentials
-    await Future.delayed(const Duration(milliseconds: 500)); // Simulate loading
+    try {
+      // Use real API registration
+      final success = await AuthService.registerUser(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        gender: gender,
+        civilStatus: civilStatus,
+        dateOfBirth: dateOfBirth,
+        churchName: churchName,
+      );
 
-    _status = AuthStatus.failed;
-    _error =
-        'Signup disabled for development.\n\n'
-        'Use these credentials to login:\n\n'
-        'Admin User:\n'
-        'Email: john.doe@kanzucodefoundation.org\n'
-        'Password: Xpass@123\n\n'
-        'Restricted User:\n'
-        'Email: jane.doe@kanzucodefoundation.org\n'
-        'Password: Password@1\n\n'
-        'Church: demo';
+      if (success) {
+        _status = AuthStatus.unauthenticated;
+        _error =
+            'Registration successful! Please log in with your credentials.';
+      } else {
+        _status = AuthStatus.failed;
+        _error = 'Registration failed. Please try again.';
+      }
+    } catch (e) {
+      _status = AuthStatus.failed;
+      _error = e.toString();
+    }
 
     notifyListeners();
   }
 
   Future<void> forgotPassword(String email) async {
-    // For development - disable forgot password, show login credentials
-    await Future.delayed(const Duration(milliseconds: 500)); // Simulate loading
-    throw Exception(
-      'Password reset disabled for development.\n\n'
-      'Use these credentials:\n\n'
-      'Admin User:\n'
-      'Email: john.doe@kanzucodefoundation.org\n'
-      'Password: Xpass@123\n\n'
-      'Restricted User:\n'
-      'Email: jane.doe@kanzucodefoundation.org\n'
-      'Password: Password@1\n\n'
-      'Church: demo',
-    );
+    try {
+      // Use real API for forgot password
+      await AuthService.forgotPassword(email);
+      // Success - this will be handled by the calling widget
+    } catch (e) {
+      throw Exception(e.toString());
+    }
   }
 
   /// Restore user session from saved data
