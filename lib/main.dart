@@ -7,7 +7,7 @@ import 'package:frontend/api/api_client.dart';
 import 'package:frontend/screens/mc_report_screen.dart';
 import 'package:frontend/screens/garage_attendance_screen.dart';
 import 'package:frontend/screens/details_screens/shepherd_details_screen.dart';
-import 'package:frontend/screens/reports_screen.dart';
+import 'package:frontend/Screens/reports_screen.dart';
 import 'package:frontend/screens/admin_screen.dart';
 
 void main() async {
@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
           '/garage-attendance': (context) => const GarageAttendanceScreen(),
           '/shepherds-details': (context) =>
               const ShepherdDetailsScreen(shepherdId: ''),
-          '/reports': (context) => const ReportsScreen(),
+          '/reports': (context) => ReportsScreen(),
           '/admin': (context) => const AdminScreen(),
         },
       ),

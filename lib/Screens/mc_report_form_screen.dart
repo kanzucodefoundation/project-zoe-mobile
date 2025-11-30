@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/report_provider.dart';
 import '../models/report.dart';
-import '../services/church_service.dart';
+import '../services/report_service.dart';
 
 /// MC (Missional Community) Report Form Screen
 class McReportFormScreen extends StatefulWidget {
@@ -34,6 +34,39 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
   String? _selectedMcId;
   String? _selectedMcName;
   bool _isLoadingMcs = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAvailableMcs();
+  }
+
+  /// Load available MCs from server
+  Future<void> _loadAvailableMcs() async {
+    try {
+      print('🔄 MC Form: Starting to load available MCs...');
+      final groups = await ReportService.getAvailableGroups();
+      print('✅ MC Form: Groups loaded successfully: $groups');
+      setState(() {
+        _availableMcs = groups;
+        _isLoadingMcs = false;
+      });
+      print('🎯 MC Form: State updated - MCs count: ${_availableMcs.length}');
+    } catch (e) {
+      print('❌ MC Form: Error loading MCs: $e');
+      setState(() {
+        _isLoadingMcs = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load MCs: ${e.toString()}'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {

@@ -8,10 +8,143 @@ class ReportService {
   static final ApiClient _apiClient = ApiClient();
   static Dio get _dio => _apiClient.dio;
 
+  /// Get available groups/MCs from server
+  static Future<List<Map<String, dynamic>>> getAvailableGroups() async {
+    try {
+      print('🔍 Fetching groups from /groups/combo...');
+      final response = await _dio.get('/groups/combo');
+      print('✅ Groups response received: ${response.data}');
+      print('📊 Response type: ${response.data.runtimeType}');
+
+      final List<dynamic> groupsData = response.data ?? [];
+      print('📝 Parsed groups count: ${groupsData.length}');
+
+      final result = groupsData
+          .map(
+            (group) => {
+              'id': group['id'],
+              'name': group['name'] ?? 'Unknown Group',
+            },
+          )
+          .toList();
+
+      print('🎯 Final groups result: $result');
+      return result;
+    } on DioException catch (e) {
+      print('❌ DioException fetching groups: ${e.toString()}');
+      print('💥 Error response: ${e.response?.data}');
+      print('🔢 Status code: ${e.response?.statusCode}');
+
+      // For debugging: return test data when server is unreachable
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout) {
+        print('🚧 Network issue detected, using test data for debugging');
+        return [
+          {'id': 4, 'name': 'Jerusalem MC'},
+        ];
+      }
+
+      // Only throw for other types of errors
+      throw _handleDioException(e);
+    } catch (e) {
+      print('💀 Unexpected error fetching groups: ${e.toString()}');
+      print('🚧 Returning test data for debugging');
+      return [
+        {'id': 4, 'name': 'Jerusalem MC'},
+      ];
+    }
+  }
+
+  /// Get report categories from server
+  static Future<List<Map<String, dynamic>>> getReportCategories() async {
+    try {
+      print('🔍 Fetching categories from /api/reports...');
+      final response = await _dio.get('/reports');
+      print('✅ Categories response received: ${response.data}');
+      print('📊 Response type: ${response.data.runtimeType}');
+
+      // Check if response has categories array
+      if (response.data is List) {
+        print('📋 Response is a List');
+        final List<dynamic> categoriesData = response.data;
+        final result = categoriesData
+            .map(
+              (category) => {
+                'id': category['id'],
+                'name': category['name'] ?? 'Unknown Category',
+              },
+            )
+            .toList();
+        print('🎯 Final categories result: $result');
+        return result;
+      } else if (response.data is Map && response.data['categories'] != null) {
+        print('📋 Response is a Map with categories property');
+        final List<dynamic> categoriesData = response.data['categories'];
+        final result = categoriesData
+            .map(
+              (category) => {
+                'id': category['id'],
+                'name': category['name'] ?? 'Unknown Category',
+              },
+            )
+            .toList();
+        print('🎯 Final categories result: $result');
+        return result;
+      }
+
+      print('⚠️ Using fallback categories');
+      // Return default categories if server doesn't provide them
+      return [
+        {'id': 1, 'name': 'Network'},
+        {'id': 2, 'name': 'Cluster'},
+        {'id': 3, 'name': 'Location'},
+        {'id': 4, 'name': 'Zone'},
+        {'id': 5, 'name': 'Missional Community'},
+        {'id': 6, 'name': 'Huddle'},
+        {'id': 7, 'name': 'Garage Team'},
+      ];
+    } on DioException catch (e) {
+      print('❌ DioException fetching categories: ${e.toString()}');
+      print('💥 Error response: ${e.response?.data}');
+      print('🔢 Status code: ${e.response?.statusCode}');
+
+      // For debugging: return test data when server is unreachable
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout) {
+        print('🚧 Network issue detected, using test categories for debugging');
+        return [
+          {'id': 1, 'name': 'Network'},
+          {'id': 2, 'name': 'Cluster'},
+          {'id': 3, 'name': 'Location'},
+          {'id': 4, 'name': 'Zone'},
+          {'id': 5, 'name': 'Missional Community'},
+          {'id': 6, 'name': 'Huddle'},
+          {'id': 7, 'name': 'Garage Team'},
+        ];
+      }
+
+      // Only throw for other types of errors
+      throw _handleDioException(e);
+    } catch (e) {
+      print('💀 Unexpected error fetching categories: ${e.toString()}');
+      print('🚧 Returning test categories for debugging');
+      return [
+        {'id': 1, 'name': 'Network'},
+        {'id': 2, 'name': 'Cluster'},
+        {'id': 3, 'name': 'Location'},
+        {'id': 4, 'name': 'Zone'},
+        {'id': 5, 'name': 'Missional Community'},
+        {'id': 6, 'name': 'Huddle'},
+        {'id': 7, 'name': 'Garage Team'},
+      ];
+    }
+  }
+
   /// Submit MC Report to the backend
   static Future<Map<String, dynamic>> submitMcReport({
     required String gatheringDate,
     required String mcName,
+    String? mcId,
     required String hostHome,
     required int totalMembers,
     required int attendance,
@@ -26,6 +159,7 @@ class ReportService {
       'type': 'mc_report',
       'gatheringDate': gatheringDate,
       'mcName': mcName,
+      'mcId': mcId,
       'hostHome': hostHome,
       'totalMembers': totalMembers,
       'attendance': attendance,
@@ -217,5 +351,31 @@ class ReportService {
     }
 
     return Exception(message);
+  }
+
+  // Church name management for testing different tenants
+  static String? _overrideChurchName;
+
+  /// Set church name override for testing
+  static void setChurchName(String churchName) {
+    _overrideChurchName = churchName;
+    // Also set it in the API client for headers
+    _apiClient.setTenant(churchName);
+  }
+
+  /// Clear church name override
+  static void clearChurchNameOverride() {
+    _overrideChurchName = null;
+    _apiClient.clearTenant();
+  }
+
+  /// Get current church name (with override support)
+  static Future<String> getChurchName() async {
+    if (_overrideChurchName != null) {
+      return _overrideChurchName!;
+    }
+    // Return saved church name or default
+    // For now, return a default - this can be enhanced to get from storage
+    return 'Champions Network';
   }
 }

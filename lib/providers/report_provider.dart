@@ -14,6 +14,12 @@ class ReportProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  String? _currentChurch;
+  String? get currentChurch => _currentChurch;
+
+  bool _isUsingServerData = false;
+  bool get isUsingServerData => _isUsingServerData;
+
   ReportStatus? _statusFilter;
   ReportStatus? get statusFilter => _statusFilter;
 
@@ -28,189 +34,37 @@ class ReportProvider extends ChangeNotifier {
   /// Load reports from API
   Future<void> _loadReportsFromApi() async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
     try {
+      // Get current church name for display
+      _currentChurch = await ReportService.getChurchName();
+
+      debugPrint('Loading reports from server for church: $_currentChurch');
       _reports = await ReportService.getAllReports();
+      _isUsingServerData = true;
+
+      debugPrint('Successfully loaded ${_reports.length} reports from server');
     } catch (e) {
+      _error = e.toString();
       debugPrint('Failed to load reports from API: $e');
+
+      // Check if it's a church name error
+      if (e.toString().contains('No church name provided')) {
+        _error =
+            'Server Error: Invalid church name "$_currentChurch". '
+            'Try switching to a different church or check server configuration.';
+      }
+
       // Fallback to demo data if API fails
-      _loadDemoReports();
+      _isUsingServerData = false;
+      // _loadDemoReports(); // Commented out - using server data only
+      _reports = []; // Show empty list instead of demo data
     } finally {
       _isLoading = false;
       notifyListeners();
     }
-  }
-
-  /// Load demo reports
-  void _loadDemoReports() {
-    _reports = [
-      Report(
-        id: 'rpt_001',
-        title: 'Weekly Attendance Summary',
-        description:
-            'Comprehensive weekly attendance report showing member participation across all services and activities.',
-        type: ReportType.attendance,
-        status: ReportStatus.completed,
-        createdAt: DateTime.now().subtract(const Duration(days: 2)),
-        completedAt: DateTime.now().subtract(const Duration(days: 1)),
-        createdBy: 'John Doe',
-        assignedTo: 'Jane Smith',
-        tags: ['weekly', 'attendance', 'members'],
-        priority: 2,
-        data: {
-          'totalMembers': 450,
-          'attendanceRate': 78.5,
-          'services': [
-            {'name': 'Garage', 'attendance': 380},
-            {'name': 'Bible Study', 'attendance': 120},
-            {'name': 'MC', 'attendance': 85},
-          ],
-        },
-      ),
-
-      Report(
-        id: 'rpt_007',
-        title: 'Missional Communities Monthly Report',
-        description:
-            'Monthly report on Missional Communities activities, outreach efforts, and community engagement initiatives.',
-        type: ReportType.general,
-        status: ReportStatus.pending,
-        createdAt: DateTime.now().subtract(const Duration(days: 5)),
-        createdBy: 'Sarah Johnson',
-        assignedTo: 'Mike Wilson',
-        tags: ['monthly', 'missional', 'community', 'outreach'],
-        priority: 1,
-        data: {
-          'totalCommunities': 12,
-          'activeMembers': 145,
-          'newConnections': 23,
-          'outreachEvents': 8,
-          'prayerRequests': 34,
-          'testimonies': 6,
-          'communities': [
-            {'name': 'Downtown MC', 'members': 15, 'newConnections': 4},
-            {'name': 'University MC', 'members': 22, 'newConnections': 8},
-            {'name': 'Families MC', 'members': 18, 'newConnections': 3},
-            {
-              'name': 'Young Professionals MC',
-              'members': 20,
-              'newConnections': 5,
-            },
-          ],
-        },
-      ),
-      Report(
-        id: 'rpt_002',
-        title: 'Monthly Financial Statement',
-        description:
-            'Detailed financial report covering income, expenses, and fund allocations for the current month.',
-        type: ReportType.financial,
-        status: ReportStatus.inProgress,
-        createdAt: DateTime.now().subtract(const Duration(days: 5)),
-        createdBy: 'Finance Team',
-        assignedTo: 'Robert Johnson',
-        tags: ['monthly', 'finance', 'budget'],
-        priority: 3,
-        data: {
-          'totalIncome': 25000.0,
-          'totalExpenses': 18500.0,
-          'balance': 6500.0,
-          'categories': [
-            {'name': 'Tithes', 'amount': 20000.0},
-            {'name': 'Offerings', 'amount': 5000.0},
-            {'name': 'Utilities', 'amount': 3500.0},
-            {'name': 'Maintenance', 'amount': 2000.0},
-          ],
-        },
-      ),
-      Report(
-        id: 'rpt_003',
-        title: 'New Members Registration',
-        description:
-            'Report on new member registrations and membership growth trends over the past quarter.',
-        type: ReportType.membership,
-        status: ReportStatus.pending,
-        createdAt: DateTime.now().subtract(const Duration(days: 8)),
-        createdBy: 'Membership Committee',
-        tags: ['quarterly', 'membership', 'growth'],
-        priority: 2,
-        data: {
-          'newMembers': 28,
-          'totalMembers': 450,
-          'growthRate': 6.6,
-          'ageGroups': [
-            {'range': '18-30', 'count': 12},
-            {'range': '31-45', 'count': 8},
-            {'range': '46-60', 'count': 5},
-            {'range': '60+', 'count': 3},
-          ],
-        },
-      ),
-      Report(
-        id: 'rpt_004',
-        title: 'Youth Event Participation',
-        description:
-            'Analysis of youth participation in recent events and activities including feedback and recommendations.',
-        type: ReportType.events,
-        status: ReportStatus.completed,
-        createdAt: DateTime.now().subtract(const Duration(days: 12)),
-        completedAt: DateTime.now().subtract(const Duration(days: 10)),
-        createdBy: 'Youth Pastor',
-        assignedTo: 'Event Coordinator',
-        tags: ['youth', 'events', 'participation'],
-        priority: 1,
-        data: {
-          'eventsCount': 3,
-          'totalParticipants': 85,
-          'averageRating': 4.2,
-          'events': [
-            {'name': 'Youth Camp', 'participants': 45, 'rating': 4.5},
-            {'name': 'Game Night', 'participants': 25, 'rating': 4.0},
-            {'name': 'Community Service', 'participants': 15, 'rating': 4.1},
-          ],
-        },
-      ),
-      Report(
-        id: 'rpt_005',
-        title: 'Shepherds Performance Review',
-        description:
-            'Quarterly performance review of shepherds including member feedback and pastoral care metrics.',
-        type: ReportType.shepherds,
-        status: ReportStatus.inProgress,
-        createdAt: DateTime.now().subtract(const Duration(days: 3)),
-        createdBy: 'Senior Pastor',
-        assignedTo: 'Associate Pastor',
-        tags: ['quarterly', 'shepherds', 'performance'],
-        priority: 4,
-        data: {
-          'totalShepherds': 12,
-          'averageRating': 4.3,
-          'membersPerShepherd': 37.5,
-          'completedVisits': 168,
-          'pendingVisits': 42,
-        },
-      ),
-      Report(
-        id: 'rpt_006',
-        title: 'Church Security Assessment',
-        description:
-            'Annual security assessment report covering physical security, emergency procedures, and safety protocols.',
-        type: ReportType.general,
-        status: ReportStatus.pending,
-        createdAt: DateTime.now().subtract(const Duration(days: 15)),
-        createdBy: 'Security Team',
-        tags: ['annual', 'security', 'safety'],
-        priority: 3,
-        data: {
-          'areasAssessed': 8,
-          'issuesFound': 3,
-          'recommendations': 5,
-          'priority': 'medium',
-        },
-      ),
-    ];
-    notifyListeners();
   }
 
   /// Get filtered reports
@@ -335,6 +189,7 @@ class ReportProvider extends ChangeNotifier {
         await ReportService.submitMcReport(
           gatheringDate: report.data['gatheringDate'] ?? '',
           mcName: report.data['mcName'] ?? '',
+          mcId: report.data['mcId']?.toString(),
           hostHome: report.data['hostHome'] ?? '',
           totalMembers: report.data['totalMembers'] ?? 0,
           attendance: report.data['attendance'] ?? 0,
@@ -379,5 +234,70 @@ class ReportProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Switch to a different church for testing
+  Future<void> switchChurch(String churchName) async {
+    debugPrint('Switching to church: $churchName');
+    ReportService.setChurchName(churchName);
+    await _loadReportsFromApi();
+  }
+
+  /// Try to find a working church automatically
+  Future<void> findWorkingChurch() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    final testChurches = [
+      'Champions Network',
+      'WH Naalya',
+      'Jerusalem MC',
+      'Najjera-Buwate Zone',
+      'demo',
+    ];
+
+    try {
+      for (final church in testChurches) {
+        try {
+          debugPrint('Testing church: $church');
+          ReportService.setChurchName(church);
+
+          // Test if this church works by trying to fetch reports
+          final testReports = await ReportService.getAllReports();
+          if (testReports.isNotEmpty) {
+            _currentChurch = church;
+            _reports = testReports;
+            _isUsingServerData = true;
+            debugPrint(
+              'Found working church: $church with ${testReports.length} reports',
+            );
+            return;
+          }
+        } catch (e) {
+          debugPrint('Church $church failed: $e');
+          continue;
+        }
+      }
+
+      // If no church worked
+      _error = 'No working church found. All tested churches failed.';
+      _isUsingServerData = false;
+      // _loadDemoReports(); // Commented out - show empty list instead
+      _reports = [];
+    } catch (e) {
+      _error = 'Failed to find working church: ${e.toString()}';
+      _isUsingServerData = false;
+      // _loadDemoReports(); // Commented out - show empty list instead
+      _reports = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Retry server connection with current church
+  Future<void> retryServerConnection() async {
+    await _loadReportsFromApi();
   }
 }

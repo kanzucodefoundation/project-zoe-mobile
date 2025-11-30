@@ -87,7 +87,8 @@ class AnnouncementsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mock data - replace with real data later
+    // Mock data - COMMENTED OUT (will use real server data)
+    /*
     final announcements = [
       {
         'title': 'Sunday Service Update',
@@ -111,6 +112,10 @@ class AnnouncementsSection extends StatelessWidget {
         'isImportant': false,
       },
     ];
+    */
+
+    // Using empty list for now - will be replaced with server data
+    final announcements = <Map<String, dynamic>>[];
 
     return Container(
       margin: const EdgeInsets.all(16),

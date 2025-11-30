@@ -8,6 +8,7 @@ class User {
   final String email;
   final UserRole role;
   final String department;
+  final String churchName;
 
   const User({
     required this.id,
@@ -15,6 +16,7 @@ class User {
     required this.email,
     required this.role,
     required this.department,
+    required this.churchName,
   });
 
   /// Check if user has admin privileges
@@ -47,6 +49,7 @@ class User {
         orElse: () => UserRole.restricted,
       ),
       department: json['department'] ?? '',
+      churchName: json['churchName'] ?? '',
     );
   }
 
@@ -57,6 +60,7 @@ class User {
       'email': email,
       'role': role.name,
       'department': department,
+      'churchName': churchName,
     };
   }
 }

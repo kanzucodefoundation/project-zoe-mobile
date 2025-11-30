@@ -45,7 +45,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget _getBody() {
     switch (_currentIndex) {
       case 0:
-        return const ReportsScreen();
+        return ReportsScreen();
       case 1:
         return const HomeSceen();
       case 2:
