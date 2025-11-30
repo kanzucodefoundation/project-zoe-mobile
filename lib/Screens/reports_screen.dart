@@ -1,41 +1,79 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/report_provider.dart';
-import '../models/report.dart';
-import '../components/report_tile.dart';
-import '../helpers/report_helpers.dart';
-import '../widgets/custom_drawer.dart';
-import 'reports_detail_screen.dart';
+import '../services/report_service.dart';
+import 'mc_report_form_screen.dart';
 
-/// Reports screen displaying all reports with filtering capabilities
+/// Reports screen displaying all reports with server data
 class ReportsScreen extends StatefulWidget {
-  const ReportsScreen({super.key});
+  ReportsScreen({super.key});
 
   @override
   State<ReportsScreen> createState() => _ReportsScreenState();
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
+  List<Map<String, dynamic>> _reportCategories = [];
+  List<Map<String, dynamic>> _smallGroups = [];
+  bool _isLoadingCategories = true;
+  bool _isLoadingGroups = true;
+  String? _selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    await Future.wait([_loadReportCategories(), _loadSmallGroups()]);
+  }
+
+  Future<void> _loadReportCategories() async {
+    try {
+      print('🔄 Starting to load report categories...');
+      final categories = await ReportService.getReportCategories();
+      print('✅ Categories loaded successfully: $categories');
+      setState(() {
+        _reportCategories = categories;
+        _isLoadingCategories = false;
+      });
+      print('🎯 State updated - categories count: ${_reportCategories.length}');
+    } catch (e) {
+      print('❌ Error loading categories: $e');
+      setState(() {
+        _isLoadingCategories = false;
+      });
+    }
+  }
+
+  Future<void> _loadSmallGroups() async {
+    try {
+      print('🔄 Starting to load small groups...');
+      final groups = await ReportService.getAvailableGroups();
+      print('✅ Groups loaded successfully: $groups');
+      setState(() {
+        _smallGroups = groups;
+        _isLoadingGroups = false;
+      });
+      print('🎯 State updated - groups count: ${_smallGroups.length}');
+    } catch (e) {
+      print('❌ Error loading groups: $e');
+      setState(() {
+        _isLoadingGroups = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ReportProvider>(
       builder: (context, reportProvider, _) {
-        final reports = reportProvider.filteredReports;
-        final summary = reportProvider.reportsSummary;
-        final overdueReports = reportProvider.overdueReports;
-
         return Scaffold(
           backgroundColor: Colors.grey.shade50,
-          drawer: const CustomDrawer(),
           appBar: AppBar(
             backgroundColor: Colors.white,
             elevation: 0,
-            leading: Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.black),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
-            ),
             title: const Text(
               'Reports',
               style: TextStyle(
@@ -46,452 +84,681 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.filter_list, color: Colors.black),
-                onPressed: () => _showFilterSheet(context, reportProvider),
-              ),
-              IconButton(
                 icon: const Icon(Icons.refresh, color: Colors.black),
-                onPressed: () => reportProvider.refreshReports(),
+                onPressed: () {
+                  reportProvider.refreshReports();
+                  _loadInitialData();
+                },
               ),
             ],
           ),
           body: RefreshIndicator(
-            onRefresh: () => reportProvider.refreshReports(),
-            child: reportProvider.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        // Summary cards
-                        _buildSummarySection(summary, overdueReports.length),
+            onRefresh: () async {
+              await reportProvider.refreshReports();
+              await _loadInitialData();
+            },
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Category Filter Dropdown
+                  _buildCategoryDropdown(),
 
-                        // Filter chips
-                        _buildFilterChips(reportProvider),
+                  const SizedBox(height: 16),
 
-                        // Reports list
-                        reports.isEmpty
-                            ? SizedBox(height: 400, child: _buildEmptyState())
-                            : ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                padding: const EdgeInsets.only(bottom: 16),
-                                itemCount: reports.length,
-                                itemBuilder: (context, index) {
-                                  final report = reports[index];
-                                  return ReportTile(
-                                    report: report,
-                                    showProgress: true,
-                                    onTap: () =>
-                                        _navigateToReportDetail(report.id),
-                                  );
-                                },
-                              ),
-                      ],
-                    ),
-                  ),
+                  // Submitted Reports List
+                  _buildSubmittedReportsSection(),
+
+                  const SizedBox(height: 24),
+
+                  // MC Report Submissions Status
+                  _buildMcSubmissionsSection(reportProvider),
+
+                  const SizedBox(height: 24),
+
+                  // Small Groups Section
+                  _buildSmallGroupsSection(),
+
+                  const SizedBox(height: 100), // Space for FAB
+                ],
+              ),
+            ),
           ),
-          floatingActionButton: FloatingActionButton(
+          floatingActionButton: FloatingActionButton.extended(
             onPressed: () {
-              // TODO: Navigate to create report screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Create report functionality coming soon!'),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const McReportFormScreen(),
                 ),
               );
             },
             backgroundColor: Colors.black,
-            child: const Icon(Icons.add, color: Colors.white),
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text(
+              'Submit MC Report',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildSummarySection(Map<String, int> summary, int overdueCount) {
+  Widget _buildCategoryDropdown() {
     return Container(
       padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Overview',
+            'Filter by Category',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildSummaryCard(
-                  'Total Reports',
-                  summary['total']?.toString() ?? '0',
-                  Icons.description,
-                  Colors.blue.shade600,
+          const SizedBox(height: 8),
+          if (_isLoadingCategories)
+            const Center(child: CircularProgressIndicator())
+          else
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                hintText: 'Select a report category',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildSummaryCard(
-                  'Pending',
-                  summary['pending']?.toString() ?? '0',
-                  Icons.schedule,
-                  Colors.orange.shade600,
+              value: _selectedCategory,
+              items: [
+                const DropdownMenuItem<String>(
+                  value: null,
+                  child: Text('All Categories'),
                 ),
+                ..._reportCategories.map((category) {
+                  return DropdownMenuItem<String>(
+                    value: category['id'].toString(),
+                    child: Text(category['name']),
+                  );
+                }),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedCategory = value;
+                });
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmittedReportsSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Report List',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Submitted reports from server',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const McReportFormScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                ),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('Submit'),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildSummaryCard(
-                  'Completed',
-                  summary['completed']?.toString() ?? '0',
-                  Icons.check_circle,
-                  Colors.green.shade600,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildSummaryCard(
-                  'Overdue',
-                  overdueCount.toString(),
-                  Icons.warning,
-                  Colors.red.shade600,
-                ),
-              ),
-            ],
+          const SizedBox(height: 16),
+          Consumer<ReportProvider>(
+            builder: (context, reportProvider, _) {
+              final reports = reportProvider.reports;
+              
+              // Filter reports by selected category if any
+              final filteredReports = _selectedCategory == null
+                  ? reports
+                  : reports.where((report) {
+                      // Assuming reports have a categoryId field
+                      return report.data['categoryId'].toString() == _selectedCategory;
+                    }).toList();
+
+              if (reportProvider.isLoading) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              if (filteredReports.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.description_outlined,
+                          size: 48,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _selectedCategory == null
+                              ? 'No reports submitted yet'
+                              : 'No reports found for this category',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Submit your first report!',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return Column(
+                children: filteredReports.map((report) {
+                  final status = report.status.toString().split('.').last;
+                  final statusColor = _getStatusColor(status);
+                  final categoryName = _getCategoryName(report.data['categoryId']);
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                report.title,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                status.toUpperCase(),
+                                style: TextStyle(
+                                  color: statusColor,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        if (categoryName != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              categoryName,
+                              style: const TextStyle(
+                                color: Colors.blue,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.person,
+                              size: 16,
+                              color: Colors.grey.shade600,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'By: ${report.createdBy}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            const Spacer(),
+                            Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                              color: Colors.grey.shade600,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (report.data['attendance'] != null) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.group,
+                                size: 16,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Attendance: ${report.data['attendance']}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                }).toList(),
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  String? _getCategoryName(dynamic categoryId) {
+    if (categoryId == null) return null;
+    final category = _reportCategories.firstWhere(
+      (cat) => cat['id'].toString() == categoryId.toString(),
+      orElse: () => <String, dynamic>{},
+    );
+    return category['name'];
+  }
+
+  Widget _buildMcSubmissionsSection(ReportProvider reportProvider) {
+    final reports = reportProvider.reports;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 20),
-              const Spacer(),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: color,
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'MC Report Submissions Status',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Small groups and submission status',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  // TODO: Show detailed view
+                },
+                child: const Text(
+                  'View',
+                  style: TextStyle(color: Colors.black),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChips(ReportProvider reportProvider) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      height: 50,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          // Status filters
-          if (reportProvider.statusFilter != null)
-            _buildFilterChip(
-              'Status: ${reportProvider.statusFilter!.name}',
-              true,
-              () => reportProvider.setStatusFilter(null),
-            ),
-
-          // Type filters
-          if (reportProvider.typeFilter != null)
-            _buildFilterChip(
-              'Type: ${reportProvider.typeFilter!.name}',
-              true,
-              () => reportProvider.setTypeFilter(null),
-            ),
-
-          // Clear all filters
-          if (reportProvider.statusFilter != null ||
-              reportProvider.typeFilter != null)
-            _buildFilterChip(
-              'Clear All',
-              false,
-              () => reportProvider.clearFilters(),
-            ),
-
-          // Quick filters
-          _buildFilterChip(
-            'Pending',
-            reportProvider.statusFilter == ReportStatus.pending,
-            () => reportProvider.setStatusFilter(
-              reportProvider.statusFilter == ReportStatus.pending
-                  ? null
-                  : ReportStatus.pending,
-            ),
-          ),
-          _buildFilterChip(
-            'In Progress',
-            reportProvider.statusFilter == ReportStatus.inProgress,
-            () => reportProvider.setStatusFilter(
-              reportProvider.statusFilter == ReportStatus.inProgress
-                  ? null
-                  : ReportStatus.inProgress,
-            ),
-          ),
-          _buildFilterChip(
-            'Completed',
-            reportProvider.statusFilter == ReportStatus.completed,
-            () => reportProvider.setStatusFilter(
-              reportProvider.statusFilter == ReportStatus.completed
-                  ? null
-                  : ReportStatus.completed,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label, bool isSelected, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: FilterChip(
-        label: Text(label),
-        selected: isSelected,
-        onSelected: (_) => onTap(),
-        backgroundColor: Colors.white,
-        selectedColor: Colors.black,
-        labelStyle: TextStyle(
-          color: isSelected ? Colors.white : Colors.black,
-          fontWeight: FontWeight.w500,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: isSelected ? Colors.black : Colors.grey.shade300,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.description_outlined,
-            size: 80,
-            color: Colors.grey.shade400,
-          ),
           const SizedBox(height: 16),
-          Text(
-            'No reports found',
+
+          if (reportProvider.isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (reports.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Text(
+                  'No report submissions yet - Submit your first MC report!',
+                  style: TextStyle(color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          else
+            ...reports.take(5).map((report) {
+              final status = report.status.toString().split('.').last;
+              final statusColor = _getStatusColor(status);
+              final weekNumber =
+                  DateTime.now().difference(report.createdAt).inDays ~/ 7 + 1;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            report.title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            status.toUpperCase(),
+                            style: TextStyle(
+                              color: statusColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.schedule,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Week $weekNumber',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Icon(
+                          Icons.calendar_today,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            'Submitted ${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.person,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'By: ${report.createdBy}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        if (report.data['attendance'] != null) ...[
+                          const SizedBox(width: 16),
+                          Icon(
+                            Icons.group,
+                            size: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Attendance: ${report.data['attendance']}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSmallGroupsSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Small Groups',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade600,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Try adjusting your filters or create a new report',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-            textAlign: TextAlign.center,
+          const SizedBox(height: 4),
+          const Text(
+            'Available small groups',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
+          const SizedBox(height: 16),
+
+          if (_isLoadingGroups)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (_smallGroups.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Text(
+                  'No small groups available',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            )
+          else
+            ..._smallGroups.map((group) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.green.withValues(alpha: 0.1),
+                    child: const Icon(
+                      Icons.group,
+                      color: Colors.green,
+                      size: 20,
+                    ),
+                  ),
+                  title: Text(
+                    group['name'],
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  // subtitle: Text('ID: ${group['id']}'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${group['name']} details coming soon'),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }),
         ],
       ),
     );
   }
 
-  void _showFilterSheet(BuildContext context, ReportProvider reportProvider) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Filter Reports',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Status filter
-            const Text(
-              'Status',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                _buildStatusFilterChip(context, reportProvider, null, 'All'),
-                ...ReportStatus.values.map(
-                  (status) => _buildStatusFilterChip(
-                    context,
-                    reportProvider,
-                    status,
-                    status.name.toUpperCase(),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Type filter
-            const Text(
-              'Type',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                _buildTypeFilterChip(context, reportProvider, null, 'All'),
-                ...ReportType.values.map(
-                  (type) => _buildTypeFilterChip(
-                    context,
-                    reportProvider,
-                    type,
-                    type.name.toUpperCase(),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      reportProvider.clearFilters();
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Clear All'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Apply'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusFilterChip(
-    BuildContext context,
-    ReportProvider reportProvider,
-    ReportStatus? status,
-    String label,
-  ) {
-    final isSelected = reportProvider.statusFilter == status;
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) {
-        reportProvider.setStatusFilter(status);
-        Navigator.pop(context);
-      },
-      backgroundColor: Colors.white,
-      selectedColor: status != null
-          ? ReportHelpers.getStatusColor(status)
-          : Colors.grey.shade600,
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Colors.black,
-        fontWeight: FontWeight.w500,
-      ),
-    );
-  }
-
-  Widget _buildTypeFilterChip(
-    BuildContext context,
-    ReportProvider reportProvider,
-    ReportType? type,
-    String label,
-  ) {
-    final isSelected = reportProvider.typeFilter == type;
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) {
-        reportProvider.setTypeFilter(type);
-        Navigator.pop(context);
-      },
-      backgroundColor: Colors.white,
-      selectedColor: type != null
-          ? ReportHelpers.getTypeColor(type)
-          : Colors.grey.shade600,
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Colors.black,
-        fontWeight: FontWeight.w500,
-      ),
-    );
-  }
-
-  void _navigateToReportDetail(String reportId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ReportDetailScreen(reportId: reportId),
-      ),
-    );
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'inprogress':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
   }
 }

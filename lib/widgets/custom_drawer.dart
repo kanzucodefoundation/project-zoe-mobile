@@ -57,6 +57,14 @@ class CustomDrawer extends StatelessWidget {
                   },
                 ),
                 _buildDrawerItem(
+                  icon: Icons.assignment,
+                  title: 'Reports',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/reports');
+                  },
+                ),
+                _buildDrawerItem(
                   icon: Icons.people,
                   title: 'Manage Users',
                   onTap: () {

@@ -10,6 +10,7 @@ class AuthGuard {
   static const String _userEmailKey = 'user_email';
   static const String _userRoleKey = 'user_role';
   static const String _userDepartmentKey = 'user_department';
+  static const String _churchNameKey = 'church_name';
 
   /// Check if user is currently logged in
   static Future<bool> isLoggedIn() async {
@@ -33,6 +34,7 @@ class AuthGuard {
       await prefs.setString(_userEmailKey, user.email);
       await prefs.setString(_userRoleKey, user.role.name);
       await prefs.setString(_userDepartmentKey, user.department);
+      await prefs.setString(_churchNameKey, user.churchName);
     } catch (e) {
       debugPrint('Error saving user data: $e');
     }
@@ -64,6 +66,7 @@ class AuthGuard {
           email: userEmail,
           role: userRole,
           department: userDepartment,
+          churchName: prefs.getString(_churchNameKey) ?? 'demo',
         );
       }
       return null;
@@ -84,6 +87,17 @@ class AuthGuard {
     }
   }
 
+  /// Get saved church name
+  static Future<String> getSavedChurchName() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_churchNameKey) ?? 'demo';
+    } catch (e) {
+      debugPrint('Error getting saved church name: $e');
+      return 'demo';
+    }
+  }
+
   /// Clear all saved authentication data
   static Future<void> clearUserData() async {
     try {
@@ -94,6 +108,7 @@ class AuthGuard {
       await prefs.remove(_userEmailKey);
       await prefs.remove(_userRoleKey);
       await prefs.remove(_userDepartmentKey);
+      await prefs.remove(_churchNameKey);
     } catch (e) {
       debugPrint('Error clearing user data: $e');
     }

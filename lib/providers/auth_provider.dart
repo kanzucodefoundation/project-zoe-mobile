@@ -3,7 +3,7 @@ import '../models/user.dart';
 import '../services/auth_guard.dart';
 import '../services/auth_service.dart';
 import '../api/api_client.dart';
-import '../entities/user.dart';
+
 
 enum AuthStatus { unauthenticated, authenticating, authenticated, failed }
 
@@ -74,6 +74,7 @@ class AuthProvider extends ChangeNotifier {
         email: userEntity.email,
         role: UserRole.admin, // Default to admin for now
         department: 'Church Operations',
+        churchName: churchName ?? 'demo',
       );
 
       debugPrint(

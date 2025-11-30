@@ -53,4 +53,14 @@ class ApiClient {
   void clearAuthToken() {
     _dio.options.headers.remove('Authorization');
   }
+
+  // Set tenant header for multi-tenant support
+  void setTenant(String tenant) {
+    _dio.options.headers['tenant'] = tenant;
+  }
+
+  // Remove tenant header
+  void clearTenant() {
+    _dio.options.headers.remove('tenant');
+  }
 }
