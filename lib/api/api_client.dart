@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'api_endpoints.dart';
+import 'base_url.dart';
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
@@ -13,7 +13,7 @@ class ApiClient {
   void initialize() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: ApiEndpoints.baseUrl,
+        baseUrl: BaseUrl.apiUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
         sendTimeout: const Duration(seconds: 30),

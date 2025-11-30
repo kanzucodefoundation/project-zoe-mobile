@@ -93,6 +93,8 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _handleAuth() async {
     if (_formKey.currentState!.validate()) {
+      if (_isDisposed || !mounted) return;
+
       final authProvider = context.read<AuthProvider>();
 
       try {
@@ -120,12 +122,15 @@ class _AuthScreenState extends State<AuthScreen> {
             // AppWrapper will automatically navigate to MainScaffold
           } else if (authProvider.error != null && context.mounted) {
             // Login failed - Show error message and keep bottom sheet open
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(authProvider.error!),
-                backgroundColor: Colors.red,
-              ),
-            );
+            if (!_isDisposed && mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(authProvider.error!),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+            }
           }
         } else {
           // Capture values before async operation to avoid disposal issues
@@ -139,6 +144,7 @@ class _AuthScreenState extends State<AuthScreen> {
           final churchName = _churchController?.text.trim() ?? 'demo';
 
           if (_isDisposed || !mounted || email.isEmpty) return;
+
           await authProvider.signup(
             firstName: firstName,
             lastName: lastName,
@@ -154,24 +160,54 @@ class _AuthScreenState extends State<AuthScreen> {
 
           // Show success message and switch to login
           if (mounted && context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Registration successful! Please log in.'),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 3),
-              ),
-            );
-            if (!_isDisposed && mounted) {
-              setState(() {
-                isLogin = true;
-              });
+            if (authProvider.error?.contains('successful') == true) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Registration successful! Please log in.'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 3),
+                ),
+              );
+              if (!_isDisposed && mounted) {
+                setState(() {
+                  isLogin = true;
+                });
+              }
+            } else if (authProvider.error != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(authProvider.error!),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 4),
+                ),
+              );
             }
           }
         }
       } catch (e) {
         if (!_isDisposed && mounted && context.mounted) {
+          String errorMessage = 'An error occurred. Please try again.';
+
+          if (e.toString().contains('user not found') ||
+              e.toString().contains('User does not exist')) {
+            errorMessage =
+                'User not found. Please check your credentials or register first.';
+          } else if (e.toString().contains('network') ||
+              e.toString().contains('connection')) {
+            errorMessage =
+                'Network error. Please check your internet connection.';
+          } else if (e.toString().contains('timeout')) {
+            errorMessage = 'Request timed out. Please try again.';
+          } else {
+            errorMessage = e.toString();
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
           );
         }
       }

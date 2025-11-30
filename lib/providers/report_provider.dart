@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/report.dart';
 import '../helpers/report_helpers.dart';
+import '../services/report_service.dart';
 
 /// Provider for managing reports state and operations
 class ReportProvider extends ChangeNotifier {
@@ -19,9 +20,26 @@ class ReportProvider extends ChangeNotifier {
   ReportType? _typeFilter;
   ReportType? get typeFilter => _typeFilter;
 
-  /// Initialize with demo data
+  /// Initialize provider - load reports from API
   ReportProvider() {
-    _loadDemoReports();
+    _loadReportsFromApi();
+  }
+
+  /// Load reports from API
+  Future<void> _loadReportsFromApi() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _reports = await ReportService.getAllReports();
+    } catch (e) {
+      debugPrint('Failed to load reports from API: $e');
+      // Fallback to demo data if API fails
+      _loadDemoReports();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   /// Load demo reports
@@ -260,6 +278,13 @@ class ReportProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Update status via API
+      await ReportService.updateReportStatus(
+        reportId: reportId,
+        status: newStatus.toString().split('.').last,
+      );
+
+      // Update local copy
       final reportIndex = _reports.indexWhere(
         (report) => report.id == reportId,
       );
@@ -274,43 +299,81 @@ class ReportProvider extends ChangeNotifier {
       }
     } catch (e) {
       _error = 'Failed to update report status: ${e.toString()}';
+      debugPrint('Failed to update report status: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Refresh reports
+  /// Refresh reports from API
   Future<void> refreshReports() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-      _loadDemoReports();
+      _reports = await ReportService.getAllReports();
     } catch (e) {
       _error = 'Failed to refresh reports: ${e.toString()}';
+      debugPrint('Failed to refresh reports: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Add a new report
+  /// Add a new report via API
   Future<void> addReport(Report report) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(milliseconds: 500));
-      _reports.insert(0, report); // Add to the beginning of the list
-      notifyListeners();
+      // Submit MC report to API if it's an MC report
+      if (report.data.containsKey('mcName')) {
+        await ReportService.submitMcReport(
+          gatheringDate: report.data['gatheringDate'] ?? '',
+          mcName: report.data['mcName'] ?? '',
+          hostHome: report.data['hostHome'] ?? '',
+          totalMembers: report.data['totalMembers'] ?? 0,
+          attendance: report.data['attendance'] ?? 0,
+          streamingMethod: report.data['streamingMethod'],
+          attendeesNames: report.data['attendeesNames'],
+          visitors: report.data['visitors'],
+          highlights: report.data['highlights'],
+          testimonies: report.data['testimonies'],
+          prayerRequests: report.data['prayerRequests'],
+        );
+      } else {
+        // For other report types, just add locally for now
+        _reports.insert(0, report);
+      }
+
+      // Refresh reports from API to get the latest data
+      await _loadReportsFromApi();
     } catch (e) {
-      _error = 'Failed to add report: ${e.toString()}';
+      // Handle specific error cases for better user experience
+      if (e.toString().contains('user not found') ||
+          e.toString().contains('User does not exist') ||
+          e.toString().contains('404')) {
+        _error = 'User not found. Please log out and log back in.';
+      } else if (e.toString().contains('unauthorized') ||
+          e.toString().contains('401')) {
+        _error = 'Authentication failed. Please log in again.';
+      } else if (e.toString().contains('network') ||
+          e.toString().contains('connection') ||
+          e.toString().contains('timeout')) {
+        _error =
+            'Network error. Please check your internet connection and try again.';
+      } else if (e.toString().contains('validation') ||
+          e.toString().contains('400')) {
+        _error = 'Invalid data. Please check your form and try again.';
+      } else {
+        _error = 'Failed to submit report: ${e.toString()}';
+      }
+
+      debugPrint('Failed to add report: $e');
       rethrow;
     } finally {
       _isLoading = false;

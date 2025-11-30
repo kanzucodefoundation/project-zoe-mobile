@@ -6,15 +6,54 @@ This folder contains a clean, organized API structure for the Project Zoe mobile
 
 ```
 lib/api/
-├── api_client.dart      # HTTP client configuration with Dio
-├── api_endpoints.dart   # URL constants and endpoint definitions
-├── api_models.dart      # Request/response models with JSON serialization
-├── login_endpoint.dart  # AuthApi class with all authentication endpoints
-├── signup_endpoint.dart # Legacy file (consolidated into AuthApi)
-└── usage_examples.dart  # Comprehensive usage examples and patterns
+├── base_url.dart          # Base URL configuration with environment switching
+├── api_client.dart        # HTTP client configuration with Dio
+├── api_endpoints.dart     # DEPRECATED - Legacy endpoint definitions
+├── api_models.dart        # Request/response models with JSON serialization
+├── login_endpoint.dart    # AuthApi class with all authentication endpoints
+├── signup_endpoint.dart   # Legacy file (consolidated into AuthApi)
+├── usage_examples.dart    # Comprehensive usage examples and patterns
+└── endpoints/             # Organized endpoint definitions by domain
+    ├── endpoints.dart     # Index file for all endpoint exports
+    ├── auth_endpoints.dart    # Authentication related endpoints
+    ├── user_endpoints.dart    # User management endpoints
+    ├── report_endpoints.dart  # Reports and forms endpoints
+    └── church_endpoints.dart  # Church management endpoints
 
 lib/services/
 └── auth_service.dart    # High-level service layer for auth operations
+```
+
+## Environment Configuration
+
+The app supports different environments through `base_url.dart`:
+
+- **Production**: Uses staging server at `https://staging-projectzoe.kanzucodefoundation.org/server`
+- **Development**: Platform-specific local URLs
+  - Web: `http://localhost:4002/api`
+  - Android Emulator: `http://10.0.2.2:4002/api`
+  - iOS Simulator: `http://localhost:4002/api`
+
+To switch between environments, modify the `_isProduction` flag in `base_url.dart`.
+
+## Migration from Legacy Structure
+
+The old `api_endpoints.dart` file is deprecated. Use the new organized structure:
+
+```dart
+// NEW (recommended)
+import 'package:frontend/api/endpoints/auth_endpoints.dart';
+AuthEndpoints.login;      // /api/auth/login
+AuthEndpoints.register;   // /api/register
+AuthEndpoints.profile;    // /api/auth/profile
+
+import 'package:frontend/api/endpoints/report_endpoints.dart';
+ReportEndpoints.reports;        // /api/reports
+ReportEndpoints.reportsSubmit;  // /api/reports/submit
+ReportEndpoints.reportsCategories; // /api/reports/category
+
+// Or import all at once
+import 'package:frontend/api/endpoints/endpoints.dart';
 ```
 
 ## Quick Start
@@ -108,7 +147,7 @@ try {
 
 ### Adding New Endpoints
 
-1. Add URL constant to `api_endpoints.dart`
+1. Add URL constant to new endpoint files in `endpoints/` directory
 2. Create request/response models in `api_models.dart`
 3. Add API method to `AuthApi` class in `login_endpoint.dart`
 4. Add service method to `AuthService` class
@@ -130,7 +169,7 @@ try {
 
 ## Environment Configuration
 
-To change the base URL for different environments, update `ApiEndpoints.baseUrl`:
+To change the base URL for different environments, update the `_isProduction` flag in `base_url.dart`:
 
 ```dart
 // For development

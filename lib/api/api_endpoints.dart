@@ -1,31 +1,51 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
+/// DEPRECATED: This file is deprecated. Use the new organized endpoint structure instead.
+///
+/// Import endpoints like this:
+/// ```dart
+/// import 'package:frontend/api/endpoints/endpoints.dart';
+///
+/// // Then use:
+/// AuthEndpoints.login
+/// AuthEndpoints.profile
+/// ReportEndpoints.reports
+/// ReportEndpoints.reportsSubmit
+/// ```
+///
+/// Or import specific endpoint classes:
+/// ```dart
+/// import 'package:frontend/api/endpoints/auth_endpoints.dart';
+/// import 'package:frontend/api/endpoints/user_endpoints.dart';
+/// ```
 
+import 'base_url.dart';
+import 'endpoints/endpoints.dart';
+
+/// Legacy ApiEndpoints class - Deprecated
+/// Use the new organized endpoint classes instead
+@deprecated
 class ApiEndpoints {
-  // Base URL - platform aware
-  static String get baseUrl {
-    if (kIsWeb) {
-      // For web builds, localhost should work
-      return 'http://localhost:4002/api';
-    } else if (Platform.isAndroid) {
-      // For Android emulator, use 10.0.2.2 to reach host machine
-      return 'http://10.0.2.2:4002/api';
-    } else if (Platform.isIOS) {
-      // For iOS simulator, localhost should work
-      return 'http://localhost:4002/api';
-    } else {
-      // For other platforms, use localhost
-      return 'http://localhost:4002/api';
-    }
-  }
+  /// Base URL - use BaseUrl.apiUrl instead
+  @deprecated
+  static String get baseUrl => BaseUrl.apiUrl;
 
-  // Authentication endpoints
-  static const String login = '/auth/login';
-  static const String register = '/register';
-  static const String forgotPassword = '/auth/forgot-password';
-  static const String resetPassword =
-      '/auth/reset-password'; // :token will be appended
+  /// Authentication endpoints - use AuthEndpoints instead
+  @deprecated
+  static String get login => AuthEndpoints.login;
 
-  // Helper method to build reset password URL with token
-  static String resetPasswordWithToken(String token) => '$resetPassword/$token';
+  @deprecated
+  static String get register => AuthEndpoints.register; // Updated to /register
+
+  @deprecated
+  static String get forgotPassword => AuthEndpoints.forgotPassword;
+
+  @deprecated
+  static String get resetPassword => AuthEndpoints.resetPassword;
+
+  @deprecated
+  static String get profile => AuthEndpoints.profile;
+
+  /// Helper method - use AuthEndpoints.resetPasswordWithToken instead
+  @deprecated
+  static String resetPasswordWithToken(String token) =>
+      AuthEndpoints.resetPasswordWithToken(token);
 }
