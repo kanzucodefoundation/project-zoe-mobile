@@ -34,36 +34,22 @@ class ReportService {
       print('❌ DioException fetching groups: ${e.toString()}');
       print('💥 Error response: ${e.response?.data}');
       print('🔢 Status code: ${e.response?.statusCode}');
-
-      // For debugging: return test data when server is unreachable
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout) {
-        print('🚧 Network issue detected, using test data for debugging');
-        return [
-          {'id': 4, 'name': 'Jerusalem MC'},
-        ];
-      }
-
-      // Only throw for other types of errors
       throw _handleDioException(e);
     } catch (e) {
       print('💀 Unexpected error fetching groups: ${e.toString()}');
-      print('🚧 Returning test data for debugging');
-      return [
-        {'id': 4, 'name': 'Jerusalem MC'},
-      ];
+      throw Exception('Failed to fetch groups: ${e.toString()}');
     }
   }
 
   /// Get report categories from server
   static Future<List<Map<String, dynamic>>> getReportCategories() async {
     try {
-      print('🔍 Fetching categories from /api/reports...');
-      final response = await _dio.get('/reports');
+      print('🔍 Fetching categories from /reports/category...');
+      final response = await _dio.get('/reports/category');
       print('✅ Categories response received: ${response.data}');
       print('📊 Response type: ${response.data.runtimeType}');
 
-      // Check if response has categories array
+      // Based on your test data, server returns array directly
       if (response.data is List) {
         print('📋 Response is a List');
         final List<dynamic> categoriesData = response.data;
@@ -92,51 +78,17 @@ class ReportService {
         return result;
       }
 
-      print('⚠️ Using fallback categories');
-      // Return default categories if server doesn't provide them
-      return [
-        {'id': 1, 'name': 'Network'},
-        {'id': 2, 'name': 'Cluster'},
-        {'id': 3, 'name': 'Location'},
-        {'id': 4, 'name': 'Zone'},
-        {'id': 5, 'name': 'Missional Community'},
-        {'id': 6, 'name': 'Huddle'},
-        {'id': 7, 'name': 'Garage Team'},
-      ];
+      print('⚠️ No categories found in server response');
+      return [];
     } on DioException catch (e) {
       print('❌ DioException fetching categories: ${e.toString()}');
       print('💥 Error response: ${e.response?.data}');
       print('🔢 Status code: ${e.response?.statusCode}');
 
-      // For debugging: return test data when server is unreachable
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout) {
-        print('🚧 Network issue detected, using test categories for debugging');
-        return [
-          {'id': 1, 'name': 'Network'},
-          {'id': 2, 'name': 'Cluster'},
-          {'id': 3, 'name': 'Location'},
-          {'id': 4, 'name': 'Zone'},
-          {'id': 5, 'name': 'Missional Community'},
-          {'id': 6, 'name': 'Huddle'},
-          {'id': 7, 'name': 'Garage Team'},
-        ];
-      }
-
-      // Only throw for other types of errors
       throw _handleDioException(e);
     } catch (e) {
       print('💀 Unexpected error fetching categories: ${e.toString()}');
-      print('🚧 Returning test categories for debugging');
-      return [
-        {'id': 1, 'name': 'Network'},
-        {'id': 2, 'name': 'Cluster'},
-        {'id': 3, 'name': 'Location'},
-        {'id': 4, 'name': 'Zone'},
-        {'id': 5, 'name': 'Missional Community'},
-        {'id': 6, 'name': 'Huddle'},
-        {'id': 7, 'name': 'Garage Team'},
-      ];
+      throw Exception('Failed to fetch categories: ${e.toString()}');
     }
   }
 
@@ -155,14 +107,17 @@ class ReportService {
     String? testimonies,
     String? prayerRequests,
   }) async {
+    // Map fields to match server expectations based on report template
     final reportData = {
-      'type': 'mc_report',
-      'gatheringDate': gatheringDate,
-      'mcName': mcName,
-      'mcId': mcId,
-      'hostHome': hostHome,
-      'totalMembers': totalMembers,
-      'attendance': attendance,
+      'reportId': 4, // MC Attendance Report ID from server response
+      'date': gatheringDate,
+      'smallGroupName': mcName,
+      'smallGroupId':
+          int.tryParse(mcId ?? '4') ?? 4, // Default to Jerusalem MC id
+      'mcHostHome': hostHome,
+      'smallGroupNumberOfMembers': totalMembers,
+      'smallGroupAttendanceCount': attendance,
+      // Additional fields for extended data
       'streamingMethod': streamingMethod ?? '',
       'attendeesNames': attendeesNames ?? '',
       'visitors': visitors ?? '',
@@ -228,8 +183,38 @@ class ReportService {
     try {
       final response = await _dio.get(ReportEndpoints.reports);
 
-      final List<dynamic> reportsData = response.data['reports'] ?? [];
-      return reportsData.map((json) => _mapApiResponseToReport(json)).toList();
+      // Handle different response formats
+      List<dynamic> reportsData;
+      if (response.data is List) {
+        // Direct array response
+        reportsData = response.data;
+      } else if (response.data is Map && response.data['reports'] != null) {
+        // Wrapped in reports property
+        reportsData = response.data['reports'];
+      } else {
+        print(
+          '⚠️ Unexpected reports response format: ${response.data.runtimeType}',
+        );
+        return [];
+      }
+
+      print('📋 Processing ${reportsData.length} report items');
+
+      // Try to map each item, skip items that fail parsing
+      final reports = <Report>[];
+      for (var i = 0; i < reportsData.length; i++) {
+        try {
+          final report = _mapApiResponseToReport(reportsData[i]);
+          reports.add(report);
+        } catch (e) {
+          print('⚠️ Failed to parse report item $i: $e');
+          print('📄 Raw item: ${reportsData[i]}');
+          // Continue processing other items
+        }
+      }
+
+      print('✅ Successfully parsed ${reports.length} reports');
+      return reports;
     } on DioException catch (e) {
       throw _handleDioException(e);
     } catch (e) {
@@ -270,22 +255,51 @@ class ReportService {
 
   /// Map API response to Report model
   static Report _mapApiResponseToReport(Map<String, dynamic> json) {
-    return Report(
-      id: json['id']?.toString() ?? '',
-      title: json['title'] ?? 'Untitled Report',
-      description: json['description'] ?? '',
-      type: _mapStringToReportType(json['type']),
-      status: _mapStringToReportStatus(json['status']),
-      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
-      completedAt: json['completedAt'] != null
+    try {
+      // Handle server response format where we get report templates/definitions
+      final id = json['id']?.toString() ?? '';
+      final title = json['name'] ?? json['title'] ?? 'Untitled Report';
+      final description = json['description'] ?? '';
+
+      // Map type based on name or functionName
+      final typeString = json['type'] ?? json['name'] ?? '';
+      final type = _mapStringToReportType(typeString);
+
+      // Default status for report templates
+      final statusString = json['status'] ?? 'active';
+      final status = statusString == 'active'
+          ? ReportStatus.pending
+          : _mapStringToReportStatus(statusString);
+
+      // Handle dates - use current date if not provided (for templates)
+      final now = DateTime.now();
+      final createdAt = json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt']) ?? now
+          : now;
+
+      final completedAt = json['completedAt'] != null
           ? DateTime.tryParse(json['completedAt'])
-          : null,
-      createdBy: json['createdBy'] ?? 'Unknown',
-      assignedTo: json['assignedTo'],
-      tags: List<String>.from(json['tags'] ?? []),
-      priority: json['priority'] ?? 2,
-      data: Map<String, dynamic>.from(json['data'] ?? {}),
-    );
+          : null;
+
+      return Report(
+        id: id,
+        title: title,
+        description: description,
+        type: type,
+        status: status,
+        createdAt: createdAt,
+        completedAt: completedAt,
+        createdBy: json['createdBy'] ?? 'System',
+        assignedTo: json['assignedTo'],
+        tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
+        priority: json['priority'] ?? 2,
+        data: Map<String, dynamic>.from(json['data'] ?? json),
+      );
+    } catch (e) {
+      print('❌ Error mapping report: $e');
+      print('📄 Raw JSON: $json');
+      throw Exception('Failed to parse report data: ${e.toString()}');
+    }
   }
 
   /// Map string to ReportType enum
@@ -376,6 +390,6 @@ class ReportService {
     }
     // Return saved church name or default
     // For now, return a default - this can be enhanced to get from storage
-    return 'Champions Network';
+    return 'demo';
   }
 }

@@ -45,6 +45,8 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
   Future<void> _loadAvailableMcs() async {
     try {
       print('🔄 MC Form: Starting to load available MCs...');
+      // Let server determine church from authenticated user
+
       final groups = await ReportService.getAvailableGroups();
       print('✅ MC Form: Groups loaded successfully: $groups');
       setState(() {

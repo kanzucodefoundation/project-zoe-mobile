@@ -32,6 +32,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Future<void> _loadReportCategories() async {
     try {
       print('🔄 Starting to load report categories...');
+      // Let server determine church from authenticated user
+
       final categories = await ReportService.getReportCategories();
       print('✅ Categories loaded successfully: $categories');
       setState(() {
@@ -50,6 +52,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Future<void> _loadSmallGroups() async {
     try {
       print('🔄 Starting to load small groups...');
+      // Let server determine church from authenticated user
+
       final groups = await ReportService.getAvailableGroups();
       print('✅ Groups loaded successfully: $groups');
       setState(() {
@@ -274,13 +278,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
           Consumer<ReportProvider>(
             builder: (context, reportProvider, _) {
               final reports = reportProvider.reports;
-              
+
               // Filter reports by selected category if any
               final filteredReports = _selectedCategory == null
                   ? reports
                   : reports.where((report) {
                       // Assuming reports have a categoryId field
-                      return report.data['categoryId'].toString() == _selectedCategory;
+                      return report.data['categoryId'].toString() ==
+                          _selectedCategory;
                     }).toList();
 
               if (reportProvider.isLoading) {
@@ -316,10 +321,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         const SizedBox(height: 4),
                         const Text(
                           'Submit your first report!',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                       ],
                     ),
@@ -331,7 +333,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 children: filteredReports.map((report) {
                   final status = report.status.toString().split('.').last;
                   final statusColor = _getStatusColor(status);
-                  final categoryName = _getCategoryName(report.data['categoryId']);
+                  final categoryName = _getCategoryName(
+                    report.data['categoryId'],
+                  );
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
