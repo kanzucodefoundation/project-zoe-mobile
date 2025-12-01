@@ -55,12 +55,13 @@ class ApiClient {
   }
 
   // Set tenant header for multi-tenant support
-  void setTenant(String tenant) {
-    _dio.options.headers['tenant'] = tenant;
+  void setTenant(String churchName) {
+    // Let server determine church from authenticated user
+    // _dio.options.headers['X-Church-Name'] = churchName;
   }
 
   // Remove tenant header
   void clearTenant() {
-    _dio.options.headers.remove('tenant');
+    _dio.options.headers.remove('X-Church-Name');
   }
 }

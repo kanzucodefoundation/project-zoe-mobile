@@ -4,7 +4,6 @@ import '../services/auth_guard.dart';
 import '../services/auth_service.dart';
 import '../api/api_client.dart';
 
-
 enum AuthStatus { unauthenticated, authenticating, authenticated, failed }
 
 class AuthProvider extends ChangeNotifier {
@@ -61,31 +60,27 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       // Use real API authentication
-      final userEntity = await AuthService.loginUser(
+      final authResult = await AuthService.loginUser(
         email: email,
         password: password,
-        churchName: churchName ?? 'default',
-      );
-
-      // Convert UserEntity to User model
-      final user = User(
-        id: userEntity.id,
-        name: userEntity.name,
-        email: userEntity.email,
-        role: UserRole.admin, // Default to admin for now
-        department: 'Church Operations',
         churchName: churchName ?? 'demo',
       );
 
-      debugPrint(
-        'AuthProvider: Valid credentials found, setting authenticated status',
+      // Convert UserEntity to User model
+      _user = User(
+        id: authResult.user.id,
+        name: authResult.user.name,
+        email: authResult.user.email,
+        role: UserRole.admin, // Default to admin for demo user
+        department: 'IT',
+        churchName: churchName ?? 'demo',
       );
-      _user = user;
-      _status = AuthStatus.authenticated;
-      _error = null;
 
-      // Generate auth token (this should come from API response)
-      final token = 'api-token-${DateTime.now().millisecondsSinceEpoch}';
+      // Use the REAL token from server!
+      final token = authResult.token;
+      debugPrint(
+        'AuthProvider: Setting auth token: ${token.substring(0, 20)}...',
+      );
 
       // Set auth token for API calls
       ApiClient().setAuthToken(token);
@@ -93,12 +88,11 @@ class AuthProvider extends ChangeNotifier {
       // Save user data persistently
       await AuthGuard.saveUserData(_user!, token);
 
-      // Notify listeners immediately after successful authentication
-      debugPrint(
-        'AuthProvider: About to notify listeners with authenticated status',
-      );
-      notifyListeners();
+      _status = AuthStatus.authenticated;
+      _error = null;
+
       debugPrint('AuthProvider: Login successful, status = $_status');
+      notifyListeners();
     } catch (e) {
       debugPrint('AuthProvider: Login failed with error: $e');
       _status = AuthStatus.failed;
@@ -122,8 +116,6 @@ class AuthProvider extends ChangeNotifier {
 
       notifyListeners();
     }
-
-    debugPrint('AuthProvider: Final login status = $_status');
   }
 
   Future<void> signup({

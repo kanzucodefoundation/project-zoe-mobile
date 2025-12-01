@@ -2,31 +2,49 @@ import '../api/login_endpoint.dart';
 import '../api/api_models.dart';
 import '../entities/user.dart';
 
+/// Auth result with both user and token
+class AuthResult {
+  final UserEntity user;
+  final String token;
+
+  AuthResult({required this.user, required this.token});
+}
+
 /// Service class to handle authentication API calls and data transformation
 class AuthService {
-  /// Login user and return UserEntity
-  static Future<UserEntity> loginUser({
+  /// Login user and return AuthResult with user and token
+  static Future<AuthResult> loginUser({
     required String email,
     required String password,
     required String churchName,
   }) async {
     try {
+      // Use demo credentials for testing if empty
+      final loginEmail = email.isEmpty
+          ? 'jane.doe@kanzucodefoundation.org'
+          : email;
+      final loginPassword = password.isEmpty ? 'Password@1' : password;
+      final loginChurch = churchName.isEmpty ? 'demo' : churchName;
+
       final request = LoginRequest(
-        username: email,
-        password: password,
-        churchName: churchName,
+        username: loginEmail,
+        password: loginPassword,
+        churchName: loginChurch,
       );
 
       final response = await AuthApi.login(request);
 
-      if (response.success && response.user != null) {
+      if (response.success && response.user != null && response.token != null) {
         // Transform API response to UserEntity
-        return UserEntity(
+        final user = UserEntity(
           id: response.user!['id']?.toString() ?? '',
           name:
+              response.user!['fullName'] ??
               '${response.user!['firstName'] ?? ''} ${response.user!['lastName'] ?? ''}',
           email: response.user!['email'] ?? email,
         );
+
+        return AuthResult(user: user, token: response.token!);
       } else {
         throw Exception(response.message ?? 'Login failed');
       }

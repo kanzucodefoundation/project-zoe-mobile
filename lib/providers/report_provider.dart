@@ -38,8 +38,10 @@ class ReportProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Get current church name for display
+      // Get current church name from authenticated user context
       _currentChurch = await ReportService.getChurchName();
+      // Don't set church name manually - let server determine from auth
+      // ReportService.setChurchName(_currentChurch!);
 
       debugPrint('Loading reports from server for church: $_currentChurch');
       _reports = await ReportService.getAllReports();
@@ -57,10 +59,9 @@ class ReportProvider extends ChangeNotifier {
             'Try switching to a different church or check server configuration.';
       }
 
-      // Fallback to demo data if API fails
+      // Only use server data - no fallback
       _isUsingServerData = false;
-      // _loadDemoReports(); // Commented out - using server data only
-      _reports = []; // Show empty list instead of demo data
+      _reports = [];
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -249,46 +250,29 @@ class ReportProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final testChurches = [
-      'Champions Network',
-      'WH Naalya',
-      'Jerusalem MC',
-      'Najjera-Buwate Zone',
-      'demo',
-    ];
-
+    // Only try the current church - no fallback churches
     try {
-      for (final church in testChurches) {
-        try {
-          debugPrint('Testing church: $church');
-          ReportService.setChurchName(church);
+      final currentChurch = await ReportService.getChurchName();
+      debugPrint('Testing current church: $currentChurch');
 
-          // Test if this church works by trying to fetch reports
-          final testReports = await ReportService.getAllReports();
-          if (testReports.isNotEmpty) {
-            _currentChurch = church;
-            _reports = testReports;
-            _isUsingServerData = true;
-            debugPrint(
-              'Found working church: $church with ${testReports.length} reports',
-            );
-            return;
-          }
-        } catch (e) {
-          debugPrint('Church $church failed: $e');
-          continue;
-        }
+      final testReports = await ReportService.getAllReports();
+      if (testReports.isNotEmpty) {
+        _currentChurch = currentChurch;
+        _reports = testReports;
+        _isUsingServerData = true;
+        debugPrint(
+          'Church $currentChurch working with ${testReports.length} reports',
+        );
+        return;
       }
 
-      // If no church worked
-      _error = 'No working church found. All tested churches failed.';
+      // If current church has no data
+      _error = 'No data available for church: $currentChurch';
       _isUsingServerData = false;
-      // _loadDemoReports(); // Commented out - show empty list instead
       _reports = [];
     } catch (e) {
-      _error = 'Failed to find working church: ${e.toString()}';
+      _error = 'Failed to load church data: ${e.toString()}';
       _isUsingServerData = false;
-      // _loadDemoReports(); // Commented out - show empty list instead
       _reports = [];
     } finally {
       _isLoading = false;
