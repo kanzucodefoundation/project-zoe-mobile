@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/report_service.dart';
 import '../models/report.dart';
-import 'mc_report_detail_screen.dart';
+import 'details_screens/mc_report_detail_screen.dart';
 
 /// Full screen MC Attendance Report displaying all MCs and their submitted reports
 class McAttendanceReportScreen extends StatefulWidget {
