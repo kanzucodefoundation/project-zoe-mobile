@@ -8,6 +8,8 @@ import 'package:frontend/screens/mc_report_screen.dart';
 import 'package:frontend/screens/garage_attendance_screen.dart';
 import 'package:frontend/screens/details_screens/shepherd_details_screen.dart';
 import 'package:frontend/Screens/reports_screen.dart';
+import 'package:frontend/Screens/mc_reports_display_screen.dart';
+import 'package:frontend/Screens/garage_reports_display_screen.dart';
 import 'package:frontend/screens/admin_screen.dart';
 
 void main() async {
@@ -39,7 +41,9 @@ class MyApp extends StatelessWidget {
         home: const AppWrapper(),
         routes: {
           '/mc-report': (context) => const McReportScreen(),
+          '/mc-reports-display': (context) => const McReportsScreen(),
           '/garage-attendance': (context) => const GarageAttendanceScreen(),
+          '/garage-reports-display': (context) => const GarageReportsScreen(),
           '/shepherds-details': (context) =>
               const ShepherdDetailsScreen(shepherdId: ''),
           '/reports': (context) => ReportsScreen(),

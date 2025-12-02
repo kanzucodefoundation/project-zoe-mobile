@@ -38,6 +38,7 @@ class AuthGuard {
     } catch (e) {
       debugPrint('Error saving user data: $e');
     }
+    
   }
 
   /// Get saved user data

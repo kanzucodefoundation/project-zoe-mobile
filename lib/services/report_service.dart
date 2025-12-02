@@ -150,6 +150,106 @@ class ReportService {
     }
   }
 
+  /// Get MC report submissions from the server
+  static Future<List<Map<String, dynamic>>> getMcReportSubmissions() async {
+    try {
+      print('🔍 Fetching MC report submissions...');
+      final response = await _dio.get('/reports/submissions');
+      print('✅ MC submissions response: ${response.data}');
+
+      if (response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      }
+
+      return [];
+    } on DioException catch (e) {
+      print('❌ Error fetching MC submissions: ${e.toString()}');
+      print('🔢 Status code: ${e.response?.statusCode}');
+      print('💥 Error response: ${e.response?.data}');
+
+      // Return empty list if endpoint doesn't exist yet
+      return [];
+    } catch (e) {
+      print('💀 Unexpected error: ${e.toString()}');
+      return [];
+    }
+  }
+
+  /// Get specific MC report details by MC ID
+  static Future<List<Map<String, dynamic>>> getMcReportsByGroupId(
+    int groupId,
+  ) async {
+    try {
+      print('🔍 Fetching reports for MC ID: $groupId');
+      final response = await _dio.get('/reports/group/$groupId');
+      print('✅ MC reports response: ${response.data}');
+
+      if (response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      }
+
+      return [];
+    } on DioException catch (e) {
+      print('❌ Error fetching MC reports: ${e.toString()}');
+      print('🔢 Status code: ${e.response?.statusCode}');
+      print('💥 Error response: ${e.response?.data}');
+
+      // Return empty list if endpoint doesn't exist yet
+      return [];
+    } catch (e) {
+      print('💀 Unexpected error: ${e.toString()}');
+      return [];
+    }
+  }
+
+  /// Get specific report template by report ID
+  static Future<Map<String, dynamic>?> getReportTemplate(int reportId) async {
+    try {
+      print('🔍 Fetching report template for ID: $reportId');
+      final response = await _dio.get('/reports/$reportId');
+      print('✅ Report template response: ${response.data}');
+
+      if (response.data is Map<String, dynamic>) {
+        return Map<String, dynamic>.from(response.data);
+      }
+
+      return null;
+    } on DioException catch (e) {
+      print('❌ Error fetching report template: ${e.toString()}');
+      print('🔢 Status code: ${e.response?.statusCode}');
+      print('💥 Error response: ${e.response?.data}');
+      return null;
+    } catch (e) {
+      print('💀 Unexpected error: ${e.toString()}');
+      return null;
+    }
+  }
+
+  /// Get report submissions for a specific report template
+  static Future<List<Map<String, dynamic>>> getReportSubmissions(
+    int reportId,
+  ) async {
+    try {
+      print('🔍 Fetching submissions for report ID: $reportId');
+      final response = await _dio.get('/reports/$reportId/submissions');
+      print('✅ Report submissions response: ${response.data}');
+
+      if (response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      }
+
+      return [];
+    } on DioException catch (e) {
+      print('❌ Error fetching report submissions: ${e.toString()}');
+      print('🔢 Status code: ${e.response?.statusCode}');
+      print('💥 Error response: ${e.response?.data}');
+      return [];
+    } catch (e) {
+      print('💀 Unexpected error: ${e.toString()}');
+      return [];
+    }
+  }
+
   /// Submit Garage Attendance Report
   static Future<Map<String, dynamic>> submitGarageReport({
     required String date,
