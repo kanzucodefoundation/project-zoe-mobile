@@ -4,8 +4,8 @@ import 'package:frontend/components/report_card.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/report_provider.dart';
-import 'mc_report_form_screen.dart';
-import 'garage_attendance_form_screen.dart';
+import 'mc_reports_display_screen.dart';
+import 'garage_reports_display_screen.dart';
 import 'reports_screen.dart';
 
 class HomeSceen extends StatelessWidget {
@@ -103,7 +103,7 @@ class HomeSceen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const McReportFormScreen(),
+                        builder: (context) => const McReportsScreen(),
                       ),
                     );
                   },
@@ -116,8 +116,7 @@ class HomeSceen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            const GarageAttendanceFormScreen(),
+                        builder: (context) => const GarageReportsScreen(),
                       ),
                     );
                   },
