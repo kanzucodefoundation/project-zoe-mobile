@@ -20,6 +20,30 @@ class AuthProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  /// Clear the current error message
+  void clearError() {
+    _error = null;
+    notifyListeners();
+  }
+
+  /// Get current API connection status
+  Future<Map<String, dynamic>> getConnectionStatus() async {
+    final savedToken = await AuthGuard.getSavedToken();
+    final apiClient = ApiClient();
+
+    return {
+      'hasToken': savedToken != null,
+      'tokenLength': savedToken?.length ?? 0,
+      'tokenPreview': savedToken != null
+          ? '${savedToken.substring(0, 20)}...'
+          : null,
+      'apiBaseUrl': apiClient.dio.options.baseUrl,
+      'hasAuthHeader': apiClient.dio.options.headers.containsKey(
+        'Authorization',
+      ),
+    };
+  }
+
   /// Check for existing session when app starts
   Future<void> _checkExistingSession() async {
     _status = AuthStatus.authenticating;
@@ -87,6 +111,17 @@ class AuthProvider extends ChangeNotifier {
 
       // Save user data persistently
       await AuthGuard.saveUserData(_user!, token);
+
+      // Verify token was saved correctly
+      final savedToken = await AuthGuard.getSavedToken();
+      debugPrint(
+        'AuthProvider: Token saved and verified: ${savedToken != null ? "✓" : "✗"}',
+      );
+      if (savedToken != null) {
+        debugPrint(
+          'AuthProvider: Saved token starts with: ${savedToken.substring(0, 20)}...',
+        );
+      }
 
       _status = AuthStatus.authenticated;
       _error = null;

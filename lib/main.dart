@@ -11,6 +11,8 @@ import 'package:frontend/Screens/reports_screen.dart';
 import 'package:frontend/Screens/mc_reports_display_screen.dart';
 import 'package:frontend/Screens/garage_reports_display_screen.dart';
 import 'package:frontend/screens/admin_screen.dart';
+import 'package:frontend/auth/login_screen.dart';
+import 'package:frontend/auth/register_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +42,8 @@ class MyApp extends StatelessWidget {
         ),
         home: const AppWrapper(),
         routes: {
+          '/login': (context) => const LoginScreen(),
+          '/register': (context) => const RegisterScreen(),
           '/mc-report': (context) => const McReportScreen(),
           '/mc-reports-display': (context) => const McReportsScreen(),
           '/garage-attendance': (context) => const GarageAttendanceScreen(),
