@@ -60,6 +60,41 @@ class _McReportsScreenState extends State<McReportsScreen> {
     }
   }
 
+  // MC dropdown data
+  List<Map<String, dynamic>> _availableMcs = [];
+  String? _selectedMcId;
+  String? _selectedMcName;
+  bool _isLoadingMcs = true;
+
+  /// Load available MCs from server
+  Future<void> _loadAvailableMcs() async {
+    try {
+      print('🔄 MC Form: Starting to load available MCs...');
+      // Let server determine church from authenticated user
+
+      final groups = await ReportService.getMCGroups();
+      print('✅ MC Form: Groups loaded successfully: $groups');
+      setState(() {
+        _availableMcs = groups;
+        _isLoadingMcs = false;
+      });
+      print('🎯 MC Form: State updated - MCs ${_availableMcs.toList()}');
+    } catch (e) {
+      print('❌ MC Form: Error loading MCs: $e');
+      setState(() {
+        _isLoadingMcs = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load MCs: ${e.toString()}'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
+
   DateTime? _selectedDate;
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -385,6 +420,92 @@ class _McReportsScreenState extends State<McReportsScreen> {
           if (field.required && (v == null || v.isEmpty)) return 'Required';
           return null;
         },
+      );
+    } else if (field.name.toLowerCase().contains('smallGroupName')) {
+      input = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Missional Community',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: _isLoadingMcs
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 12),
+                        Text('Loading MCs...'),
+                      ],
+                    ),
+                  )
+                : DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: _selectedMcId,
+                      hint: const Text(
+                        'Select MC',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      items: _availableMcs.map((mc) {
+                        return DropdownMenuItem<String>(
+                          value: mc['id']?.toString(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                mc['name'] ?? 'Unknown MC',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              if (mc['description'] != null)
+                                Text(
+                                  mc['description'],
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          final selectedMc = _availableMcs.firstWhere(
+                            (mc) => mc['id']?.toString() == value,
+                          );
+                          setState(() {
+                            _selectedMcId = value;
+                            _selectedMcName =
+                                selectedMc['name'] ?? 'Unknown MC';
+                          });
+                        }
+                      },
+                    ),
+                  ),
+          ),
+        ],
       );
     } else {
       // default to single-line text

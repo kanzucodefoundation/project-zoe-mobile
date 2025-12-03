@@ -43,6 +43,40 @@ class ReportService {
     }
   }
 
+  static Future<List<Map<String, dynamic>>> getMCGroups() async {
+    try {
+      print('🔍 Fetching groups from /groups/combo...');
+      final response = await _dio.get(
+        '/groups/combo?categories=Missional Community',
+      );
+      print('✅ Groups response received: ${response.data}');
+      print('📊 Response type: ${response.data.runtimeType}');
+
+      final List<dynamic> groupsData = response.data ?? [];
+      print('📝 Parsed groups count: ${groupsData.length}');
+
+      final result = groupsData
+          .map(
+            (group) => {
+              'id': group['id'],
+              'name': group['name'] ?? 'Unknown Group',
+            },
+          )
+          .toList();
+
+      print('🎯 Final groups result: $result');
+      return result;
+    } on DioException catch (e) {
+      print('❌ DioException fetching groups: ${e.toString()}');
+      print('💥 Error response: ${e.response?.data}');
+      print('🔢 Status code: ${e.response?.statusCode}');
+      throw _handleDioException(e);
+    } catch (e) {
+      print('💀 Unexpected error fetching groups: ${e.toString()}');
+      throw Exception('Failed to fetch groups: ${e.toString()}');
+    }
+  }
+
   /// Get report categories from server
   static Future<List<Map<String, dynamic>>> getReportCategories() async {
     try {
