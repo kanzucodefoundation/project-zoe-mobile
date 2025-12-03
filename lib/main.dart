@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
       ],
       child: MaterialApp(
-        debugShowCheckedModeBanner: false,
+        debugShowCheckedModeBanner: true,
         title: 'Project Zoe',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -45,9 +45,9 @@ class MyApp extends StatelessWidget {
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
           '/mc-report': (context) => const McReportScreen(),
-          '/mc-reports-display': (context) => const McReportsScreen(),
+          // '/mc-reports-display': (context) => const McReportsScreen(),
           '/garage-attendance': (context) => const GarageAttendanceScreen(),
-          '/garage-reports-display': (context) => const GarageReportsScreen(),
+          // '/garage-reports-display': (context) => const GarageReportsScreen(),
           '/shepherds-details': (context) =>
               const ShepherdDetailsScreen(shepherdId: ''),
           '/reports': (context) => ReportsScreen(),

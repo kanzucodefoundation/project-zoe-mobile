@@ -1,3 +1,5 @@
+import 'package:frontend/models/report.dart';
+
 /// Model for report template with fields and configuration
 class ReportTemplate {
   final int id;

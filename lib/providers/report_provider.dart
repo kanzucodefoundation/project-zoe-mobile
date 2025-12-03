@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/models/report_template.dart';
 import '../models/report.dart';
 import '../helpers/report_helpers.dart';
 import '../services/report_service.dart';
@@ -7,6 +8,9 @@ import '../services/report_service.dart';
 class ReportProvider extends ChangeNotifier {
   List<Report> _reports = [];
   List<Report> get reports => _reports;
+
+  List<ReportTemplate> _reportsTemplate = [];
+  List<ReportTemplate> get reportsTemplate => _reportsTemplate;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -45,6 +49,7 @@ class ReportProvider extends ChangeNotifier {
 
       debugPrint('Loading reports from server for church: $_currentChurch');
       _reports = await ReportService.getAllReports();
+      _reportsTemplate = await ReportService.getReportTemplates();
       _isUsingServerData = true;
 
       debugPrint('Successfully loaded ${_reports.length} reports from server');
@@ -121,6 +126,12 @@ class ReportProvider extends ChangeNotifier {
   /// Get overdue reports
   List<Report> get overdueReports {
     return ReportHelpers.getOverdueReports(_reports);
+  }
+
+  List<Map<String, dynamic>> get titleAndId {
+    return _reportsTemplate
+        .map((report) => {'id': report.id, 'title': report.name})
+        .toList();
   }
 
   /// Update report status

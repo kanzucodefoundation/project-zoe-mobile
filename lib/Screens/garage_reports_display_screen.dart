@@ -4,7 +4,8 @@ import '../services/report_service.dart';
 
 /// Garage Reports Display Screen - Shows Garage report template and submissions
 class GarageReportsScreen extends StatefulWidget {
-  const GarageReportsScreen({super.key});
+  final String reportId;
+  const GarageReportsScreen({super.key, required this.reportId});
 
   @override
   State<GarageReportsScreen> createState() => _GarageReportsScreenState();
@@ -30,15 +31,17 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
     try {
       // Load Garage report template (ID: 2)
-      final templateData = await ReportService.getReportTemplate(2);
+      final templateData = await ReportService.getReportTemplate(
+        widget.reportId,
+      );
 
       if (templateData != null) {
         final template = ReportTemplate.fromJson(templateData);
-        final submissions = await ReportService.getReportSubmissions(2);
+        // final submissions = await ReportService.getReportSubmissions(2);
 
         setState(() {
           _reportTemplate = template;
-          _submissions = submissions;
+          // _submissions = submissions;
           _isLoading = false;
         });
       } else {

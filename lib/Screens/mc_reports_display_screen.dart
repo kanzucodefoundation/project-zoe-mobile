@@ -4,7 +4,8 @@ import '../services/report_service.dart';
 
 /// MC Reports Display Screen - Shows MC report template and submissions
 class McReportsScreen extends StatefulWidget {
-  const McReportsScreen({super.key});
+  final String reportId;
+  const McReportsScreen({super.key, required this.reportId});
 
   @override
   State<McReportsScreen> createState() => _McReportsScreenState();
@@ -15,6 +16,8 @@ class _McReportsScreenState extends State<McReportsScreen> {
   List<Map<String, dynamic>> _submissions = [];
   bool _isLoading = true;
   String? _error;
+  final Map<int, TextEditingController> _controllers = {};
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -30,7 +33,9 @@ class _McReportsScreenState extends State<McReportsScreen> {
 
     try {
       // Load MC report template (ID: 1)
-      final templateData = await ReportService.getReportTemplate(1);
+      final templateData = await ReportService.getReportTemplate(
+        widget.reportId,
+      );
 
       if (templateData != null) {
         final template = ReportTemplate.fromJson(templateData);
@@ -38,7 +43,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
 
         setState(() {
           _reportTemplate = template;
-          _submissions = submissions;
+          // _submissions = submissions;
           _isLoading = false;
         });
       } else {
@@ -51,6 +56,21 @@ class _McReportsScreenState extends State<McReportsScreen> {
       setState(() {
         _error = 'Error loading report data: ${e.toString()}';
         _isLoading = false;
+      });
+    }
+  }
+
+  DateTime? _selectedDate;
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
       });
     }
   }
@@ -205,12 +225,11 @@ class _McReportsScreenState extends State<McReportsScreen> {
             runSpacing: 8,
             children: [
               _buildInfoChip('Frequency', _reportTemplate!.submissionFrequency),
-              _buildInfoChip('View Type', _reportTemplate!.viewType),
-              _buildInfoChip(
-                'Status',
-                _reportTemplate!.status.toUpperCase(),
-                color: _reportTemplate!.active ? Colors.green : Colors.orange,
-              ),
+              // _buildInfoChip('View Type', _reportTemplate!.viewType),
+              // _buildInfoChip( 'Status',
+              //        _reportTemplate!.status.toUpperCase(),
+              //  color: _reportTemplate!.active ? Colors.green : Colors.orange,
+              // )
             ],
           ),
         ],
@@ -258,7 +277,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Report Fields',
+            'Fill in all the required fields',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -266,10 +285,10 @@ class _McReportsScreenState extends State<McReportsScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            'Fields required for this report submission',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-          ),
+          // Text(
+          //   'Fill in all the required fields',
+          //   style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+          // ),
           const SizedBox(height: 16),
           ...visibleFields.map((field) => _buildFieldItem(field)),
         ],
@@ -278,26 +297,126 @@ class _McReportsScreenState extends State<McReportsScreen> {
   }
 
   Widget _buildFieldItem(ReportField field) {
+    // ensure a controller exists for this field
+    final controller = _controllers.putIfAbsent(
+      field.id,
+      () => TextEditingController(),
+    );
+
+    Widget input;
+    final t = field.type.toLowerCase();
+
+    if (t == 'date') {
+      input = GestureDetector(
+        onTap: () => _selectDate(context),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.calendar_today, color: Colors.grey),
+              const SizedBox(width: 12),
+              Text(
+                _selectedDate == null
+                    ? 'Select date of MC gathering'
+                    : '_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: _selectedDate == null ? Colors.grey : Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // AbsorbPointer(
+        //   child: TextFormField(
+        //     controller: controller,
+        //     decoration: InputDecoration(
+        //       hintText: 'Select ${field.label.toLowerCase()}',
+        //       suffixIcon: const Icon(Icons.calendar_today_outlined),
+        //     ),
+        //     validator: (v) {
+        //       if (field.required && (v == null || v.isEmpty)) return 'Required';
+        //       return null;
+        //     },
+        //   ),
+        // ),
+      );
+    } else if (t == 'number' || t == 'numeric') {
+      input = TextFormField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          labelText: field.label,
+          // hintText: field.label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.black),
+          ),
+        ),
+        validator: (v) {
+          if (field.required && (v == null || v.isEmpty)) return 'Required';
+          if (v != null && v.isNotEmpty && double.tryParse(v) == null) {
+            return 'Must be a number';
+          }
+          return null;
+        },
+      );
+    } else if (t == 'textarea' || t == 'text area' || t == 'longtext') {
+      input = TextFormField(
+        controller: controller,
+        keyboardType: TextInputType.multiline,
+        maxLines: 4,
+        // decoration: InputDecoration(hintText: field.label),
+        decoration: InputDecoration(
+          labelText: field.label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.black),
+          ),
+        ),
+        validator: (v) {
+          if (field.required && (v == null || v.isEmpty)) return 'Required';
+          return null;
+        },
+      );
+    } else {
+      // default to single-line text
+      input = TextFormField(
+        controller: controller,
+        decoration: InputDecoration(hintText: field.label),
+        validator: (v) {
+          if (field.required && (v == null || v.isEmpty)) return 'Required';
+          return null;
+        },
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 6,
-            height: 6,
-            margin: const EdgeInsets.only(top: 6),
-            decoration: BoxDecoration(
-              color: field.required ? Colors.red : Colors.grey,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                margin: const EdgeInsets.only(top: 6),
+                decoration: BoxDecoration(
+                  color: field.required ? Colors.red : Colors.grey,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Row(
                   children: [
                     Expanded(
                       child: Text(
@@ -307,8 +426,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
                           fontWeight: FontWeight.w500,
                           color: Colors.black87,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
                       ),
                     ),
                     if (field.required) ...[
@@ -324,17 +441,22 @@ class _McReportsScreenState extends State<McReportsScreen> {
                     ],
                   ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  'Type: ${field.type}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          const SizedBox(height: 8),
+          input,
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    for (final c in _controllers.values) {
+      c.dispose();
+    }
+    super.dispose();
   }
 
   Widget _buildSubmissionsSection() {

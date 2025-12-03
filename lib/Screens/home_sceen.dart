@@ -91,53 +91,148 @@ class HomeSceen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                ReportCard(
-                  reportTitle: 'MC Report',
-                  reportIcon: Icons.church,
-                  iconColor: Colors.black,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const McReportsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                ReportCard(
-                  reportTitle: 'Garage',
-                  reportIcon: Icons.garage,
-                  iconColor: Colors.black,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const GarageReportsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                ReportCard(
-                  reportTitle: 'Shepherds',
-                  reportIcon: Icons.people,
-                  iconColor: Colors.black,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ShepherdsScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
 
+          Consumer<ReportProvider>(
+            builder: (context, reportProvider, child) {
+              final titleAndId = reportProvider.titleAndId;
+              final isLoading = reportProvider.isLoading;
+
+              if (isLoading) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: List.generate(
+                      3,
+                      (index) => Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    ...titleAndId.map((report) {
+                      final id = report['id'].toString();
+                      final title = report['title'].toString();
+
+                      // Determine icon based on title
+                      IconData icon = Icons.description;
+                      Widget? targetScreen;
+
+                      if (title.toLowerCase().contains('mc')) {
+                        icon = Icons.church;
+                        targetScreen = McReportsScreen(reportId: id);
+                      } else if (title.toLowerCase().contains('garage')) {
+                        icon = Icons.garage;
+                        targetScreen = GarageReportsScreen(reportId: id);
+                      }
+
+                      return ReportCard(
+                        reportTitle: title,
+                        reportIcon: icon,
+                        iconColor: Colors.black,
+                        onTap: () {
+                          if (targetScreen != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => targetScreen!,
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    }),
+                    ReportCard(
+                      reportTitle: 'Shepherds',
+                      reportIcon: Icons.people,
+                      iconColor: Colors.black,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ShepherdsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              );
+
+              // return Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 16),
+              //   child: Row(
+              //     children: [
+              //       ReportCard(
+              //         reportTitle: 'MC Report',
+              //         reportIcon: Icons.church,
+              //         iconColor: Colors.black,
+              //         onTap: () {
+              //           Navigator.push(
+              //             context,
+              //             MaterialPageRoute(
+              //               builder: (context) => const McReportsScreen(),
+              //             ),
+              //           );
+              //         },
+              //       ),
+              //       ReportCard(
+              //         reportTitle: 'Garage',
+              //         reportIcon: Icons.garage,
+              //         iconColor: Colors.black,
+              //         onTap: () {
+              //           Navigator.push(
+              //             context,
+              //             MaterialPageRoute(
+              //               builder: (context) => const GarageReportsScreen(),
+              //             ),
+              //           );
+              //         },
+              //       ),
+              //       ReportCard(
+              //         reportTitle: 'Shepherds',
+              //         reportIcon: Icons.people,
+              //         iconColor: Colors.black,
+              //         onTap: () {
+              //           Navigator.push(
+              //             context,
+              //             MaterialPageRoute(
+              //               builder: (context) => const ShepherdsScreen(),
+              //             ),
+              //           );
+              //         },
+              //       ),
+              //     ],
+              //   ),
+              // );
+            },
+          ),
           const SizedBox(height: 24),
 
           // Reports Statistics Section

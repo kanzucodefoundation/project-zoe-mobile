@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
+import 'package:frontend/models/report_template.dart';
 import '../api/api_client.dart';
 import '../api/endpoints/report_endpoints.dart';
 import '../models/report.dart';
@@ -203,7 +205,9 @@ class ReportService {
   }
 
   /// Get specific report template by report ID
-  static Future<Map<String, dynamic>?> getReportTemplate(int reportId) async {
+  static Future<Map<String, dynamic>?> getReportTemplate(
+    dynamic reportId,
+  ) async {
     try {
       print('🔍 Fetching report template for ID: $reportId');
       final response = await _dio.get('/reports/$reportId');
@@ -278,6 +282,51 @@ class ReportService {
     }
   }
 
+  static Future<List<ReportTemplate>> getReportTemplates() async {
+    try {
+      final response = await _dio.get(ReportEndpoints.reports);
+
+      // Handle different response formats
+      List<dynamic> reportsData;
+      if (response.data is List) {
+        // Direct array response
+        reportsData = response.data;
+        // print(reportsData);
+        debugPrint('📋 Response is a List with ${reportsData.length} items');
+      } else if (response.data is Map && response.data['reports'] != null) {
+        // Wrapped in reports property
+        reportsData = response.data['reports'];
+      } else {
+        print(
+          '⚠️ Unexpected reports response format: ${response.data.runtimeType}',
+        );
+        return [];
+      }
+
+      print('📋 Processing ${reportsData.length} report items');
+
+      // Try to map each item, skip items that fail parsing
+      final reports = <ReportTemplate>[];
+      for (var i = 0; i < reportsData.length; i++) {
+        try {
+          final report = _mapApiResponseToReportTemplate(reportsData[i]);
+          reports.add(report);
+        } catch (e) {
+          print('⚠️ Failed to parse report item $i: $e');
+          print('📄 Raw item: ${reportsData[i]}');
+          // Continue processing other items
+        }
+      }
+
+      print('✅ Successfully parsed ${reports.length} reports');
+      return reports;
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    } catch (e) {
+      throw Exception('Failed to fetch reports: ${e.toString()}');
+    }
+  }
+
   /// Get all reports
   static Future<List<Report>> getAllReports() async {
     try {
@@ -334,6 +383,17 @@ class ReportService {
     }
   }
 
+  static Future<ReportTemplate> getReportTempById(String id) async {
+    try {
+      final response = await _dio.get(ReportEndpoints.getReportById(id));
+      return _mapApiResponseToReportTemplate(response.data);
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    } catch (e) {
+      throw Exception('Failed to fetch report: ${e.toString()}');
+    }
+  }
+
   /// Update report status
   static Future<Map<String, dynamic>> updateReportStatus({
     required String reportId,
@@ -350,6 +410,62 @@ class ReportService {
       throw _handleDioException(e);
     } catch (e) {
       throw Exception('Failed to update report status: ${e.toString()}');
+    }
+  }
+
+  /// Map API response to ReportTmeplate model
+  static ReportTemplate _mapApiResponseToReportTemplate(
+    Map<String, dynamic> json,
+  ) {
+    try {
+      final id = json['id'] ?? '';
+      final title = json['name'] ?? json['title'] ?? 'Untitled Report';
+      final description = json['description'] ?? '';
+
+      // Map report type using your existing logic
+      final typeString = json['functionName'] ?? json['name'] ?? '';
+      final type = _mapStringToReportType(typeString);
+
+      // Parse display columns
+      final displayColumns = (json['displayColumns'] as List<dynamic>? ?? [])
+          .map((c) => DisplayColumn(name: c['name'], label: c['label']))
+          .toList();
+
+      // Parse fields
+      final fields = (json['fields'] as List<dynamic>? ?? [])
+          .map(
+            (f) => ReportField(
+              id: f['id'],
+              name: f['name'],
+              type: f['type'],
+              label: f['label'] ?? '',
+              required: f['required'] ?? false,
+              hidden: f['hidden'] ?? false,
+              options: f['options'],
+            ),
+          )
+          .toList();
+
+      return ReportTemplate(
+        id: id,
+        name: title,
+        description: description,
+        viewType: json['viewType'] ?? 'table',
+        status: json['status'],
+        functionName: json['functionName'],
+        submissionFrequency: json['submissionFrequency'],
+        displayColumns: displayColumns,
+        fields: fields,
+        footer: json['footer'],
+        labels: json['labels'],
+        dataPoints: json['dataPoints'],
+        sqlQuery: json['sqlQuery'],
+        active: json['active'] ?? true,
+      );
+    } catch (e) {
+      print('❌ Error mapping template: $e');
+      print('📄 Raw JSON: $json');
+      throw Exception("Failed to parse report template: ${e.toString()}");
     }
   }
 
