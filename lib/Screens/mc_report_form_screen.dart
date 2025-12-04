@@ -25,6 +25,7 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
   final _highlightsController = TextEditingController();
   final _testimoniesController = TextEditingController();
   final _prayerRequestsController = TextEditingController();
+  final _mcNameController = TextEditingController();
 
   DateTime? _selectedDate;
   bool _isLoading = false;
@@ -81,6 +82,7 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
     _highlightsController.dispose();
     _testimoniesController.dispose();
     _prayerRequestsController.dispose();
+    _mcNameController.dispose();
     super.dispose();
   }
 
@@ -306,25 +308,44 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
                   GestureDetector(
                     onTap: () => _selectDate(context),
                     child: Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
                         border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.calendar_today, color: Colors.grey),
-                          const SizedBox(width: 12),
-                          Text(
-                            _selectedDate == null
-                                ? 'Select date of MC gathering'
-                                : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: _selectedDate == null
-                                  ? Colors.grey
-                                  : Colors.black,
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(8),
                             ),
+                            child: Icon(
+                              Icons.calendar_today,
+                              color: Colors.grey.shade700,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _selectedDate == null
+                                  ? 'Select date of MC gathering'
+                                  : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: _selectedDate == null
+                                    ? Colors.grey.shade600
+                                    : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_drop_down,
+                            color: Colors.grey.shade600,
                           ),
                         ],
                       ),
@@ -519,11 +540,6 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black),
-        ),
       ),
     );
   }
@@ -539,99 +555,21 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black),
-        ),
       ),
     );
   }
 
   Widget _buildMcDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Missional Community',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: _isLoadingMcs
-              ? const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      SizedBox(width: 12),
-                      Text('Loading MCs...'),
-                    ],
-                  ),
-                )
-              : DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    value: _selectedMcId,
-                    hint: const Text(
-                      'Select MC',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    items: _availableMcs.map((mc) {
-                      return DropdownMenuItem<String>(
-                        value: mc['id']?.toString(),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              mc['name'] ?? 'Unknown MC',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            if (mc['description'] != null)
-                              Text(
-                                mc['description'],
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        final selectedMc = _availableMcs.firstWhere(
-                          (mc) => mc['id']?.toString() == value,
-                        );
-                        setState(() {
-                          _selectedMcId = value;
-                          _selectedMcName = selectedMc['name'] ?? 'Unknown MC';
-                        });
-                      }
-                    },
-                  ),
-                ),
-        ),
-      ],
+    return _buildTextField(
+      controller: _mcNameController,
+      label: 'Missional Community',
+      hint: 'Enter MC name',
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter the MC name';
+        }
+        return null;
+      },
     );
   }
 }
