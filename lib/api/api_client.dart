@@ -29,15 +29,37 @@ class ApiClient {
       LogInterceptor(
         requestBody: true,
         responseBody: true,
-        logPrint: (obj) => print(obj),
+        logPrint: (obj) => print('API LOG: $obj'),
+        error: true,
+        request: true,
+        requestHeader: true,
+        responseHeader: true,
       ),
     );
 
-    // Add error handling interceptor
+    // Add error handling interceptor with detailed logging
     _dio.interceptors.add(
       InterceptorsWrapper(
+        onRequest: (options, handler) {
+          print('API REQUEST: ${options.method} ${options.uri}');
+          print('API HEADERS: ${options.headers}');
+          print('API DATA: ${options.data}');
+          handler.next(options);
+        },
+        onResponse: (response, handler) {
+          print(
+            'API RESPONSE: ${response.statusCode} ${response.statusMessage}',
+          );
+          handler.next(response);
+        },
         onError: (error, handler) {
-          print('API Error: ${error.message}');
+          print('API ERROR: ${error.message}');
+          print('API ERROR TYPE: ${error.type}');
+          if (error.response != null) {
+            print(
+              'API ERROR RESPONSE: ${error.response?.statusCode} ${error.response?.data}',
+            );
+          }
           handler.next(error);
         },
       ),
