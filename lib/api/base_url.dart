@@ -2,7 +2,7 @@
 class BaseUrl {
   /// Base URL for the Project Zoe server
   static const String baseUrl =
-      'https://1418953fed21.ngrok-free.app';
+      'https://db8e28611eb1.ngrok-free.app';
 
       // 'https://staging-projectzoe.kanzucodefoundation.org/server';
 

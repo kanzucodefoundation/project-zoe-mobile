@@ -8,8 +8,6 @@ import 'package:frontend/screens/mc_report_screen.dart';
 import 'package:frontend/screens/garage_attendance_screen.dart';
 import 'package:frontend/screens/details_screens/shepherd_details_screen.dart';
 import 'package:frontend/Screens/reports_screen.dart';
-import 'package:frontend/Screens/mc_reports_display_screen.dart';
-import 'package:frontend/Screens/garage_reports_display_screen.dart';
 import 'package:frontend/screens/admin_screen.dart';
 import 'package:frontend/auth/login_screen.dart';
 import 'package:frontend/auth/register_screen.dart';
