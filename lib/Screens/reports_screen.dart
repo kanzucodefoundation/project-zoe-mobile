@@ -4,6 +4,7 @@ import '../providers/report_provider.dart';
 import '../services/report_service.dart';
 import 'mc_report_form_screen.dart';
 import 'mc_attendance_report_screen.dart';
+import 'mc_reports_list_screen.dart';
 
 /// Reports screen displaying all reports with server data
 class ReportsScreen extends StatefulWidget {
@@ -813,6 +814,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const McAttendanceReportScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildReportTypeCard(
+            title: 'Submitted MC Reports',
+            description: 'View all submitted MC report details',
+            icon: Icons.assignment_turned_in,
+            color: Colors.green,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const McReportsListScreen(),
                 ),
               );
             },

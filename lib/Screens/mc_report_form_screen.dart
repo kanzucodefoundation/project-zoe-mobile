@@ -34,7 +34,6 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
   List<Map<String, dynamic>> _availableMcs = [];
   String? _selectedMcId;
   String? _selectedMcName;
-  bool _isLoadingMcs = true;
 
   @override
   void initState() {
@@ -52,14 +51,11 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
       print('✅ MC Form: Groups loaded successfully: $groups');
       setState(() {
         _availableMcs = groups;
-        _isLoadingMcs = false;
       });
       print('🎯 MC Form: State updated - MCs count: ${_availableMcs.length}');
     } catch (e) {
       print('❌ MC Form: Error loading MCs: $e');
-      setState(() {
-        _isLoadingMcs = false;
-      });
+      setState(() {});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -308,7 +304,10 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
                   GestureDetector(
                     onTap: () => _selectDate(context),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade50,
                         border: Border.all(color: Colors.grey.shade300),
@@ -537,10 +536,7 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
       controller: controller,
       maxLines: maxLines,
       validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-      ),
+      decoration: InputDecoration(labelText: label, hintText: hint),
     );
   }
 
@@ -552,10 +548,7 @@ class _McReportFormScreenState extends State<McReportFormScreen> {
     return TextFormField(
       controller: controller,
       keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-      ),
+      decoration: InputDecoration(labelText: label, hintText: hint),
     );
   }
 
