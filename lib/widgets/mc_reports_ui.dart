@@ -50,8 +50,8 @@ class _McReportsDisplayScreenState extends State<McReportsDisplayScreen> {
           body: provider.isLoading
               ? _buildLoadingView()
               : provider.error != null
-                  ? _buildErrorView(provider.error!)
-                  : _buildFormView(provider),
+              ? _buildErrorView(provider.error!)
+              : _buildFormView(provider),
         );
       },
     );
@@ -80,11 +80,7 @@ class _McReportsDisplayScreenState extends State<McReportsDisplayScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red.shade400,
-            ),
+            Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
             const SizedBox(height: 16),
             Text(
               'Error Loading Report',
@@ -109,7 +105,9 @@ class _McReportsDisplayScreenState extends State<McReportsDisplayScreen> {
 
   Widget _buildFormView(McReportProvider provider) {
     final reportTemplate = provider.reportTemplate!;
-    final visibleFields = reportTemplate.fields.where((field) => !field.hidden).toList();
+    final visibleFields = reportTemplate.fields
+        .where((field) => !field.hidden)
+        .toList();
 
     return Form(
       key: _formKey,

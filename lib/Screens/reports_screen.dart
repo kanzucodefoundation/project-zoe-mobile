@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/report_provider.dart';
 import '../services/report_service.dart';
-import 'mc_report_form_screen.dart';
 import 'mc_attendance_report_screen.dart';
 import 'mc_reports_list_screen.dart';
-import 'mc_reports_display_screen.dart';
 
 /// Reports screen displaying all reports with server data
 class ReportsScreen extends StatefulWidget {
@@ -18,9 +16,7 @@ class ReportsScreen extends StatefulWidget {
 class _ReportsScreenState extends State<ReportsScreen> {
   List<Map<String, dynamic>> _reportCategories = [];
   List<Map<String, dynamic>> _smallGroups = [];
-  bool _isLoadingCategories = true;
   bool _isLoadingGroups = true;
-  String? _selectedCategory;
 
   @override
   void initState() {
@@ -34,38 +30,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<void> _loadReportCategories() async {
     try {
-      print('🔄 Starting to load report categories...');
-      // Let server determine church from authenticated user
-
       final categories = await ReportService.getReportCategories();
-      print('✅ Categories loaded successfully: $categories');
       setState(() {
         _reportCategories = categories;
-        _isLoadingCategories = false;
       });
-      print('🎯 State updated - categories count: ${_reportCategories.length}');
     } catch (e) {
-      print('❌ Error loading categories: $e');
-      setState(() {
-        _isLoadingCategories = false;
-      });
+      // Handle error silently
     }
   }
 
   Future<void> _loadSmallGroups() async {
     try {
-      print('🔄 Starting to load small groups...');
-      // Let server determine church from authenticated user
-
       final groups = await ReportService.getAvailableGroups();
-      print('✅ Groups loaded successfully: $groups');
       setState(() {
         _smallGroups = groups;
         _isLoadingGroups = false;
       });
-      print('🎯 State updated - groups count: ${_smallGroups.length}');
     } catch (e) {
-      print('❌ Error loading groups: $e');
       setState(() {
         _isLoadingGroups = false;
       });

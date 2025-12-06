@@ -40,14 +40,16 @@ class McReportProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      final templateData = await ReportService.getReportTemplate(int.parse(reportId));
-      
+      final templateData = await ReportService.getReportTemplate(
+        int.parse(reportId),
+      );
+
       if (templateData != null) {
         _reportTemplate = ReportTemplate.fromJson(templateData);
       } else {
         throw Exception('Report template not found');
       }
-      
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -171,7 +173,7 @@ class McReportProvider with ChangeNotifier {
   Future<void> _storeSubmittedData(Map<String, dynamic> reportData) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Create a submission record with timestamp
       final submission = {
         'timestamp': DateTime.now().toIso8601String(),
@@ -180,23 +182,26 @@ class McReportProvider with ChangeNotifier {
         'sections': [
           {
             'sectionTitle': 'MC Report Details',
-            'fields': reportData.entries.map((entry) => {
-              'label': entry.key,
-              'value': entry.value?.toString() ?? '',
-            }).toList(),
-          }
+            'fields': reportData.entries
+                .map(
+                  (entry) => {
+                    'label': entry.key,
+                    'value': entry.value?.toString() ?? '',
+                  },
+                )
+                .toList(),
+          },
         ],
       };
 
       // Get existing submissions
       final existingSubmissions = prefs.getStringList('reports_list') ?? [];
-      
+
       // Add new submission
       existingSubmissions.add(json.encode(submission));
-      
+
       // Save back to preferences
       await prefs.setStringList('reports_list', existingSubmissions);
-      
     } catch (e) {
       // Don't throw here as the main submission was successful
     }

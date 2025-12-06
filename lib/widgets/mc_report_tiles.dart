@@ -35,10 +35,7 @@ class McSelectionTile extends StatelessWidget {
               const SizedBox(width: 8),
               const Text(
                 'Select Missional Community',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               const Text(' *', style: TextStyle(color: Colors.red)),
             ],
@@ -91,7 +88,10 @@ class McSelectionTile extends StatelessWidget {
                           final selectedMc = availableMcs.firstWhere(
                             (mc) => mc['id']?.toString() == value,
                           );
-                          onMcSelected(value, selectedMc['name'] ?? 'Unknown MC');
+                          onMcSelected(
+                            value,
+                            selectedMc['name'] ?? 'Unknown MC',
+                          );
                         }
                       },
                     ),
@@ -129,14 +129,15 @@ class DateSelectionTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.calendar_today, color: Colors.green.shade600, size: 20),
+              Icon(
+                Icons.calendar_today,
+                color: Colors.green.shade600,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               const Text(
                 'MC Gathering Date',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               const Text(' *', style: TextStyle(color: Colors.red)),
             ],
@@ -251,9 +252,17 @@ class FormFieldTile extends StatelessWidget {
       case 'phone':
         return Icon(Icons.phone, color: Colors.green.shade600, size: 20);
       case 'date':
-        return Icon(Icons.calendar_today, color: Colors.purple.shade600, size: 20);
+        return Icon(
+          Icons.calendar_today,
+          color: Colors.purple.shade600,
+          size: 20,
+        );
       case 'dropdown':
-        return Icon(Icons.arrow_drop_down, color: Colors.indigo.shade600, size: 20);
+        return Icon(
+          Icons.arrow_drop_down,
+          color: Colors.indigo.shade600,
+          size: 20,
+        );
       default:
         return Icon(Icons.text_fields, color: Colors.grey.shade600, size: 20);
     }
@@ -315,10 +324,7 @@ class FormFieldTile extends StatelessWidget {
 class ReportHeaderTile extends StatelessWidget {
   final ReportTemplate reportTemplate;
 
-  const ReportHeaderTile({
-    super.key,
-    required this.reportTemplate,
-  });
+  const ReportHeaderTile({super.key, required this.reportTemplate});
 
   @override
   Widget build(BuildContext context) {
@@ -395,10 +401,7 @@ class ReportHeaderTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.2),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

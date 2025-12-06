@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../models/report_template.dart';
 import '../services/report_service.dart';
-import '../components/long_button.dart';
 
 /// MC Reports Display Screen - Shows MC report template and submissions
 class McReportsScreen extends StatefulWidget {
@@ -20,12 +17,10 @@ class _McReportsScreenState extends State<McReportsScreen> {
   String? _error;
   final Map<int, TextEditingController> _controllers = {};
   final _formKey = GlobalKey<FormState>();
-  bool _isSubmitting = false;
 
   // MC dropdown data
   List<Map<String, dynamic>> _availableMcs = [];
   String? _selectedMcId;
-  String? _selectedMcName;
   bool _isLoadingMcs = true;
   DateTime? _selectedDate;
 
@@ -494,13 +489,9 @@ class _McReportsScreenState extends State<McReportsScreen> {
                   }).toList(),
                   onChanged: (value) {
                     if (value != null) {
-                      final selectedMc = _availableMcs.firstWhere(
-                        (mc) => mc['id']?.toString() == value,
-                      );
                       if (mounted) {
                         setState(() {
                           _selectedMcId = value;
-                          _selectedMcName = selectedMc['name'] ?? 'Unknown MC';
                         });
                       }
                     }
@@ -612,238 +603,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
         ],
       ),
     );
-  }
-
-  Widget _buildSubmitButton() {
-    return Column(
-      children: [
-        LongButton(
-          text: 'Submit MC Report',
-          onPressed: _submitReport,
-          isLoading: _isSubmitting,
-          backgroundColor: Colors.black,
-          height: 56,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Please review all information before submitting',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade600,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _submitReport() async {
-    if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select the MC gathering date'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    if (_selectedMcId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a Missional Community'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    if (mounted) {
-      setState(() {
-        _isSubmitting = true;
-      });
-    }
-
-    try {
-      // Collect form data with exact field names
-      final reportData = <String, dynamic>{};
-
-      // Add selected date - ALWAYS store if selected
-      if (_selectedDate != null) {
-        reportData['date'] = _selectedDate!.toIso8601String().split('T')[0];
-      }
-
-      // Add selected MC data - ALWAYS store if selected
-      if (_selectedMcName != null && _selectedMcName!.isNotEmpty) {
-        reportData['smallGroupName'] = _selectedMcName!;
-      }
-
-      if (_selectedMcId != null && _selectedMcId!.isNotEmpty) {
-        reportData['smallGroupId'] = _selectedMcId!;
-      }
-
-      // Collect all field values using exact field names
-      for (var field in _reportTemplate!.fields) {
-        final controller = _controllers[field.id];
-        final value = controller?.text ?? '';
-
-        // Handle different field types properly
-        if (field.type.toLowerCase() == 'number' ||
-            field.type.toLowerCase() == 'numeric') {
-          reportData[field.name] = value.isNotEmpty
-              ? (int.tryParse(value) ?? 0)
-              : 0;
-        } else if (field.type.toLowerCase() == 'dropdown') {
-          // For dropdown fields, check if we have a selected value
-          if (field.name == 'smallGroupName') {
-            // This is handled by the MC dropdown above, skip
-            continue;
-          } else {
-            // For other dropdown fields, use the controller value
-            reportData[field.name] = value.isNotEmpty ? value : '';
-          }
-        } else {
-          // For text, date, and other field types
-          reportData[field.name] = value;
-        }
-      }
-
-      // Validate required fields before submission
-      if (_selectedDate == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a date'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        setState(() {
-          _isSubmitting = false;
-        });
-        return;
-      }
-
-      if (_selectedMcName == null || _selectedMcName!.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select an MC'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        setState(() {
-          _isSubmitting = false;
-        });
-        return;
-      }
-
-      // Submit the report with correct payload structure
-      await ReportService.submitReport(
-        reportId: _reportTemplate!.id,
-        data: reportData,
-      );
-
-      // Store the submitted data locally for display in MC Reports List
-      await _storeSubmittedData(reportData);
-
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('MC report submitted successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      Navigator.pop(context);
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-
-      String errorMessage = 'Error submitting report';
-      if (e.toString().contains('500') ||
-          e.toString().contains('Internal Server Error')) {
-        errorMessage = 'Server error - please check your data and try again';
-      } else if (e.toString().contains('400') ||
-          e.toString().contains('Bad Request')) {
-        errorMessage = 'Invalid data format - please check all fields';
-      } else if (e.toString().contains('401') ||
-          e.toString().contains('Unauthorized')) {
-        errorMessage = 'Authentication required - please log in again';
-      } else if (e.toString().contains('404') ||
-          e.toString().contains('Not Found')) {
-        errorMessage =
-            'Report template not found - please refresh and try again';
-      } else if (e.toString().contains('network') ||
-          e.toString().contains('connection')) {
-        errorMessage = 'Network error - please check your connection';
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$errorMessage: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
-        ),
-      );
-    }
-  }
-
-  /// Store submitted data locally for MC Reports List display
-  Future<void> _storeSubmittedData(Map<String, dynamic> reportData) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Create submission object with proper structure including template info
-      final submission = {
-        'id': DateTime.now().millisecondsSinceEpoch, // Unique ID
-        'reportId': _reportTemplate!.id,
-        'reportName': _reportTemplate!.name,
-        'createdAt': DateTime.now().toIso8601String(),
-        'data': reportData, // This preserves exact field names
-        'template': {
-          'id': _reportTemplate!.id,
-          'name': _reportTemplate!.name,
-          'fields': _reportTemplate!.fields
-              .map(
-                (field) => {
-                  'id': field.id,
-                  'name': field.name,
-                  'label': field.label,
-                  'type': field.type,
-                },
-              )
-              .toList(),
-        },
-      };
-
-      // Get existing submissions
-      final existingSubmissions =
-          prefs.getStringList('mc_report_submissions') ?? [];
-
-      // Add new submission
-      existingSubmissions.add(json.encode(submission));
-
-      // Store back
-      await prefs.setStringList('mc_report_submissions', existingSubmissions);
-    } catch (e) {
-      // Error storing locally - submission was still successful
-    }
   }
 
   @override
