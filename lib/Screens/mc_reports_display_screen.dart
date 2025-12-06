@@ -401,7 +401,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
             horizontal: 16,
             vertical: 16,
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
         validator: (v) {
           if (field.required && (v == null || v.isEmpty)) return 'Required';
@@ -442,7 +441,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
             horizontal: 16,
             vertical: 16,
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
         validator: (v) {
           if (field.required && (v == null || v.isEmpty)) return 'Required';
