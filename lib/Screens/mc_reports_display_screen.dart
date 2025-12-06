@@ -847,12 +847,12 @@ class _McReportsScreenState extends State<McReportsScreen> {
   /// Store submitted data locally for MC Reports List display
   Future<void> _storeSubmittedData(Map<String, dynamic> reportData) async {
     try {
-      print('🔥 === STORING DATA ===');
-      print('🔥 Input data: $reportData');
-      print('🔥 Report template: ${_reportTemplate!.name}');
-      print('🔥 MC Name being stored: ${reportData['smallGroupName']}');
-      print('🔥 Date being stored: ${reportData['date']}');
-      print('🔥 Input data keys: ${reportData.keys.toList()}');
+      // print('🔥 === STORING DATA ===');
+      // print('🔥 Input data: $reportData');
+      // print('🔥 Report template: ${_reportTemplate!.name}');
+      // print('🔥 MC Name being stored: ${reportData['smallGroupName']}');
+      // print('🔥 Date being stored: ${reportData['date']}');
+      // print('🔥 Input data keys: ${reportData.keys.toList()}');
 
       final prefs = await SharedPreferences.getInstance();
 
