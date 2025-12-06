@@ -168,15 +168,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _loadReportData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-              ),
-            ),
           ],
         ),
       ),
@@ -331,7 +322,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
             const SizedBox(height: 20),
             ...visibleFields.map((field) => _buildFieldItem(field)),
             const SizedBox(height: 24),
-            _buildSubmitButton(),
           ],
         ),
       ),
@@ -691,24 +681,15 @@ class _McReportsScreenState extends State<McReportsScreen> {
       // Add selected date - ALWAYS store if selected
       if (_selectedDate != null) {
         reportData['date'] = _selectedDate!.toIso8601String().split('T')[0];
-        print('✅ Date captured: ${reportData['date']}');
-      } else {
-        print('❌ No date selected');
       }
 
       // Add selected MC data - ALWAYS store if selected
       if (_selectedMcName != null && _selectedMcName!.isNotEmpty) {
         reportData['smallGroupName'] = _selectedMcName!;
-        print('✅ MC Name captured: ${reportData['smallGroupName']}');
-      } else {
-        print('❌ No MC name selected');
       }
 
       if (_selectedMcId != null && _selectedMcId!.isNotEmpty) {
         reportData['smallGroupId'] = _selectedMcId!;
-        print('✅ MC ID captured: ${reportData['smallGroupId']}');
-      } else {
-        print('❌ No MC ID selected');
       }
 
       // Collect all field values using exact field names
@@ -764,33 +745,14 @@ class _McReportsScreenState extends State<McReportsScreen> {
         return;
       }
 
-      // Log the data being sent for debugging
-      print('📦 Submitting report data: $reportData');
-      print('🆔 Report template ID: ${_reportTemplate!.id}');
-      print('📅 Selected Date: $_selectedDate');
-      print('🏠 Selected MC Name: $_selectedMcName');
-      print('🆔 Selected MC ID: $_selectedMcId');
-      print('📝 All Controllers:');
-      _controllers.forEach((fieldId, controller) {
-        print('  Field $fieldId: ${controller.text}');
-      });
-
       // Submit the report with correct payload structure
       await ReportService.submitReport(
         reportId: _reportTemplate!.id,
         data: reportData,
       );
 
-      print('✅ Report submission successful with data: $reportData');
-
       // Store the submitted data locally for display in MC Reports List
       await _storeSubmittedData(reportData);
-
-      // Additional debug: verify what was stored
-      print('🔍 === POST-STORAGE VERIFICATION ===');
-      print('🔍 Stored MC Name: ${reportData['smallGroupName']}');
-      print('🔍 Stored Date: ${reportData['date']}');
-      print('🔍 All stored keys: ${reportData.keys.toList()}');
 
       if (mounted) {
         setState(() {
@@ -812,11 +774,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
           _isSubmitting = false;
         });
       }
-
-      // Enhanced error logging for debugging
-      print('❌ Report Submission Failed:');
-      print('🔍 Error Details: $e');
-      print('🆔 Report ID: ${_reportTemplate!.id}');
 
       String errorMessage = 'Error submitting report';
       if (e.toString().contains('500') ||
@@ -850,13 +807,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
   /// Store submitted data locally for MC Reports List display
   Future<void> _storeSubmittedData(Map<String, dynamic> reportData) async {
     try {
-      print('🔥 === STORING DATA ===');
-      print('🔥 Input data: $reportData');
-      print('🔥 Report template: ${_reportTemplate!.name}');
-      print('🔥 MC Name being stored: ${reportData['smallGroupName']}');
-      print('🔥 Date being stored: ${reportData['date']}');
-      print('🔥 Input data keys: ${reportData.keys.toList()}');
-
       final prefs = await SharedPreferences.getInstance();
 
       // Create submission object with proper structure including template info
@@ -882,44 +832,17 @@ class _McReportsScreenState extends State<McReportsScreen> {
         },
       };
 
-      print('🔥 Final submission object:');
-      print('🔥   ID: ${submission['id']}');
-      print('🔥   Report ID: ${submission['reportId']}');
-      print('🔥   Data: ${submission['data']}');
-      print(
-        '🔥   Template fields: ${(submission['template'] as Map)['fields']}',
-      );
-
       // Get existing submissions
       final existingSubmissions =
           prefs.getStringList('mc_report_submissions') ?? [];
-      print('🔥 Existing submissions count: ${existingSubmissions.length}');
 
       // Add new submission
       existingSubmissions.add(json.encode(submission));
 
       // Store back
       await prefs.setStringList('mc_report_submissions', existingSubmissions);
-
-      // Verify storage
-      final verifyList = prefs.getStringList('mc_report_submissions');
-      print('🔥 Verification: stored ${verifyList?.length ?? 0} submissions');
-      if (verifyList != null && verifyList.isNotEmpty) {
-        final lastStored = json.decode(verifyList.last);
-        print(
-          '🔥 Last stored submission data keys: ${(lastStored['data'] as Map).keys.toList()}',
-        );
-      }
-
-      print('💾 Stored submission locally: ${submission['id']}');
-      print(
-        '📊 Stored data keys: ${(submission['data'] as Map).keys.toList()}',
-      );
-      final template = submission['template'] as Map?;
-      print('📋 Template fields: ${template?['fields']}');
     } catch (e) {
-      print('❌ Error storing submission locally: $e');
-      print('❌ Stack trace: ${StackTrace.current}');
+      // Error storing locally - submission was still successful
     }
   }
 
