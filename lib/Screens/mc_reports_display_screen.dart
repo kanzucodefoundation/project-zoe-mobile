@@ -683,33 +683,34 @@ class _McReportsScreenState extends State<McReportsScreen> {
         _isSubmitting = true;
       });
     }
+    debugPrint('🚀 Starting report submission...');
 
     try {
       // Collect form data with exact field names
       final reportData = <String, dynamic>{};
 
-      // Add selected date - ALWAYS store if selected
-      if (_selectedDate != null) {
-        reportData['date'] = _selectedDate!.toIso8601String().split('T')[0];
-        print('✅ Date captured: ${reportData['date']}');
-      } else {
-        print('❌ No date selected');
-      }
+      // // Add selected date - ALWAYS store if selected
+      // if (_selectedDate != null) {
+      //   reportData['date'] = _selectedDate!.toIso8601String().split('T')[0];
+      //   print('✅ Date captured: ${reportData['date']}');
+      // } else {
+      //   print('❌ No date selected');
+      // }
 
-      // Add selected MC data - ALWAYS store if selected
-      if (_selectedMcName != null && _selectedMcName!.isNotEmpty) {
-        reportData['smallGroupName'] = _selectedMcName!;
-        print('✅ MC Name captured: ${reportData['smallGroupName']}');
-      } else {
-        print('❌ No MC name selected');
-      }
+      // // Add selected MC data - ALWAYS store if selected
+      // if (_selectedMcName != null && _selectedMcName!.isNotEmpty) {
+      //   reportData['smallGroupName'] = _selectedMcName!;
+      //   print('✅ MC Name captured: ${reportData['smallGroupName']}');
+      // } else {
+      //   print('❌ No MC name selected');
+      // }
 
-      if (_selectedMcId != null && _selectedMcId!.isNotEmpty) {
-        reportData['smallGroupId'] = _selectedMcId!;
-        print('✅ MC ID captured: ${reportData['smallGroupId']}');
-      } else {
-        print('❌ No MC ID selected');
-      }
+      // if (_selectedMcId != null && _selectedMcId!.isNotEmpty) {
+      //   reportData['smallGroupId'] = _selectedMcId!;
+      //   print('✅ MC ID captured: ${reportData['smallGroupId']}');
+      // } else {
+      //   print('❌ No MC ID selected');
+      // }
 
       // Collect all field values using exact field names
       for (var field in _reportTemplate!.fields) {
@@ -717,20 +718,16 @@ class _McReportsScreenState extends State<McReportsScreen> {
         final value = controller?.text ?? '';
 
         // Handle different field types properly
-        if (field.type.toLowerCase() == 'number' ||
-            field.type.toLowerCase() == 'numeric') {
-          reportData[field.name] = value.isNotEmpty
-              ? (int.tryParse(value) ?? 0)
-              : 0;
-        } else if (field.type.toLowerCase() == 'dropdown') {
-          // For dropdown fields, check if we have a selected value
-          if (field.name == 'smallGroupName') {
-            // This is handled by the MC dropdown above, skip
-            continue;
-          } else {
-            // For other dropdown fields, use the controller value
-            reportData[field.name] = value.isNotEmpty ? value : '';
-          }
+        // if (field.type.toLowerCase() == 'number' ||
+        //     field.type.toLowerCase() == 'numeric') {
+        //   reportData[field.name] = value.isNotEmpty
+        //       ? (int.tryParse(value) ?? 0)
+        //       : 0;
+        // } else
+        if (field.name == 'smallGroupName' || field.name == 'smallGroupId') {
+          reportData['smallGroupName'] = _selectedMcName;
+          reportData['smallGroupId'] = _selectedMcId;
+          reportData['date'] = _selectedDate;
         } else {
           // For text, date, and other field types
           reportData[field.name] = value;
@@ -770,10 +767,10 @@ class _McReportsScreenState extends State<McReportsScreen> {
       print('📅 Selected Date: $_selectedDate');
       print('🏠 Selected MC Name: $_selectedMcName');
       print('🆔 Selected MC ID: $_selectedMcId');
-      print('📝 All Controllers:');
-      _controllers.forEach((fieldId, controller) {
-        print('  Field $fieldId: ${controller.text}');
-      });
+      // print('📝 All Controllers:');
+      // _controllers.forEach((fieldId, controller) {
+      //   print('  Field $fieldId: ${controller.text}');
+      // });
 
       // Submit the report with correct payload structure
       await ReportService.submitReport(
