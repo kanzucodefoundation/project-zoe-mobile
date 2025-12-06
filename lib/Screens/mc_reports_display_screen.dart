@@ -19,7 +19,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
   final Map<int, TextEditingController> _controllers = {};
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
-  
+
   // MC dropdown data
   List<Map<String, dynamic>> _availableMcs = [];
   String? _selectedMcId;
@@ -351,11 +351,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.calendar_today,
-                color: Colors.grey.shade600,
-                size: 20,
-              ),
+              Icon(Icons.calendar_today, color: Colors.grey.shade600, size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -364,14 +360,13 @@ class _McReportsScreenState extends State<McReportsScreen> {
                       : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
                   style: TextStyle(
                     fontSize: 16,
-                    color: _selectedDate == null ? Colors.grey.shade600 : Colors.black87,
+                    color: _selectedDate == null
+                        ? Colors.grey.shade600
+                        : Colors.black87,
                   ),
                 ),
               ),
-              Icon(
-                Icons.arrow_drop_down,
-                color: Colors.grey.shade600,
-              ),
+              Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
             ],
           ),
         ),
@@ -387,10 +382,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
         ),
         decoration: InputDecoration(
           labelText: field.label,
-          labelStyle: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade700,
-          ),
+          labelStyle: TextStyle(fontSize: 14, color: Colors.grey.shade700),
           filled: true,
           fillColor: Colors.grey.shade50,
           border: OutlineInputBorder(
@@ -404,6 +396,10 @@ class _McReportsScreenState extends State<McReportsScreen> {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Colors.black, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
@@ -427,10 +423,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
         ),
         decoration: InputDecoration(
           labelText: field.label,
-          labelStyle: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade700,
-          ),
+          labelStyle: TextStyle(fontSize: 14, color: Colors.grey.shade700),
           filled: true,
           fillColor: Colors.grey.shade50,
           border: OutlineInputBorder(
@@ -445,6 +438,10 @@ class _McReportsScreenState extends State<McReportsScreen> {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Colors.black, width: 2),
           ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
         validator: (v) {
@@ -452,7 +449,8 @@ class _McReportsScreenState extends State<McReportsScreen> {
           return null;
         },
       );
-    } else if (field.name.toLowerCase().contains('smallgroupname') || field.name.toLowerCase().contains('mc')) {
+    } else if (field.name.toLowerCase().contains('smallgroupname') ||
+        field.name.toLowerCase() == 'smallgroupname') {
       input = Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -521,10 +519,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
         ),
         decoration: InputDecoration(
           labelText: field.label,
-          labelStyle: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade700,
-          ),
+          labelStyle: TextStyle(fontSize: 14, color: Colors.grey.shade700),
           filled: true,
           fillColor: Colors.grey.shade50,
           border: OutlineInputBorder(
@@ -539,7 +534,10 @@ class _McReportsScreenState extends State<McReportsScreen> {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Colors.black, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
         validator: (v) {
           if (field.required && (v == null || v.isEmpty)) return 'Required';
@@ -577,7 +575,10 @@ class _McReportsScreenState extends State<McReportsScreen> {
                 ),
                 if (field.required)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
@@ -686,7 +687,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
       for (var field in _reportTemplate!.fields) {
         final controller = _controllers[field.id];
         final value = controller?.text ?? '';
-        
+
         // Map fields based on their names/types
         final fieldName = field.name.toLowerCase();
         if (fieldName.contains('host')) {
@@ -738,12 +739,11 @@ class _McReportsScreenState extends State<McReportsScreen> {
       );
 
       Navigator.pop(context);
-
     } catch (e) {
       setState(() {
         _isSubmitting = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error submitting report: ${e.toString()}'),
@@ -760,5 +760,4 @@ class _McReportsScreenState extends State<McReportsScreen> {
     }
     super.dispose();
   }
-
 }

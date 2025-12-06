@@ -2,9 +2,8 @@
 class BaseUrl {
   /// Base URL for the Project Zoe server
   static const String baseUrl =
-      'https://db8e28611eb1.ngrok-free.app';
-
-      // 'https://staging-projectzoe.kanzucodefoundation.org/server';
+      // 'https://24973490b54c.ngrok-free.app'; // EXPIRED NGROK URL
+      'https://staging-projectzoe.kanzucodefoundation.org/server';
 
   /// Get base URL for API endpoints
   static String get apiUrl => '$baseUrl/api';
