@@ -605,6 +605,302 @@ class _McReportsScreenState extends State<McReportsScreen> {
     );
   }
 
+  Widget _buildSubmitButton() {
+    return Column(
+      children: [
+        LongButton(
+          text: 'Submit MC Report',
+          onPressed: _submitReport,
+          isLoading: _isSubmitting,
+          backgroundColor: Colors.black,
+          height: 56,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Please review all information before submitting',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _submitReport() async {
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all required fields'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select the MC gathering date'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedMcId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a Missional Community'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isSubmitting = true;
+      });
+    }
+    debugPrint('🚀 Starting report submission...');
+
+    try {
+      // Collect form data with exact field names
+      final reportData = <String, dynamic>{};
+
+      // // Add selected date - ALWAYS store if selected
+      // if (_selectedDate != null) {
+      //   reportData['date'] = _selectedDate!.toIso8601String().split('T')[0];
+      //   print('✅ Date captured: ${reportData['date']}');
+      // } else {
+      //   print('❌ No date selected');
+      // }
+
+      // // Add selected MC data - ALWAYS store if selected
+      // if (_selectedMcName != null && _selectedMcName!.isNotEmpty) {
+      //   reportData['smallGroupName'] = _selectedMcName!;
+      //   print('✅ MC Name captured: ${reportData['smallGroupName']}');
+      // } else {
+      //   print('❌ No MC name selected');
+      // }
+
+      // if (_selectedMcId != null && _selectedMcId!.isNotEmpty) {
+      //   reportData['smallGroupId'] = _selectedMcId!;
+      //   print('✅ MC ID captured: ${reportData['smallGroupId']}');
+      // } else {
+      //   print('❌ No MC ID selected');
+      // }
+
+      // Collect all field values using exact field names
+      for (var field in _reportTemplate!.fields) {
+        final controller = _controllers[field.id];
+        final value = controller?.text ?? '';
+
+        // Handle different field types properly
+        // if (field.type.toLowerCase() == 'number' ||
+        //     field.type.toLowerCase() == 'numeric') {
+        //   reportData[field.name] = value.isNotEmpty
+        //       ? (int.tryParse(value) ?? 0)
+        //       : 0;
+        // } else
+        if (field.name == 'smallGroupName' || field.name == 'smallGroupId') {
+          reportData['smallGroupName'] = _selectedMcName;
+          reportData['smallGroupId'] = _selectedMcId;
+          reportData['date'] = _selectedDate;
+        } else {
+          // For text, date, and other field types
+          reportData[field.name] = value;
+        }
+      }
+
+      // Validate required fields before submission
+      if (_selectedDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select a date'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _isSubmitting = false;
+        });
+        return;
+      }
+
+      if (_selectedMcName == null || _selectedMcName!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select an MC'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _isSubmitting = false;
+        });
+        return;
+      }
+
+      // Log the data being sent for debugging
+      print('📦 Submitting report data: $reportData');
+      print('🆔 Report template ID: ${_reportTemplate!.id}');
+      print('📅 Selected Date: $_selectedDate');
+      print('🏠 Selected MC Name: $_selectedMcName');
+      print('🆔 Selected MC ID: $_selectedMcId');
+      // print('📝 All Controllers:');
+      // _controllers.forEach((fieldId, controller) {
+      //   print('  Field $fieldId: ${controller.text}');
+      // });
+
+      // Submit the report with correct payload structure
+      await ReportService.submitReport(
+        reportId: _reportTemplate!.id,
+        data: reportData,
+      );
+
+      print('✅ Report submission successful with data: $reportData');
+
+      // Store the submitted data locally for display in MC Reports List
+      await _storeSubmittedData(reportData);
+
+      // Additional debug: verify what was stored
+      print('🔍 === POST-STORAGE VERIFICATION ===');
+      print('🔍 Stored MC Name: ${reportData['smallGroupName']}');
+      print('🔍 Stored Date: ${reportData['date']}');
+      print('🔍 All stored keys: ${reportData.keys.toList()}');
+
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('MC report submitted successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+
+      // Enhanced error logging for debugging
+      print('❌ Report Submission Failed:');
+      print('🔍 Error Details: $e');
+      print('🆔 Report ID: ${_reportTemplate!.id}');
+
+      String errorMessage = 'Error submitting report';
+      if (e.toString().contains('500') ||
+          e.toString().contains('Internal Server Error')) {
+        errorMessage = 'Server error - please check your data and try again';
+      } else if (e.toString().contains('400') ||
+          e.toString().contains('Bad Request')) {
+        errorMessage = 'Invalid data format - please check all fields';
+      } else if (e.toString().contains('401') ||
+          e.toString().contains('Unauthorized')) {
+        errorMessage = 'Authentication required - please log in again';
+      } else if (e.toString().contains('404') ||
+          e.toString().contains('Not Found')) {
+        errorMessage =
+            'Report template not found - please refresh and try again';
+      } else if (e.toString().contains('network') ||
+          e.toString().contains('connection')) {
+        errorMessage = 'Network error - please check your connection';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$errorMessage: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+  }
+
+  /// Store submitted data locally for MC Reports List display
+  Future<void> _storeSubmittedData(Map<String, dynamic> reportData) async {
+    try {
+      // print('🔥 === STORING DATA ===');
+      // print('🔥 Input data: $reportData');
+      // print('🔥 Report template: ${_reportTemplate!.name}');
+      // print('🔥 MC Name being stored: ${reportData['smallGroupName']}');
+      // print('🔥 Date being stored: ${reportData['date']}');
+      // print('🔥 Input data keys: ${reportData.keys.toList()}');
+
+      final prefs = await SharedPreferences.getInstance();
+
+      // Create submission object with proper structure including template info
+      final submission = {
+        'id': DateTime.now().millisecondsSinceEpoch, // Unique ID
+        'reportId': _reportTemplate!.id,
+        'reportName': _reportTemplate!.name,
+        'createdAt': DateTime.now().toIso8601String(),
+        'data': reportData, // This preserves exact field names
+        'template': {
+          'id': _reportTemplate!.id,
+          'name': _reportTemplate!.name,
+          'fields': _reportTemplate!.fields
+              .map(
+                (field) => {
+                  'id': field.id,
+                  'name': field.name,
+                  'label': field.label,
+                  'type': field.type,
+                },
+              )
+              .toList(),
+        },
+      };
+
+      print('🔥 Final submission object:');
+      print('🔥   ID: ${submission['id']}');
+      print('🔥   Report ID: ${submission['reportId']}');
+      print('🔥   Data: ${submission['data']}');
+      print(
+        '🔥   Template fields: ${(submission['template'] as Map)['fields']}',
+      );
+
+      // Get existing submissions
+      final existingSubmissions =
+          prefs.getStringList('mc_report_submissions') ?? [];
+      print('🔥 Existing submissions count: ${existingSubmissions.length}');
+
+      // Add new submission
+      existingSubmissions.add(json.encode(submission));
+
+      // Store back
+      await prefs.setStringList('mc_report_submissions', existingSubmissions);
+
+      // Verify storage
+      final verifyList = prefs.getStringList('mc_report_submissions');
+      print('🔥 Verification: stored ${verifyList?.length ?? 0} submissions');
+      if (verifyList != null && verifyList.isNotEmpty) {
+        final lastStored = json.decode(verifyList.last);
+        print(
+          '🔥 Last stored submission data keys: ${(lastStored['data'] as Map).keys.toList()}',
+        );
+      }
+
+      print('💾 Stored submission locally: ${submission['id']}');
+      print(
+        '📊 Stored data keys: ${(submission['data'] as Map).keys.toList()}',
+      );
+      final template = submission['template'] as Map?;
+      print('📋 Template fields: ${template?['fields']}');
+    } catch (e) {
+      print('❌ Error storing submission locally: $e');
+      print('❌ Stack trace: ${StackTrace.current}');
+    }
+  }
+
   @override
   void dispose() {
     for (final controller in _controllers.values) {
