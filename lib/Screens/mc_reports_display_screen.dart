@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../models/report_template.dart';
 import '../services/report_service.dart';
-import '../components/long_button.dart';
 
 /// MC Reports Display Screen - Shows MC report template and submissions
 class McReportsScreen extends StatefulWidget {
@@ -20,12 +17,10 @@ class _McReportsScreenState extends State<McReportsScreen> {
   String? _error;
   final Map<int, TextEditingController> _controllers = {};
   final _formKey = GlobalKey<FormState>();
-  bool _isSubmitting = false;
 
   // MC dropdown data
   List<Map<String, dynamic>> _availableMcs = [];
   String? _selectedMcId;
-  String? _selectedMcName;
   bool _isLoadingMcs = true;
   DateTime? _selectedDate;
 
@@ -168,15 +163,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _loadReportData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-              ),
-            ),
           ],
         ),
       ),
@@ -331,7 +317,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
             const SizedBox(height: 20),
             ...visibleFields.map((field) => _buildFieldItem(field)),
             const SizedBox(height: 24),
-            _buildSubmitButton(),
           ],
         ),
       ),
@@ -504,13 +489,9 @@ class _McReportsScreenState extends State<McReportsScreen> {
                   }).toList(),
                   onChanged: (value) {
                     if (value != null) {
-                      final selectedMc = _availableMcs.firstWhere(
-                        (mc) => mc['id']?.toString() == value,
-                      );
                       if (mounted) {
                         setState(() {
                           _selectedMcId = value;
-                          _selectedMcName = selectedMc['name'] ?? 'Unknown MC';
                         });
                       }
                     }

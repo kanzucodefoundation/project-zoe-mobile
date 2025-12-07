@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/report_provider.dart';
+import 'package:frontend/providers/mc_report_provider.dart';
 import 'package:frontend/widgets/app_wrapper.dart';
 import 'package:frontend/api/api_client.dart';
-import 'package:frontend/screens/mc_report_screen.dart';
+// import 'package:frontend/screens/mc_report_screen.dart';
 import 'package:frontend/screens/garage_attendance_screen.dart';
 import 'package:frontend/screens/details_screens/shepherd_details_screen.dart';
 import 'package:frontend/Screens/reports_screen.dart';
@@ -30,6 +31,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
+        ChangeNotifierProvider<McReportProvider>(
+          create: (_) => McReportProvider(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: true,
@@ -42,7 +46,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
-          '/mc-report': (context) => const McReportScreen(),
+          // '/mc-report': (context) => const McReportScreen(),
           // '/mc-reports-display': (context) => const McReportsScreen(),
           '/garage-attendance': (context) => const GarageAttendanceScreen(),
           // '/garage-reports-display': (context) => const GarageReportsScreen(),
