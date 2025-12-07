@@ -1,3 +1,59 @@
+// import 'package:flutter/material.dart';
+// import '../models/user.dart';
+// import '../services/auth_guard.dart';
+// import '../services/auth_service.dart';
+// import '../api/api_client.dart';
+
+// enum AuthStatus { unauthenticated, authenticating, authenticated, failed }
+
+// class AuthProvider extends ChangeNotifier {
+//   AuthProvider() {
+//     _checkExistingSession();
+//   }
+
+//   AuthStatus _status = AuthStatus.unauthenticated;
+//   AuthStatus get status => _status;
+
+//   User? _user;
+//   User? get user => _user;
+
+//   String? _error;
+//   String? get error => _error;
+
+//   /// Clear the current error message
+//   void clearError() {
+//     _error = null;
+//     notifyListeners();
+//   }
+
+//   /// Get current API connection status
+//   Future<Map<String, dynamic>> getConnectionStatus() async {
+//     final savedToken = await AuthGuard.getSavedToken();
+//     final apiClient = ApiClient();
+
+//     return {
+//       'hasToken': savedToken != null,
+//       'tokenLength': savedToken?.length ?? 0,
+//       'tokenPreview': savedToken != null
+//           ? '${savedToken.substring(0, 20)}...'
+//           : null,
+//       'apiBaseUrl': apiClient.dio.options.baseUrl,
+//       'hasAuthHeader': apiClient.dio.options.headers.containsKey(
+//         'Authorization',
+//       ),
+//     };
+//   }
+
+//   /// Check for existing session when app starts
+//   Future<void> _checkExistingSession() async {
+//     _status = AuthStatus.authenticating;
+//     notifyListeners();
+
+//     try {
+//       final isLoggedIn = await AuthGuard.isLoggedIn();
+//       if (isLoggedIn) {
+//         final user = await AuthGuard.getSavedUser();
+//         final token = await AuthGuard.getSavedToken();
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/auth_guard.dart';
@@ -19,6 +75,12 @@ class AuthProvider extends ChangeNotifier {
 
   String? _error;
   String? get error => _error;
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
 
   /// Clear the current error message
   void clearError() {
@@ -203,6 +265,35 @@ class AuthProvider extends ChangeNotifier {
       // Success - this will be handled by the calling widget
     } catch (e) {
       throw Exception(e.toString());
+    }
+  }
+
+  /// Reset password with token
+  Future<bool> resetPassword({
+    required String token,
+    required String email,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final success = await AuthService.resetPassword(
+        token: token,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      );
+
+      _isLoading = false;
+      notifyListeners();
+      return success;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
     }
   }
 
