@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/report_provider.dart';
 import '../services/report_service.dart';
+import 'mc_report_form_screen.dart';
 import 'mc_attendance_report_screen.dart';
 import 'mc_reports_list_screen.dart';
 
@@ -16,7 +17,9 @@ class ReportsScreen extends StatefulWidget {
 class _ReportsScreenState extends State<ReportsScreen> {
   List<Map<String, dynamic>> _reportCategories = [];
   List<Map<String, dynamic>> _smallGroups = [];
+  bool _isLoadingCategories = true;
   bool _isLoadingGroups = true;
+  String? _selectedCategory;
 
   @override
   void initState() {
@@ -30,23 +33,38 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<void> _loadReportCategories() async {
     try {
+      print('🔄 Starting to load report categories...');
+      // Let server determine church from authenticated user
+
       final categories = await ReportService.getReportCategories();
+      print('✅ Categories loaded successfully: $categories');
       setState(() {
         _reportCategories = categories;
+        _isLoadingCategories = false;
       });
+      print('🎯 State updated - categories count: ${_reportCategories.length}');
     } catch (e) {
-      // Handle error silently
+      print('❌ Error loading categories: $e');
+      setState(() {
+        _isLoadingCategories = false;
+      });
     }
   }
 
   Future<void> _loadSmallGroups() async {
     try {
+      print('🔄 Starting to load small groups...');
+      // Let server determine church from authenticated user
+
       final groups = await ReportService.getAvailableGroups();
+      print('✅ Groups loaded successfully: $groups');
       setState(() {
         _smallGroups = groups;
         _isLoadingGroups = false;
       });
+      print('🎯 State updated - groups count: ${_smallGroups.length}');
     } catch (e) {
+      print('❌ Error loading groups: $e');
       setState(() {
         _isLoadingGroups = false;
       });
@@ -91,9 +109,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Category Filter Dropdown
-                  // _buildCategoryDropdown(),
+                  _buildCategoryDropdown(),
 
-                  // const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
                   // Report Types Section
                   _buildReportTypesSection(),
@@ -118,74 +136,90 @@ class _ReportsScreenState extends State<ReportsScreen> {
               ),
             ),
           ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const McReportFormScreen(),
+                ),
+              );
+            },
+            backgroundColor: Colors.black,
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text(
+              'Submit MC Report',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
         );
       },
     );
   }
 
-  // Widget _buildCategoryDropdown() {
-  //   return Container(
-  //     padding: const EdgeInsets.all(16),
-  //     decoration: BoxDecoration(
-  //       color: Colors.white,
-  //       borderRadius: BorderRadius.circular(12),
-  //       boxShadow: [
-  //         BoxShadow(
-  //           color: Colors.grey.withValues(alpha: 0.1),
-  //           blurRadius: 10,
-  //           offset: const Offset(0, 2),
-  //         ),
-  //       ],
-  //     ),
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         const Text(
-  //           'Filter by Category',
-  //           style: TextStyle(
-  //             fontSize: 16,
-  //             fontWeight: FontWeight.bold,
-  //             color: Colors.black,
-  //           ),
-  //         ),
-  //         const SizedBox(height: 8),
-  //         if (_isLoadingCategories)
-  //           const Center(child: CircularProgressIndicator())
-  //         else
-  //           DropdownButtonFormField<String>(
-  //             decoration: InputDecoration(
-  //               hintText: 'Select a report category',
-  //               border: OutlineInputBorder(
-  //                 borderRadius: BorderRadius.circular(8),
-  //               ),
-  //               contentPadding: const EdgeInsets.symmetric(
-  //                 horizontal: 12,
-  //                 vertical: 12,
-  //               ),
-  //             ),
-  //             value: _selectedCategory,
-  //             items: [
-  //               const DropdownMenuItem<String>(
-  //                 value: null,
-  //                 child: Text('All Categories'),
-  //               ),
-  //               ..._reportCategories.map((category) {
-  //                 return DropdownMenuItem<String>(
-  //                   value: category['id'].toString(),
-  //                   child: Text(category['name']),
-  //                 );
-  //               }),
-  //             ],
-  //             onChanged: (value) {
-  //               setState(() {
-  //                 _selectedCategory = value;
-  //               });
-  //             },
-  //           ),
-  //       ],
-  //     ),
-  //   );
-  // }
+  Widget _buildCategoryDropdown() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Filter by Category',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (_isLoadingCategories)
+            const Center(child: CircularProgressIndicator())
+          else
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                hintText: 'Select a report category',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+              ),
+              value: _selectedCategory,
+              items: [
+                const DropdownMenuItem<String>(
+                  value: null,
+                  child: Text('All Categories'),
+                ),
+                ..._reportCategories.map((category) {
+                  return DropdownMenuItem<String>(
+                    value: category['id'].toString(),
+                    child: Text(category['name']),
+                  );
+                }),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedCategory = value;
+                });
+              },
+            ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildSubmittedReportsSection() {
     return Container(
@@ -225,6 +259,26 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ),
                 ],
               ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const McReportFormScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                ),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('Submit'),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -233,16 +287,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
               final reports = reportProvider.reports;
 
               // Filter reports by selected category if any
-              // final filteredReports = _selectedCategory == null
-              //     ? reports
-              //     : reports.where((report) {
-              //         // Assuming reports have a categoryId field
-              //         return report.data['categoryId'].toString() ==
-              //             _selectedCategory;
-              //       }).toList();
-
-              // Show all reports without filtering
-              final filteredReports = reports;
+              final filteredReports = _selectedCategory == null
+                  ? reports
+                  : reports.where((report) {
+                      // Assuming reports have a categoryId field
+                      return report.data['categoryId'].toString() ==
+                          _selectedCategory;
+                    }).toList();
 
               if (reportProvider.isLoading) {
                 return const Center(
@@ -266,7 +317,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'No reports submitted yet',
+                          _selectedCategory == null
+                              ? 'No reports submitted yet'
+                              : 'No reports found for this category',
                           style: TextStyle(
                             color: Colors.grey.shade600,
                             fontSize: 16,
