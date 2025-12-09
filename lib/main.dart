@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:frontend/providers/auth_provider.dart';
-import 'package:frontend/providers/report_provider.dart';
-import 'package:frontend/providers/mc_report_provider.dart';
-import 'package:frontend/widgets/app_wrapper.dart';
-import 'package:frontend/api/api_client.dart';
-import 'package:frontend/screens/garage_attendance_screen.dart';
-import 'package:frontend/screens/details_screens/shepherd_details_screen.dart';
-import 'package:frontend/Screens/reports_screen.dart';
-import 'package:frontend/screens/admin_screen.dart';
-import 'package:frontend/auth/login_screen.dart';
-import 'package:frontend/auth/register_screen.dart';
-import 'package:frontend/screens/mc_report_screen.dart';
+import 'providers/auth_provider.dart';
+import 'providers/report_provider.dart';
+import 'widgets/app_wrapper.dart';
+import 'api/api_client.dart';
+import 'screens/garage_attendance_screen.dart';
+import 'screens/details_screens/shepherd_details_screen.dart';
+import 'Screens/reports_screen.dart';
+import 'screens/admin_screen.dart';
+import 'auth/login_screen.dart';
+import 'auth/register_screen.dart';
+import 'screens/mc_report_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +30,6 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
-        ChangeNotifierProvider<McReportProvider>(create: (_) => McReportProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: true,
