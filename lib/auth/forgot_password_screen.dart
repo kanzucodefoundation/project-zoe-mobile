@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -69,11 +68,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Reset link sent to ${_emailController.text}'),
+                              content: Text(
+                                'Reset link sent to ${_emailController.text}',
+                              ),
                               backgroundColor: Colors.green,
                             ),
                           );
-                          
+
                           // Navigate back to login
                           Navigator.pop(context);
                         }
