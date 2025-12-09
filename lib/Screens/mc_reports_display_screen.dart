@@ -261,12 +261,12 @@ class _McReportsScreenState extends State<McReportsScreen> {
             runSpacing: 8,
             children: [
               _buildInfoChip('Frequency', _reportTemplate!.submissionFrequency),
-              _buildInfoChip('View Type', _reportTemplate!.viewType),
-              _buildInfoChip(
-                'Status',
-                _reportTemplate!.status.toUpperCase(),
-                color: _reportTemplate!.active ? Colors.green : Colors.orange,
-              ),
+              // _buildInfoChip('View Type', _reportTemplate!.viewType),
+              // _buildInfoChip(
+              //   'Status',
+              //   _reportTemplate!.status.toUpperCase(),
+              //   color: _reportTemplate!.active ? Colors.green : Colors.orange,
+              // ),
             ],
           ),
         ],
@@ -683,8 +683,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
         _isSubmitting = true;
       });
     }
-    debugPrint('🚀 Starting report submission...');
-
     try {
       // Collect form data with exact field names
       final reportData = <String, dynamic>{};
@@ -726,8 +724,8 @@ class _McReportsScreenState extends State<McReportsScreen> {
         // } else
         if (field.name == 'smallGroupName' || field.name == 'smallGroupId') {
           reportData['smallGroupName'] = _selectedMcName;
-          reportData['smallGroupId'] = _selectedMcId;
-          reportData['date'] = _selectedDate;
+          reportData['smallGroupId'] = int.tryParse(_selectedMcId!);
+          reportData['date'] = _selectedDate?.toIso8601String();
         } else {
           // For text, date, and other field types
           reportData[field.name] = value;

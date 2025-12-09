@@ -1,6 +1,8 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
-import 'package:frontend/models/report_template.dart';
+import 'package:project_zoe/models/report_template.dart';
 import '../api/api_client.dart';
 import '../api/endpoints/report_endpoints.dart';
 import '../models/report.dart';
@@ -133,7 +135,6 @@ class ReportService {
     required int reportId,
     required Map<String, dynamic> data,
   }) async {
-    // Create payload in the expected format
     final reportPayload = {'reportId': reportId, 'data': data};
 
     try {
@@ -141,13 +142,12 @@ class ReportService {
 
       final response = await _dio.post(
         ReportEndpoints.reportsSubmit,
-        data: reportPayload,
+        data: jsonEncode(reportPayload),
       );
 
       print('✅ Report submitted successfully: ${response.data}');
       return response.data;
     } on DioException catch (e) {
-      // Enhanced error logging for debugging
       print('❌ Report Submission Error:');
       print('📍 URL: ${ReportEndpoints.reportsSubmit}');
       print('📦 Request Payload: $reportPayload');

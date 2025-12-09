@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/api/api_client.dart';
-import 'package:frontend/api/login_endpoint.dart';
-import 'package:frontend/api/api_models.dart';
+import 'package:project_zoe/api/api_client.dart';
+import 'package:project_zoe/api/login_endpoint.dart';
+import 'package:project_zoe/api/api_models.dart';
 
 void main() {
   group('Login API Tests', () {

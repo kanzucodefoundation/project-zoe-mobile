@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:frontend/providers/auth_provider.dart';
-import 'package:frontend/providers/report_provider.dart';
-import 'package:frontend/widgets/app_wrapper.dart';
-import 'package:frontend/api/api_client.dart';
-import 'package:frontend/screens/mc_report_screen.dart';
-import 'package:frontend/screens/garage_attendance_screen.dart';
-import 'package:frontend/screens/details_screens/shepherd_details_screen.dart';
-import 'package:frontend/Screens/reports_screen.dart';
-import 'package:frontend/screens/admin_screen.dart';
-import 'package:frontend/auth/login_screen.dart';
-import 'package:frontend/auth/register_screen.dart';
+import 'package:project_zoe/providers/auth_provider.dart';
+import 'package:project_zoe/providers/report_provider.dart';
+import 'package:project_zoe/widgets/app_wrapper.dart';
+import 'package:project_zoe/api/api_client.dart';
+import 'package:project_zoe/screens/mc_report_screen.dart';
+import 'package:project_zoe/screens/garage_attendance_screen.dart';
+import 'package:project_zoe/screens/details_screens/shepherd_details_screen.dart';
+import 'package:project_zoe/Screens/reports_screen.dart';
+import 'package:project_zoe/screens/admin_screen.dart';
+import 'package:project_zoe/auth/login_screen.dart';
+import 'package:project_zoe/auth/register_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
