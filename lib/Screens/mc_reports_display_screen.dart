@@ -196,10 +196,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
           // Report Fields
           _buildReportFields(),
           const SizedBox(height: 24),
-
-          // Submit Button
-          _buildSubmitButton(),
-          const SizedBox(height: 24),
         ],
       ),
     );
