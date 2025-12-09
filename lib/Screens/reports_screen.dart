@@ -120,7 +120,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                   // Submitted Reports List
                   // _buildSubmittedReportsSection(),
-
                   const SizedBox(height: 16),
 
                   // MC Report Submissions Status
