@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/report_provider.dart';
 import '../services/report_service.dart';
 import 'mc_report_form_screen.dart';
-import 'mc_attendance_report_screen.dart';
+// import 'mc_attendance_report_screen.dart';
 import 'mc_reports_list_screen.dart';
 
 /// Reports screen displaying all reports with server data
@@ -119,9 +119,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   const SizedBox(height: 16),
 
                   // Submitted Reports List
-                  _buildSubmittedReportsSection(),
+                  // _buildSubmittedReportsSection(),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
                   // MC Report Submissions Status
                   _buildMcSubmissionsSection(reportProvider),
@@ -221,7 +221,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildSubmittedReportsSection() {
+  /* Widget _buildSubmittedReportsSection() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -468,16 +468,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ],
       ),
     );
-  }
+  } */
 
-  String? _getCategoryName(dynamic categoryId) {
+  /* String? _getCategoryName(dynamic categoryId) {
     if (categoryId == null) return null;
     final category = _reportCategories.firstWhere(
       (cat) => cat['id'].toString() == categoryId.toString(),
       orElse: () => <String, dynamic>{},
     );
     return category['name'];
-  }
+  } */
 
   Widget _buildMcSubmissionsSection(ReportProvider reportProvider) {
     final reports = reportProvider.reports;
@@ -520,15 +520,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ],
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  // TODO: Show detailed view
-                },
-                child: const Text(
-                  'View',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
+              // TextButton(
+              //   onPressed: () {
+              //     // TODO: Show detailed view
+              //   },
+              //   child: const Text(
+              //     'View',
+              //     style: TextStyle(color: Colors.black),
+              //   ),
+              // ),
             ],
           ),
           const SizedBox(height: 16),
@@ -804,21 +804,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
             style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 16),
-          _buildReportTypeCard(
-            title: 'MC Attendance Report',
-            description: 'View submissions for all Missional Communities',
-            icon: Icons.groups,
-            color: Colors.blue,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const McAttendanceReportScreen(),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
+          // _buildReportTypeCard(
+          //   title: 'MC Attendance Report',
+          //   description: 'View submissions for all Missional Communities',
+          //   icon: Icons.groups,
+          //   color: Colors.blue,
+          //   onTap: () {
+          //     Navigator.push(
+          //       context,
+          //       MaterialPageRoute(
+          //         builder: (context) => const McAttendanceReportScreen(),
+          //       ),
+          //     );
+          //   },
+          // ),
+          // const SizedBox(height: 12),
           _buildReportTypeCard(
             title: 'Submitted MC Reports',
             description: 'View all submitted MC report details',
