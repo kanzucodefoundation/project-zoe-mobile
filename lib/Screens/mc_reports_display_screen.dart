@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:frontend/components/long_button.dart';
 import '../models/report_template.dart';
 import '../services/report_service.dart';
 
@@ -17,10 +20,12 @@ class _McReportsScreenState extends State<McReportsScreen> {
   String? _error;
   final Map<int, TextEditingController> _controllers = {};
   final _formKey = GlobalKey<FormState>();
+  bool _isSubmitting = false;
 
   // MC dropdown data
   List<Map<String, dynamic>> _availableMcs = [];
   String? _selectedMcId;
+  String? _selectedMcName;
   bool _isLoadingMcs = true;
   DateTime? _selectedDate;
 
@@ -181,6 +186,10 @@ class _McReportsScreenState extends State<McReportsScreen> {
 
           // Report Fields
           _buildReportFields(),
+          const SizedBox(height: 24),
+
+          // Submit Button
+          _buildSubmitButton(),
           const SizedBox(height: 24),
         ],
       ),
@@ -489,9 +498,13 @@ class _McReportsScreenState extends State<McReportsScreen> {
                   }).toList(),
                   onChanged: (value) {
                     if (value != null) {
+                      final selectedMc = _availableMcs.firstWhere(
+                        (mc) => mc['id']?.toString() == value,
+                      );
                       if (mounted) {
                         setState(() {
                           _selectedMcId = value;
+                          _selectedMcName = selectedMc['name'] ?? 'Unknown MC';
                         });
                       }
                     }
