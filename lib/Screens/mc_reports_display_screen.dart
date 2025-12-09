@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'package:frontend/components/long_button.dart';
 import '../models/report_template.dart';
 import '../services/report_service.dart';
+import '../components/long_button.dart';
 
 /// MC Reports Display Screen - Shows MC report template and submissions
 class McReportsScreen extends StatefulWidget {
@@ -168,6 +168,15 @@ class _McReportsScreenState extends State<McReportsScreen> {
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _loadReportData,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+              ),
+            ),
           ],
         ),
       ),
@@ -256,12 +265,12 @@ class _McReportsScreenState extends State<McReportsScreen> {
             runSpacing: 8,
             children: [
               _buildInfoChip('Frequency', _reportTemplate!.submissionFrequency),
-              _buildInfoChip('View Type', _reportTemplate!.viewType),
-              _buildInfoChip(
-                'Status',
-                _reportTemplate!.status.toUpperCase(),
-                color: _reportTemplate!.active ? Colors.green : Colors.orange,
-              ),
+              // _buildInfoChip('View Type', _reportTemplate!.viewType),
+              // _buildInfoChip(
+              //   'Status',
+              //   _reportTemplate!.status.toUpperCase(),
+              //   color: _reportTemplate!.active ? Colors.green : Colors.orange,
+              // ),
             ],
           ),
         ],
@@ -326,6 +335,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
             const SizedBox(height: 20),
             ...visibleFields.map((field) => _buildFieldItem(field)),
             const SizedBox(height: 24),
+            _buildSubmitButton(),
           ],
         ),
       ),
@@ -677,8 +687,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
         _isSubmitting = true;
       });
     }
-    debugPrint('🚀 Starting report submission...');
-
     try {
       // Collect form data with exact field names
       final reportData = <String, dynamic>{};
@@ -720,8 +728,8 @@ class _McReportsScreenState extends State<McReportsScreen> {
         // } else
         if (field.name == 'smallGroupName' || field.name == 'smallGroupId') {
           reportData['smallGroupName'] = _selectedMcName;
-          reportData['smallGroupId'] = _selectedMcId;
-          reportData['date'] = _selectedDate;
+          reportData['smallGroupId'] = int.tryParse(_selectedMcId!);
+          reportData['date'] = _selectedDate?.toIso8601String();
         } else {
           // For text, date, and other field types
           reportData[field.name] = value;

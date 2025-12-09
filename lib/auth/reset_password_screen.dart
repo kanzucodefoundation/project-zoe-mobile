@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:frontend/providers/auth_provider.dart';
+import 'package:project_zoe/providers/auth_provider.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String token;
@@ -29,9 +29,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reset Password'),
-      ),
+      appBar: AppBar(title: const Text('Reset Password')),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
@@ -54,7 +52,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() => _obscurePassword = !_obscurePassword);
@@ -81,10 +81,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                      _obscureConfirmPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () {
-                      setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                      setState(
+                        () =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
+                      );
                     },
                   ),
                 ),
@@ -104,16 +109,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       : () async {
                           if (_formKey.currentState!.validate()) {
                             setState(() => _isLoading = true);
-                            
+
                             final success = await authProvider.resetPassword(
                               token: widget.token,
                               email: widget.email,
                               newPassword: _passwordController.text.trim(),
-                              confirmPassword: _confirmPasswordController.text.trim(),
+                              confirmPassword: _confirmPasswordController.text
+                                  .trim(),
                             );
-                            
+
                             setState(() => _isLoading = false);
-                            
+
                             if (success) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -121,13 +127,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                   backgroundColor: Colors.green,
                                 ),
                               );
-                              
+
                               // Navigate to login screen
                               Navigator.pushReplacementNamed(context, '/login');
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(authProvider.errorMessage ?? 'Failed to reset password'),
+                                  content: Text(
+                                    authProvider.errorMessage ??
+                                        'Failed to reset password',
+                                  ),
                                   backgroundColor: Colors.red,
                                 ),
                               );

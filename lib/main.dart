@@ -11,6 +11,7 @@ import 'package:frontend/Screens/reports_screen.dart';
 import 'package:frontend/screens/admin_screen.dart';
 import 'package:frontend/auth/login_screen.dart';
 import 'package:frontend/auth/register_screen.dart';
+import 'package:frontend/screens/mc_report_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,9 +31,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
-        ChangeNotifierProvider<McReportProvider>(
-          create: (_) => McReportProvider(),
-        ),
+        ChangeNotifierProvider<McReportProvider>(create: (_) => McReportProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: true,
@@ -45,7 +44,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
-          // '/mc-report': (context) => const McReportScreen(),
+          '/mc-report': (context) => const McReportScreen(),
           // '/mc-reports-display': (context) => const McReportsScreen(),
           '/garage-attendance': (context) => const GarageAttendanceScreen(),
           // '/garage-reports-display': (context) => const GarageReportsScreen(),

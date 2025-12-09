@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:frontend/models/report_template.dart';
+import 'package:project_zoe/models/report_template.dart';
 import '../models/report.dart';
 import '../helpers/report_helpers.dart';
 import '../services/report_service.dart';

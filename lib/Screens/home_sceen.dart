@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/Screens/shepherds_screen.dart';
-import 'package:frontend/components/report_card.dart';
+import 'package:project_zoe/Screens/shepherds_screen.dart';
+import 'package:project_zoe/components/report_card.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/report_provider.dart';
@@ -102,7 +102,7 @@ class HomeSceen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
                     children: List.generate(
-                      3,
+                      2,
                       (index) => Expanded(
                         child: Container(
                           margin: const EdgeInsets.only(right: 12),
@@ -144,7 +144,7 @@ class HomeSceen extends StatelessWidget {
                       IconData icon = Icons.description;
                       Widget? targetScreen;
 
-                      if (title.toLowerCase().contains('mc')) {
+                      if (title.toLowerCase().contains('attendance')) {
                         icon = Icons.church;
                         targetScreen = McReportsScreen(reportId: id);
                       } else if (title.toLowerCase().contains('garage')) {
@@ -184,53 +184,6 @@ class HomeSceen extends StatelessWidget {
                   ],
                 ),
               );
-
-              // return Padding(
-              //   padding: const EdgeInsets.symmetric(horizontal: 16),
-              //   child: Row(
-              //     children: [
-              //       ReportCard(
-              //         reportTitle: 'MC Report',
-              //         reportIcon: Icons.church,
-              //         iconColor: Colors.black,
-              //         onTap: () {
-              //           Navigator.push(
-              //             context,
-              //             MaterialPageRoute(
-              //               builder: (context) => const McReportsScreen(),
-              //             ),
-              //           );
-              //         },
-              //       ),
-              //       ReportCard(
-              //         reportTitle: 'Garage',
-              //         reportIcon: Icons.garage,
-              //         iconColor: Colors.black,
-              //         onTap: () {
-              //           Navigator.push(
-              //             context,
-              //             MaterialPageRoute(
-              //               builder: (context) => const GarageReportsScreen(),
-              //             ),
-              //           );
-              //         },
-              //       ),
-              //       ReportCard(
-              //         reportTitle: 'Shepherds',
-              //         reportIcon: Icons.people,
-              //         iconColor: Colors.black,
-              //         onTap: () {
-              //           Navigator.push(
-              //             context,
-              //             MaterialPageRoute(
-              //               builder: (context) => const ShepherdsScreen(),
-              //             ),
-              //           );
-              //         },
-              //       ),
-              //     ],
-              //   ),
-              // );
             },
           ),
           const SizedBox(height: 24),
