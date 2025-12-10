@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:project_zoe/providers/auth_provider.dart';
-import 'package:project_zoe/providers/report_provider.dart';
-import 'package:project_zoe/widgets/app_wrapper.dart';
-import 'package:project_zoe/api/api_client.dart';
-import 'package:project_zoe/screens/mc_report_screen.dart';
-import 'package:project_zoe/screens/garage_attendance_screen.dart';
-import 'package:project_zoe/screens/details_screens/shepherd_details_screen.dart';
-import 'package:project_zoe/Screens/reports_screen.dart';
-import 'package:project_zoe/screens/admin_screen.dart';
-import 'package:project_zoe/auth/login_screen.dart';
-import 'package:project_zoe/auth/register_screen.dart';
+import 'providers/auth_provider.dart';
+import 'providers/report_provider.dart';
+import 'widgets/app_wrapper.dart';
+import 'api/api_client.dart';
+import 'screens/garage_attendance_screen.dart';
+import 'screens/details_screens/shepherd_details_screen.dart';
+import 'Screens/reports_screen.dart';
+import 'screens/admin_screen.dart';
+import 'auth/login_screen.dart';
+import 'auth/register_screen.dart';
+import 'screens/mc_report_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
       ],
       child: MaterialApp(
-        debugShowCheckedModeBanner: true,
+        debugShowCheckedModeBanner: false,
         title: 'Project Zoe',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
-          '/mc-report': (context) => const McReportScreen(),
+          // '/mc-report': (context) => const McReportScreen(),
           // '/mc-reports-display': (context) => const McReportsScreen(),
           '/garage-attendance': (context) => const GarageAttendanceScreen(),
           // '/garage-reports-display': (context) => const GarageReportsScreen(),
