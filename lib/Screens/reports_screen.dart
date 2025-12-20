@@ -8,7 +8,7 @@ import 'mc_reports_list_screen.dart';
 
 /// Reports screen displaying all reports with server data
 class ReportsScreen extends StatefulWidget {
-  ReportsScreen({super.key});
+  const ReportsScreen({super.key});
 
   @override
   State<ReportsScreen> createState() => _ReportsScreenState();
@@ -196,7 +196,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   vertical: 12,
                 ),
               ),
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               items: [
                 const DropdownMenuItem<String>(
                   value: null,

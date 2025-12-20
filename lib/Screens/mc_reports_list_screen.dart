@@ -512,7 +512,7 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
                               fieldLabel, // Use actual field label from template
                               entry.value?.toString() ?? 'N/A',
                             );
-                          }).toList(),
+                          }),
                         ],
                       );
                     }(),

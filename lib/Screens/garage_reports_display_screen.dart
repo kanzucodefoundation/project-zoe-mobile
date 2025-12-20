@@ -13,7 +13,7 @@ class GarageReportsScreen extends StatefulWidget {
 
 class _GarageReportsScreenState extends State<GarageReportsScreen> {
   ReportTemplate? _reportTemplate;
-  List<Map<String, dynamic>> _submissions = [];
+  final List<Map<String, dynamic>> _submissions = [];
   bool _isLoading = true;
   String? _error;
 

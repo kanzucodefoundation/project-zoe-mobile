@@ -26,7 +26,7 @@ void main() {
       } catch (e) {
         print('Login error: $e');
         print('Error type: ${e.runtimeType}');
-        throw e;
+        rethrow;
       }
     });
   });

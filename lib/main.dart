@@ -10,7 +10,6 @@ import 'Screens/reports_screen.dart';
 import 'screens/admin_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
-import 'screens/mc_report_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

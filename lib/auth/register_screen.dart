@@ -265,7 +265,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     border: Border.all(color: Colors.grey[300]!, width: 1),
                   ),
                   child: DropdownButtonFormField<String>(
-                    value: selectedGender,
+                    initialValue: selectedGender,
                     decoration: const InputDecoration(
                       hintText: 'Gender',
                       prefixIcon: Icon(
@@ -311,7 +311,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     border: Border.all(color: Colors.grey[300]!, width: 1),
                   ),
                   child: DropdownButtonFormField<String>(
-                    value: selectedCivilStatus,
+                    initialValue: selectedCivilStatus,
                     decoration: const InputDecoration(
                       hintText: 'Civil Status',
                       prefixIcon: Icon(

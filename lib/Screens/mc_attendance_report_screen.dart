@@ -14,7 +14,7 @@ class McAttendanceReportScreen extends StatefulWidget {
 
 class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
   List<Map<String, dynamic>> _availableMcs = [];
-  Map<int, List<Map<String, dynamic>>> _mcReports = {};
+  final Map<int, List<Map<String, dynamic>>> _mcReports = {};
   bool _isLoading = true;
   String? _error;
 
