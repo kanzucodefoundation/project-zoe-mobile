@@ -71,7 +71,7 @@ class _PersonsDetailsScreenState extends State<PersonsDetailsScreen>
         });
       }
     } catch (e) {
-      print('Error loading contact details: $e');
+      // print('Error loading contact details: $e');
       // Only update state if widget is still mounted and not disposed
       if (mounted && !_disposed) {
         setState(() {
@@ -165,6 +165,7 @@ class _PersonsDetailsScreenState extends State<PersonsDetailsScreen>
                             ),
                             boxShadow: [
                               BoxShadow(
+                                // ignore: deprecated_member_use
                                 color: Colors.black.withOpacity(0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 5),
