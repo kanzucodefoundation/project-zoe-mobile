@@ -6,7 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../add_shepherds_screen.dart';
 
 class ShepherdDetailsScreen extends StatelessWidget {
-  final String shepherdId;
+  final int shepherdId;
 
   const ShepherdDetailsScreen({super.key, required this.shepherdId});
 
@@ -38,7 +38,7 @@ class ShepherdDetailsScreen extends StatelessWidget {
             backgroundColor: Colors.white,
             elevation: 0,
             title: Text(
-              shepherd.name,
+              '${shepherd.firstName} ${shepherd.lastName}',
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 20,
@@ -84,15 +84,11 @@ class ShepherdDetailsScreen extends StatelessWidget {
                       CircleAvatar(
                         radius: 60,
                         backgroundColor: Colors.grey.shade200,
-                        child: Icon(
-                          Icons.person,
-                          size: 70,
-                          color: Colors.grey.shade600,
-                        ),
+                        backgroundImage: NetworkImage(shepherd.avatar),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        shepherd.name,
+                        shepherd.firstName,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
@@ -110,7 +106,7 @@ class ShepherdDetailsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          shepherd.position,
+                          shepherd.lastName,
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -125,40 +121,44 @@ class ShepherdDetailsScreen extends StatelessWidget {
 
                 // Contact Information
                 _buildSection('Contact Information', [
-                  _buildInfoRow(Icons.email, 'Email', shepherd.email),
-                  _buildInfoRow(Icons.phone, 'Phone', shepherd.phone),
-                  _buildInfoRow(Icons.location_on, 'Address', shepherd.address),
+                  _buildInfoRow(Icons.email, 'Status', shepherd.civilStatus),
+                  _buildInfoRow(
+                    Icons.group_remove_outlined,
+                    'Gender',
+                    shepherd.gender,
+                  ),
+                  _buildInfoRow(
+                    Icons.location_on,
+                    'Address',
+                    shepherd.placeOfWork ?? '',
+                  ),
                 ]),
                 const SizedBox(height: 24),
 
                 // Church Information
-                _buildSection('Church Information', [
-                  _buildInfoRow(
-                    Icons.church,
-                    'Church Location',
-                    shepherd.churchLocation,
-                  ),
-                  _buildInfoRow(Icons.work, 'Position', shepherd.position),
-                  _buildInfoRow(
-                    Icons.group,
-                    'Department',
-                    shepherd.department.isEmpty ? 'N/A' : shepherd.department,
-                  ),
-                  _buildInfoRow(
-                    Icons.calendar_today,
-                    'Years of Service',
-                    '${shepherd.yearsOfService} years',
-                  ),
-                ]),
+                // _buildSection('Church Information', [
+                //   _buildInfoRow(
+                //     Icons.church,
+                //     'Church Location',
+                //     shepherd.churchLocation,
+                //   ),
+                //   _buildInfoRow(Icons.work, 'Position', shepherd.position),
+                //   _buildInfoRow(
+                //     Icons.group,
+                //     'Department',
+                //     shepherd.department.isEmpty ? 'N/A' : shepherd.department,
+                //   ),
+                //   _buildInfoRow(
+                //     Icons.calendar_today,
+                //     'Years of Service',
+                //     '${shepherd.yearsOfService} years',
+                //   ),
+                // ]),
                 const SizedBox(height: 24),
 
                 // Emergency Contact
                 _buildSection('Emergency Contact', [
-                  _buildInfoRow(
-                    Icons.emergency,
-                    'Emergency Phone',
-                    shepherd.emergencyPhone,
-                  ),
+                  _buildInfoRow(Icons.emergency, 'Emergency Phone', ""),
                 ]),
                 const SizedBox(height: 32),
 
@@ -186,7 +186,7 @@ class ShepherdDetailsScreen extends StatelessWidget {
                                   ),
                                 ),
                                 content: Text(
-                                  'Are you sure you want to delete ${shepherd.name}?',
+                                  'Are you sure you want to delete ${shepherd.firstName} ${shepherd.lastName}?',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -224,7 +224,7 @@ class ShepherdDetailsScreen extends StatelessWidget {
 
                             if (shouldDelete == true) {
                               final deleted = await provider.deleteShepherd(
-                                shepherd.id,
+                                shepherd.id.toString(),
                                 authProvider: authProvider,
                               );
                               if (deleted && context.mounted) {

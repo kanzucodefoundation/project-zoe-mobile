@@ -93,7 +93,7 @@ class CustomDrawer extends StatelessWidget {
                   title: 'Settings',
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: Navigate to settings screen
+                    Navigator.pushNamed(context, '/settings');
                   },
                 ),
                 const Divider(color: Colors.grey),

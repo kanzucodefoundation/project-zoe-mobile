@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class ShepherdsTile extends StatelessWidget {
   final String shepherdName;
   final String shepherdEmail;
+  final String shepherdAvatar;
   final VoidCallback? onButtonPressed;
   final String buttonText;
 
   const ShepherdsTile({
     super.key,
+    required this.shepherdAvatar,
     required this.shepherdName,
     required this.shepherdEmail,
     this.onButtonPressed,
@@ -37,7 +39,7 @@ class ShepherdsTile extends StatelessWidget {
           CircleAvatar(
             radius: 30,
             backgroundColor: Colors.grey.shade200,
-            child: Icon(Icons.person, size: 35, color: Colors.grey.shade600),
+            backgroundImage: NetworkImage(shepherdAvatar),
           ),
 
           const SizedBox(width: 16),

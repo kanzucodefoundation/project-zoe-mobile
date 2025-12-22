@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:project_zoe/providers/shepherds_provider.dart';
+import 'package:project_zoe/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/report_provider.dart';
@@ -10,12 +12,15 @@ import 'Screens/reports_screen.dart';
 import 'screens/admin_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
+import 'Screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize API client
   ApiClient().initialize();
+  //Initialize Notification Service
+  await notificationService.initNotification();
 
   runApp(const MyApp());
 }
@@ -29,6 +34,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
+        ChangeNotifierProvider<ShepherdsProvider>(
+          create: (_) => ShepherdsProvider(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -45,10 +53,11 @@ class MyApp extends StatelessWidget {
           // '/mc-reports-display': (context) => const McReportsScreen(),
           '/garage-attendance': (context) => const GarageAttendanceScreen(),
           // '/garage-reports-display': (context) => const GarageReportsScreen(),
-          '/shepherds-details': (context) =>
-              const ShepherdDetailsScreen(shepherdId: ''),
+          // '/shepherds-details': (context) =>
+          //     const ShepherdDetailsScreen(shepherdId: 0),
           '/reports': (context) => ReportsScreen(),
           '/admin': (context) => const AdminScreen(),
+          '/settings': (context) => const SettingsScreen(),
         },
       ),
     );
