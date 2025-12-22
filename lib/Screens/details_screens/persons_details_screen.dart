@@ -124,9 +124,9 @@ class _PersonsDetailsScreenState extends State<PersonsDetailsScreen>
                 icon: const Icon(Icons.arrow_back, color: Colors.black),
                 onPressed: () => Navigator.pop(context),
               ),
-              title: Text(
-                contact.name.isNotEmpty ? contact.name : 'Contact Details',
-                style: const TextStyle(color: Colors.black),
+              title: const Text(
+                'Person Details',
+                style: TextStyle(color: Colors.black),
               ),
               actions: [
                 IconButton(
