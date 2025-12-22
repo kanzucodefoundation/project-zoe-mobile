@@ -34,7 +34,7 @@ class NotificationService {
       requestSoundPermission: true,
     );
 
-    //init settings for both platforms
+    //init settings for both platforms - Android and iOS
     const initSettings = InitializationSettings(
       android: initSettingsAndroid,
       iOS: initSettingsIOS,
