@@ -128,9 +128,15 @@ class ReportProvider extends ChangeNotifier {
     return ReportHelpers.getOverdueReports(_reports);
   }
 
-  List<Map<String, dynamic>> get titleAndId {
+  List<Map<String, dynamic>> get functionNameAndId {
     return _reportsTemplate
-        .map((report) => {'id': report.id, 'title': report.name})
+        .map(
+          (report) => {
+            'id': report.id,
+            'title': report.name,
+            'functionName': report.functionName,
+          },
+        )
         .toList();
   }
 

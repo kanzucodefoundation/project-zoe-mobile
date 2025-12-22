@@ -1,4 +1,4 @@
-import '../api/login_endpoint.dart';
+import '../api/auth_endpoint.dart';
 import '../api/api_models.dart';
 import '../entities/user.dart';
 

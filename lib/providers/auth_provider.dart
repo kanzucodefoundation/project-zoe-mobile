@@ -1,64 +1,10 @@
-// import 'package:flutter/material.dart';
-// import '../models/user.dart';
-// import '../services/auth_guard.dart';
-// import '../services/auth_service.dart';
-// import '../api/api_client.dart';
-
-// enum AuthStatus { unauthenticated, authenticating, authenticated, failed }
-
-// class AuthProvider extends ChangeNotifier {
-//   AuthProvider() {
-//     _checkExistingSession();
-//   }
-
-//   AuthStatus _status = AuthStatus.unauthenticated;
-//   AuthStatus get status => _status;
-
-//   User? _user;
-//   User? get user => _user;
-
-//   String? _error;
-//   String? get error => _error;
-
-//   /// Clear the current error message
-//   void clearError() {
-//     _error = null;
-//     notifyListeners();
-//   }
-
-//   /// Get current API connection status
-//   Future<Map<String, dynamic>> getConnectionStatus() async {
-//     final savedToken = await AuthGuard.getSavedToken();
-//     final apiClient = ApiClient();
-
-//     return {
-//       'hasToken': savedToken != null,
-//       'tokenLength': savedToken?.length ?? 0,
-//       'tokenPreview': savedToken != null
-//           ? '${savedToken.substring(0, 20)}...'
-//           : null,
-//       'apiBaseUrl': apiClient.dio.options.baseUrl,
-//       'hasAuthHeader': apiClient.dio.options.headers.containsKey(
-//         'Authorization',
-//       ),
-//     };
-//   }
-
-//   /// Check for existing session when app starts
-//   Future<void> _checkExistingSession() async {
-//     _status = AuthStatus.authenticating;
-//     notifyListeners();
-
-//     try {
-//       final isLoggedIn = await AuthGuard.isLoggedIn();
-//       if (isLoggedIn) {
-//         final user = await AuthGuard.getSavedUser();
-//         final token = await AuthGuard.getSavedToken();
 import 'package:flutter/material.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import '../models/user.dart';
 import '../services/auth_guard.dart';
 import '../services/auth_service.dart';
 import '../api/api_client.dart';
+import '../helpers/app_permissions.dart';
 
 enum AuthStatus { unauthenticated, authenticating, authenticated, failed }
 
@@ -69,6 +15,12 @@ class AuthProvider extends ChangeNotifier {
 
   AuthStatus _status = AuthStatus.unauthenticated;
   AuthStatus get status => _status;
+
+  List<String> _permissions = [];
+  List<String> get permissions => _permissions;
+
+  List<String> _roles = [];
+  List<String> get roles => _roles;
 
   User? _user;
   User? get user => _user;
@@ -171,6 +123,14 @@ class AuthProvider extends ChangeNotifier {
       // Set auth token for API calls
       ApiClient().setAuthToken(token);
 
+      final decoded = JwtDecoder.decode(token);
+      _permissions = List<String>.from(decoded['permissions'] ?? []);
+      _roles = List<String>.from(decoded['roles'] ?? []);
+      debugPrint(
+        'AuthProvider: Permissions loaded: ${_permissions.join(', ')}',
+      );
+      debugPrint('AuthProvider: Roles loaded: ${_roles.join(', ')}');
+
       // Save user data persistently
       await AuthGuard.saveUserData(_user!, token);
 
@@ -185,7 +145,9 @@ class AuthProvider extends ChangeNotifier {
         );
       }
 
-      _status = AuthStatus.authenticated;
+      _status = !JwtDecoder.isExpired(token)
+          ? AuthStatus.authenticated
+          : AuthStatus.unauthenticated;
       _error = null;
 
       debugPrint('AuthProvider: Login successful, status = $_status');
@@ -301,7 +263,9 @@ class AuthProvider extends ChangeNotifier {
   Future<void> restoreSession(User user, String token) async {
     try {
       _user = user;
-      _status = AuthStatus.authenticated;
+      _status = !JwtDecoder.isExpired(token)
+          ? AuthStatus.authenticated
+          : AuthStatus.unauthenticated;
       _error = null;
 
       // Set auth token for API calls
@@ -329,9 +293,19 @@ class AuthProvider extends ChangeNotifier {
     await _checkExistingSession();
   }
 
+  bool hasRole(String role) {
+    return _roles.contains(role);
+  }
+
+  bool hasPermission(String permission) {
+    return _permissions.contains(permission);
+  }
+
   /// Logout and clear all persistent data
   Future<void> logout() async {
     _user = null;
+    _permissions = [];
+    _roles = [];
     _status = AuthStatus.unauthenticated;
 
     // Clear auth token
@@ -360,4 +334,36 @@ class AuthProvider extends ChangeNotifier {
 
   /// Get current user's department
   String get userDepartment => _user?.department ?? 'Unknown';
+
+  bool get canAccessAdmin {
+    return _permissions.contains(AppPermissions.roleEdit) &&
+        _permissions.contains(AppPermissions.roleUserView) &&
+        _permissions.contains(AppPermissions.roleUserEdit) &&
+        _permissions.contains(AppPermissions.roleGroupEdit) &&
+        _permissions.contains(AppPermissions.roleGroupView) &&
+        _permissions.contains(AppPermissions.roleEventEdit) &&
+        _permissions.contains(AppPermissions.roleEventView) &&
+        _permissions.contains(AppPermissions.roleReportViewSubmissions) &&
+        _permissions.contains(AppPermissions.roleDashboard) &&
+        _permissions.contains(AppPermissions.roleCrmView) &&
+        _permissions.contains(AppPermissions.roleCrmEdit) &&
+        _permissions.contains(AppPermissions.roleTagView) &&
+        _permissions.contains(AppPermissions.roleTagEdit) &&
+        _permissions.contains(AppPermissions.roleReportView) &&
+        _permissions.contains(AppPermissions.roleReportViewSubmissions);
+  }
+
+  bool get isMcShepherd {
+    return _permissions.contains(AppPermissions.roleSmallGroupView) &&
+        _permissions.contains(AppPermissions.roleReportView);
+  }
+
+  bool get isReportChampion {
+    return isMcShepherd &&
+        _permissions.contains(AppPermissions.roleReportViewSubmissions);
+  }
+
+  bool get isWebAdmin {
+    return _roles.contains('RoleAdmin');
+  }
 }

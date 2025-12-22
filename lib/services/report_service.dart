@@ -17,11 +17,11 @@ class ReportService {
     try {
       print('🔍 Fetching groups from /groups/combo...');
       final response = await _dio.get('/groups/combo');
-      print('✅ Groups response received: ${response.data}');
-      print('📊 Response type: ${response.data.runtimeType}');
+      // print('✅ Groups response received: ${response.data}');
+      // print('📊 Response type: ${response.data.runtimeType}');
 
       final List<dynamic> groupsData = response.data ?? [];
-      print('📝 Parsed groups count: ${groupsData.length}');
+      // print('📝 Parsed groups count: ${groupsData.length}');
 
       final result = groupsData
           .map(
@@ -51,11 +51,11 @@ class ReportService {
       final response = await _dio.get(
         '/groups/combo?categories=Missional Community',
       );
-      print('✅ Groups response received: ${response.data}');
-      print('📊 Response type: ${response.data.runtimeType}');
+      // print('✅ Groups response received: ${response.data}');
+      // print('📊 Response type: ${response.data.runtimeType}');
 
       final List<dynamic> groupsData = response.data ?? [];
-      print('📝 Parsed groups count: ${groupsData.length}');
+      // print('📝 Parsed groups count: ${groupsData.length}');
 
       final result = groupsData
           .map(
@@ -85,7 +85,7 @@ class ReportService {
       print('🔍 Fetching categories from /reports/category...');
       final response = await _dio.get('/reports/category');
       print('✅ Categories response received: ${response.data}');
-      print('📊 Response type: ${response.data.runtimeType}');
+      // print('📊 Response type: ${response.data.runtimeType}');
 
       // Based on your test data, server returns array directly
       if (response.data is List) {
@@ -102,7 +102,7 @@ class ReportService {
         print('🎯 Final categories result: $result');
         return result;
       } else if (response.data is Map && response.data['categories'] != null) {
-        print('📋 Response is a Map with categories property');
+        // print('📋 Response is a Map with categories property');
         final List<dynamic> categoriesData = response.data['categories'];
         final result = categoriesData
             .map(
@@ -112,7 +112,7 @@ class ReportService {
               },
             )
             .toList();
-        print('🎯 Final categories result: $result');
+        // print('🎯 Final categories result: $result');
         return result;
       }
 
@@ -138,14 +138,14 @@ class ReportService {
     final reportPayload = {'reportId': reportId, 'data': data};
 
     try {
-      print('📤 Submitting report with payload: $reportPayload');
+      // print('📤 Submitting report with payload: $reportPayload');
 
       final response = await _dio.post(
         ReportEndpoints.reportsSubmit,
         data: jsonEncode(reportPayload),
       );
 
-      print('✅ Report submitted successfully: ${response.data}');
+      // print('✅ Report submitted successfully: ${response.data}');
       return response.data;
     } on DioException catch (e) {
       print('❌ Report Submission Error:');

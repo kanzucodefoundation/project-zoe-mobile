@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:project_zoe/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class BeautifulBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -13,6 +15,42 @@ class BeautifulBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final canSeeAdmin = auth.isWebAdmin;
+
+    final tabs = <GButton>[
+      const GButton(
+        icon: Icons.assessment_outlined,
+        text: 'Reports',
+        textStyle: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+      const GButton(
+        icon: Icons.dashboard_outlined,
+        text: 'Dashboard',
+        textStyle: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+    ];
+    // if (canSeeAdmin) {
+    tabs.add(
+      const GButton(
+        icon: Icons.groups_outlined,
+        text: 'Shepherds',
+        textStyle: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+    );
+    //}
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -22,7 +60,7 @@ class BeautifulBottomNavBar extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -40,35 +78,7 @@ class BeautifulBottomNavBar extends StatelessWidget {
           duration: const Duration(milliseconds: 400),
           tabBackgroundColor: Colors.black,
           color: Colors.grey.shade600,
-          tabs: const [
-            GButton(
-              icon: Icons.assessment_outlined,
-              text: 'Reports',
-              textStyle: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-            GButton(
-              icon: Icons.dashboard_outlined,
-              text: 'Dashboard',
-              textStyle: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-            GButton(
-              icon: Icons.admin_panel_settings_outlined,
-              text: 'Admin',
-              textStyle: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ],
+          tabs: tabs,
         ),
       ),
     );
