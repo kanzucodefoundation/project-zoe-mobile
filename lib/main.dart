@@ -11,7 +11,7 @@ import 'Screens/reports_screen.dart';
 import 'screens/admin_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
-import 'Screens/notifications.dart';
+import 'Screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
               const ShepherdDetailsScreen(shepherdId: ''),
           '/reports': (context) => ReportsScreen(),
           '/admin': (context) => const AdminScreen(),
-          '/notifications': (context) => const Notifications(),
+          '/settings': (context) => const SettingsScreen(),
         },
       ),
     );
