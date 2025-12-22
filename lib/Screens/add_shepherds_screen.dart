@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:project_zoe/models/people.dart';
 import 'package:provider/provider.dart';
 
 import '../components/custom_text_field.dart';
 import '../components/long_button.dart';
 import '../providers/shepherds_provider.dart';
-import '../models/shepherd.dart';
 
 class AddShepherdsScreen extends StatefulWidget {
-  final Shepherd? shepherd; // If provided, screen is in edit mode
+  final People? shepherd; // If provided, screen is in edit mode
 
   const AddShepherdsScreen({super.key, this.shepherd});
 
@@ -105,7 +106,7 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
                   CustomTextField(
                     hintText: "Enter shepherd's full name",
                     prefixIcon: Icons.person_outline,
-                    controller: prov.nameController,
+                    controller: prov.firstNameController,
                     validator: prov.validateName,
                     keyboardType: TextInputType.name,
                   ),
@@ -124,7 +125,7 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
                   CustomTextField(
                     hintText: 'Enter email address',
                     prefixIcon: Icons.email_outlined,
-                    controller: prov.emailController,
+                    controller: prov.lastNameController,
                     validator: prov.validateEmail,
                     keyboardType: TextInputType.emailAddress,
                   ),
@@ -141,9 +142,9 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
                   ),
                   const SizedBox(height: 8),
                   CustomTextField(
-                    hintText: 'Enter phone number',
+                    hintText: 'Enter Age Group',
                     prefixIcon: Icons.phone_outlined,
-                    controller: prov.phoneController,
+                    controller: prov.ageGroupController,
                     validator: prov.validatePhone,
                     keyboardType: TextInputType.phone,
                   ),
@@ -162,7 +163,7 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
                   CustomTextField(
                     hintText: 'Enter address (optional)',
                     prefixIcon: Icons.location_on_outlined,
-                    controller: prov.addressController,
+                    controller: prov.placeOfWorkController,
                     keyboardType: TextInputType.streetAddress,
                   ),
                   const SizedBox(height: 20),
@@ -178,9 +179,9 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
                   ),
                   const SizedBox(height: 8),
                   CustomTextField(
-                    hintText: 'Enter church location',
+                    hintText: 'Enter Salutation',
                     prefixIcon: Icons.church_outlined,
-                    controller: prov.churchLocationController,
+                    controller: prov.salutationController,
                     validator: prov.validateChurchLocation,
                     keyboardType: TextInputType.text,
                   ),
@@ -195,15 +196,6 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
                       color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  CustomTextField(
-                    hintText:
-                        'Enter position (e.g., Senior Pastor, Associate Pastor)',
-                    prefixIcon: Icons.work_outline,
-                    controller: prov.positionController,
-                    validator: prov.validatePosition,
-                    keyboardType: TextInputType.text,
-                  ),
                   const SizedBox(height: 20),
 
                   // Department Field
@@ -216,28 +208,13 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  CustomTextField(
-                    hintText: 'Enter department (optional)',
-                    prefixIcon: Icons.group_outlined,
-                    controller: prov.departmentController,
-                    keyboardType: TextInputType.text,
-                  ),
-                  const SizedBox(height: 20),
 
                   // Years of Service Field
-                  const Text(
-                    'Years of Service',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
                   const SizedBox(height: 8),
                   CustomTextField(
-                    hintText: 'Enter years of service',
+                    hintText: 'Enter date of birth',
                     prefixIcon: Icons.calendar_today_outlined,
-                    controller: prov.yearsOfServiceController,
+                    controller: prov.dateOfBirthController,
                     validator: prov.validateYearsOfService,
                     keyboardType: TextInputType.number,
                   ),
@@ -264,14 +241,14 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  CustomTextField(
-                    hintText: 'Enter emergency contact phone',
-                    prefixIcon: Icons.phone_in_talk_outlined,
-                    controller: prov.emergencyPhoneController,
-                    validator: prov.validateEmergencyPhone,
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 40),
+                  // CustomTextField(
+                  //   hintText: 'Enter emergency contact phone',
+                  //   prefixIcon: Icons.phone_in_talk_outlined,
+                  //   controller: prov.emergencyPhoneController,
+                  //   validator: prov.validateEmergencyPhone,
+                  //   keyboardType: TextInputType.phone,
+                  // ),
+                  // const SizedBox(height: 40),
 
                   // Submit Button
                   LongButton(

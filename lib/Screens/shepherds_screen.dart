@@ -190,8 +190,10 @@ class ShepherdsScreen extends StatelessWidget {
                             itemBuilder: (context, index) {
                               final shepherd = provider.shepherds[index];
                               return ShepherdsTile(
-                                shepherdName: shepherd.name,
-                                shepherdEmail: shepherd.email,
+                                shepherdAvatar: shepherd.avatar,
+                                shepherdName:
+                                    '${shepherd.firstName} ${shepherd.lastName}',
+                                shepherdEmail: "email",
                                 buttonText: 'View',
                                 onButtonPressed: () {
                                   Navigator.push(

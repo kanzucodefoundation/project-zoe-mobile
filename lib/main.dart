@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_zoe/providers/shepherds_provider.dart';
 import 'package:project_zoe/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
@@ -33,6 +34,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
+        ChangeNotifierProvider<ShepherdsProvider>(
+          create: (_) => ShepherdsProvider(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -49,8 +53,8 @@ class MyApp extends StatelessWidget {
           // '/mc-reports-display': (context) => const McReportsScreen(),
           '/garage-attendance': (context) => const GarageAttendanceScreen(),
           // '/garage-reports-display': (context) => const GarageReportsScreen(),
-          '/shepherds-details': (context) =>
-              const ShepherdDetailsScreen(shepherdId: ''),
+          // '/shepherds-details': (context) =>
+          //     const ShepherdDetailsScreen(shepherdId: 0),
           '/reports': (context) => ReportsScreen(),
           '/admin': (context) => const AdminScreen(),
           '/settings': (context) => const SettingsScreen(),
