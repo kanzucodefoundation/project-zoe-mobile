@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:project_zoe/models/people.dart';
 import 'package:provider/provider.dart';
 
 import '../components/custom_text_field.dart';
 import '../components/long_button.dart';
-import '../providers/shepherds_provider.dart';
+import '../providers/people_provider.dart';
 
-class AddShepherdsScreen extends StatefulWidget {
+class AddPeopleScreen extends StatefulWidget {
   final People? shepherd; // If provided, screen is in edit mode
 
-  const AddShepherdsScreen({super.key, this.shepherd});
+  const AddPeopleScreen({super.key, this.shepherd});
 
   @override
-  State<AddShepherdsScreen> createState() => _AddShepherdsScreenState();
+  State<AddPeopleScreen> createState() => _AddPeopleScreenState();
 }
 
-class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
+class _AddPeopleScreenState extends State<AddPeopleScreen> {
   bool _isInitialized = false;
 
   @override
@@ -27,7 +26,7 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ShepherdsProvider>(
+    return Consumer<PeopleProvider>(
       builder: (context, prov, _) {
         // Initialize for edit if needed
         if (!_isInitialized && widget.shepherd != null) {
@@ -51,7 +50,7 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
             backgroundColor: Colors.white,
             elevation: 0,
             title: Text(
-              isEditMode ? 'Edit Shepherd' : 'Add Shepherd',
+              isEditMode ? 'Edit Person' : 'Add Person',
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 20,
@@ -73,7 +72,7 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
                 children: [
                   // Header Section
                   const Text(
-                    'Shepherd Information',
+                    ' Person Information',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
@@ -83,8 +82,8 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
                   const SizedBox(height: 8),
                   Text(
                     isEditMode
-                        ? 'Update the shepherd details below'
-                        : 'Please fill in the details below to add a new shepherd',
+                        ? 'Update the person details below'
+                        : 'Please fill in the details below to add a new person',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey.shade600,
@@ -104,7 +103,7 @@ class _AddShepherdsScreenState extends State<AddShepherdsScreen> {
                   ),
                   const SizedBox(height: 8),
                   CustomTextField(
-                    hintText: "Enter shepherd's full name",
+                    hintText: "Enter person's full name",
                     prefixIcon: Icons.person_outline,
                     controller: prov.firstNameController,
                     validator: prov.validateName,

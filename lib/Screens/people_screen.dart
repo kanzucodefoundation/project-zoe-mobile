@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../components/long_button.dart';
-import '../providers/shepherds_provider.dart';
+import '../providers/people_provider.dart';
 import '../providers/auth_provider.dart';
 import '../tiles/shepherds_tile.dart';
-import 'add_shepherds_screen.dart';
-import 'details_screens/shepherd_details_screen.dart';
+import 'add_person_screen.dart';
+import 'details_screens/persons_details_screen.dart';
 
-class ShepherdsScreen extends StatelessWidget {
-  const ShepherdsScreen({super.key});
+class PeopleScreen extends StatelessWidget {
+  const PeopleScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => ShepherdsProvider(),
-      child: Consumer2<ShepherdsProvider, AuthProvider>(
+      create: (_) => PeopleProvider(),
+      child: Consumer2<PeopleProvider, AuthProvider>(
         builder: (context, provider, authProvider, _) {
           final canManage = provider.canManageShepherds(authProvider);
           return Scaffold(
@@ -24,7 +24,7 @@ class ShepherdsScreen extends StatelessWidget {
               backgroundColor: Colors.white,
               elevation: 0,
               title: const Text(
-                'Shepherds',
+                'People',
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 20,
@@ -71,7 +71,7 @@ class ShepherdsScreen extends StatelessWidget {
                         // Add Shepherd Button
                         if (canManage)
                           LongButton(
-                            text: 'Add New Shepherd',
+                            text: 'Add a person',
                             onPressed: () {
                               // Clear provider state to ensure add mode
                               provider.clear();
@@ -81,7 +81,7 @@ class ShepherdsScreen extends StatelessWidget {
                                   builder: (context) =>
                                       ChangeNotifierProvider.value(
                                         value: provider,
-                                        child: const AddShepherdsScreen(),
+                                        child: const AddPeopleScreen(),
                                       ),
                                 ),
                               ).then((_) {
@@ -107,7 +107,7 @@ class ShepherdsScreen extends StatelessWidget {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    'Only administrators can add new shepherds',
+                                    'Only administrators can add new people',
                                     style: TextStyle(
                                       color: Colors.grey.shade600,
                                       fontSize: 14,
@@ -134,7 +134,7 @@ class ShepherdsScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '${provider.shepherds.length} Shepherds',
+                          '${provider.shepherds.length} People',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -166,7 +166,7 @@ class ShepherdsScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'No Shepherds Found',
+                                  'No People Found',
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
@@ -175,7 +175,7 @@ class ShepherdsScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Add shepherds to get started',
+                                  'Add people to get started',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey.shade500,
@@ -188,12 +188,11 @@ class ShepherdsScreen extends StatelessWidget {
                             padding: const EdgeInsets.only(bottom: 20),
                             itemCount: provider.shepherds.length,
                             itemBuilder: (context, index) {
-                              final shepherd = provider.shepherds[index];
+                              final contact = provider.shepherds[index];
                               return ShepherdsTile(
-                                shepherdAvatar: shepherd.avatar,
-                                shepherdName:
-                                    '${shepherd.firstName} ${shepherd.lastName}',
-                                shepherdEmail: "email",
+                                shepherdAvatar: contact.avatar,
+                                shepherdName: contact.name,
+                                shepherdEmail: contact.email,
                                 buttonText: 'View',
                                 onButtonPressed: () {
                                   Navigator.push(
@@ -202,8 +201,8 @@ class ShepherdsScreen extends StatelessWidget {
                                       builder: (context) =>
                                           ChangeNotifierProvider.value(
                                             value: provider,
-                                            child: ShepherdDetailsScreen(
-                                              shepherdId: shepherd.id,
+                                            child: PersonsDetailsScreen(
+                                              shepherdId: contact.id,
                                             ),
                                           ),
                                     ),

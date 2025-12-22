@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project_zoe/providers/shepherds_provider.dart';
+import 'package:project_zoe/providers/people_provider.dart';
 import 'package:project_zoe/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
@@ -7,7 +7,6 @@ import 'providers/report_provider.dart';
 import 'widgets/app_wrapper.dart';
 import 'api/api_client.dart';
 import 'screens/garage_attendance_screen.dart';
-import 'screens/details_screens/shepherd_details_screen.dart';
 import 'Screens/reports_screen.dart';
 import 'screens/admin_screen.dart';
 import 'auth/login_screen.dart';
@@ -34,9 +33,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
-        ChangeNotifierProvider<ShepherdsProvider>(
-          create: (_) => ShepherdsProvider(),
-        ),
+        ChangeNotifierProvider<PeopleProvider>(create: (_) => PeopleProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

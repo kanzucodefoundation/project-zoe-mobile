@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project_zoe/Screens/shepherds_screen.dart';
+import 'package:project_zoe/Screens/people_screen.dart';
 import 'package:project_zoe/components/report_card.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -186,6 +186,19 @@ class HomeScreen extends StatelessWidget {
                         },
                       );
                     }),
+                    ReportCard(
+                      reportTitle: 'People',
+                      reportIcon: Icons.people,
+                      iconColor: Colors.black,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PeopleScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               );

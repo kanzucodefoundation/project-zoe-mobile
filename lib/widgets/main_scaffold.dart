@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project_zoe/Screens/shepherds_screen.dart';
+import 'package:project_zoe/Screens/people_screen.dart';
 import 'custom_app_bar.dart';
 import 'custom_drawer.dart';
 import 'beautiful_bottom_nav.dart';
@@ -50,7 +50,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       case 1:
         return const HomeScreen();
       case 2:
-        return const ShepherdsScreen();
+        return const PeopleScreen();
       default:
         return const HomeScreen();
     }
