@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_zoe/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/report_provider.dart';
@@ -10,12 +11,15 @@ import 'Screens/reports_screen.dart';
 import 'screens/admin_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
+import 'Screens/notifications.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize API client
   ApiClient().initialize();
+  //Initialize Notification Service
+  await notificationService.initNotification();
 
   runApp(const MyApp());
 }
@@ -49,6 +53,7 @@ class MyApp extends StatelessWidget {
               const ShepherdDetailsScreen(shepherdId: ''),
           '/reports': (context) => ReportsScreen(),
           '/admin': (context) => const AdminScreen(),
+          '/notifications': (context) => const Notifications(),
         },
       ),
     );

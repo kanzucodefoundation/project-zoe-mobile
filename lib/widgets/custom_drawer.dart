@@ -89,6 +89,14 @@ class CustomDrawer extends StatelessWidget {
                   },
                 ),
                 _buildDrawerItem(
+                  icon: Icons.notifications,
+                  title: 'Notifications',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/notifications');
+                  },
+                ),
+                _buildDrawerItem(
                   icon: Icons.settings,
                   title: 'Settings',
                   onTap: () {
