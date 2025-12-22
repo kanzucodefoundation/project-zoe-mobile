@@ -171,6 +171,9 @@ class AuthProvider extends ChangeNotifier {
       // Set auth token for API calls
       ApiClient().setAuthToken(token);
 
+      // Set tenant/church name for CRM API calls
+      ApiClient().setTenant(_user!.churchName);
+
       // Save user data persistently
       await AuthGuard.saveUserData(_user!, token);
 
@@ -307,6 +310,9 @@ class AuthProvider extends ChangeNotifier {
       // Set auth token for API calls
       ApiClient().setAuthToken(token);
 
+      // Set tenant/church name for CRM API calls
+      ApiClient().setTenant(_user!.churchName);
+
       notifyListeners();
     } catch (e) {
       debugPrint('Error restoring session: $e');
@@ -336,6 +342,9 @@ class AuthProvider extends ChangeNotifier {
 
     // Clear auth token
     ApiClient().clearAuthToken();
+
+    // Clear tenant/church name
+    ApiClient().clearTenant();
 
     // Clear persistent data
     await AuthGuard.clearUserData();
