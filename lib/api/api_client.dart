@@ -29,7 +29,6 @@ class ApiClient {
       LogInterceptor(
         requestBody: true,
         responseBody: true,
-        logPrint: (obj) => print('API LOG: $obj'),
         error: true,
         request: true,
         requestHeader: true,
@@ -42,14 +41,13 @@ class ApiClient {
       InterceptorsWrapper(
         onRequest: (options, handler) {
           print('API REQUEST: ${options.method} ${options.uri}');
-          print('API HEADERS: ${options.headers}');
-          print('API DATA: ${options.data}');
+          // print('API HEADERS: ${options.headers}');
           handler.next(options);
         },
         onResponse: (response, handler) {
-          print(
-            'API RESPONSE: ${response.statusCode} ${response.statusMessage}',
-          );
+          // print(
+          //   'API RESPONSE: ${response.statusCode} ${response.statusMessage}',
+          // );
           handler.next(response);
         },
         onError: (error, handler) {

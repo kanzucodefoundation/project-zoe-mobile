@@ -8,11 +8,15 @@ import 'mc_reports_display_screen.dart';
 import 'garage_reports_display_screen.dart';
 import 'reports_screen.dart';
 
-class HomeSceen extends StatelessWidget {
-  const HomeSceen({super.key});
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  final _attendanceReportTitle = 'getSmallGroupSummaryAttendance';
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,7 +30,7 @@ class HomeSceen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -39,7 +43,7 @@ class HomeSceen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -94,7 +98,7 @@ class HomeSceen extends StatelessWidget {
 
           Consumer<ReportProvider>(
             builder: (context, reportProvider, child) {
-              final titleAndId = reportProvider.titleAndId;
+              final functionNameAndId = reportProvider.functionNameAndId;
               final isLoading = reportProvider.isLoading;
 
               if (isLoading) {
@@ -102,7 +106,7 @@ class HomeSceen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
                     children: List.generate(
-                      2,
+                      3,
                       (index) => Expanded(
                         child: Container(
                           margin: const EdgeInsets.only(right: 12),
@@ -112,7 +116,7 @@ class HomeSceen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -120,7 +124,7 @@ class HomeSceen extends StatelessWidget {
                           ),
                           child: const Center(
                             child: CircularProgressIndicator(
-                              strokeWidth: 2,
+                              strokeWidth: 2.8,
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 Colors.black,
                               ),
@@ -136,18 +140,32 @@ class HomeSceen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    ...titleAndId.map((report) {
+                    ...functionNameAndId.map((report) {
                       final id = report['id'].toString();
+                      final functionName = report['functionName'].toString();
                       final title = report['title'].toString();
 
                       // Determine icon based on title
                       IconData icon = Icons.description;
                       Widget? targetScreen;
 
-                      if (title.toLowerCase().contains('attendance')) {
+                      if (functionName == _attendanceReportTitle) {
                         icon = Icons.church;
-                        targetScreen = McReportsScreen(reportId: id);
-                      } else if (title.toLowerCase().contains('garage')) {
+                        /**
+                         * ! RBAC 
+                         * check if user is McShepherd or ReportChampion
+                         * then allow navigation to McReportsScreen
+                         * More refining needs to be done later
+                         */
+
+                        if (auth.isMcShepherd) {
+                          targetScreen = McReportsScreen(reportId: id);
+                        } else {
+                          targetScreen = null;
+                        }
+                      } else if (functionName.toLowerCase().contains(
+                        'garage',
+                      )) {
                         icon = Icons.garage;
                         targetScreen = GarageReportsScreen(reportId: id);
                       }

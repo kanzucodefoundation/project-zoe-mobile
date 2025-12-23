@@ -32,10 +32,10 @@ class PeopleScreen extends StatelessWidget {
                 ),
               ),
               centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () => Navigator.pop(context),
-              ),
+              // leading: IconButton(
+              //   icon: const Icon(Icons.arrow_back, color: Colors.black),
+              //   onPressed: () => Navigator.pop(context),
+              // ),
             ),
             body: RefreshIndicator(
               onRefresh: () async {

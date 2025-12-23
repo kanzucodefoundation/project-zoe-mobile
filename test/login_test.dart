@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project_zoe/api/api_client.dart';
-import 'package:project_zoe/api/login_endpoint.dart';
+import 'package:project_zoe/api/auth_endpoint.dart';
 import 'package:project_zoe/api/api_models.dart';
 
 void main() {

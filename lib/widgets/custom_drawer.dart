@@ -7,6 +7,7 @@ class CustomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
     return Drawer(
       backgroundColor: Colors.white,
       child: Column(
@@ -88,14 +89,19 @@ class CustomDrawer extends StatelessWidget {
                     // TODO: Navigate to events screen
                   },
                 ),
-                _buildDrawerItem(
-                  icon: Icons.settings,
-                  title: 'Settings',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/settings');
-                  },
+                //! RBAC
+                Visibility(
+                  visible: auth.hasRole('RoleAdmin'),
+                  child: _buildDrawerItem(
+                    icon: Icons.settings,
+                    title: 'Settings',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/settings');
+                    },
+                  ),
                 ),
+
                 const Divider(color: Colors.grey),
                 _buildDrawerItem(
                   icon: Icons.logout,

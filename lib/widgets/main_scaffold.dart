@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_zoe/Screens/people_screen.dart';
 import 'custom_app_bar.dart';
 import 'custom_drawer.dart';
 import 'beautiful_bottom_nav.dart';
@@ -47,16 +48,11 @@ class _MainScaffoldState extends State<MainScaffold> {
       case 0:
         return ReportsScreen();
       case 1:
-        return const HomeSceen();
+        return const HomeScreen();
       case 2:
-        return const Center(
-          child: Text(
-            'Admin Screen',
-            style: TextStyle(fontSize: 18, color: Colors.black54),
-          ),
-        );
+        return const PeopleScreen();
       default:
-        return const HomeSceen();
+        return const HomeScreen();
     }
   }
 

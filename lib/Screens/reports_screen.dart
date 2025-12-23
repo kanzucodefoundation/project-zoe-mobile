@@ -135,22 +135,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
               ),
             ),
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const McReportFormScreen(),
-                ),
-              );
-            },
-            backgroundColor: Colors.black,
-            icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text(
-              'Submit MC Report',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
         );
       },
     );
