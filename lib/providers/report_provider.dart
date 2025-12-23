@@ -138,12 +138,14 @@ class ReportProvider extends ChangeNotifier {
 
   /// Get reports summary
   Map<String, int> get reportsSummary {
-    return ReportHelpers.getReportsSummary(_reports);
+    // return ReportHelpers.getReportsSummary(_reports);
+    return {};
   }
 
   /// Get overdue reports
   List<Report> get overdueReports {
-    return ReportHelpers.getOverdueReports(_reports);
+    // return ReportHelpers.getOverdueReports(_reports);
+    return [];
   }
 
   /// Update report status

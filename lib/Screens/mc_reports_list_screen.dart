@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_zoe/services/reports_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
@@ -51,11 +52,11 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       print('🔄 Loading report submissions from server and local storage...');
 
       // Try to load from server first (primary data source)
-      final serverSubmissions = await ReportService.getMcReportSubmissions();
+      final serverSubmissions = await ReportsService.getMcReportSubmissions();
       print('📡 Server submissions: ${serverSubmissions.length}');
 
       // Also try the general submitted reports endpoint
-      final submittedReports = await ReportService.getAllSubmittedReports();
+      final submittedReports = await ReportsService.getAllSubmittedReports();
       print('📊 Submitted reports: ${submittedReports.length}');
 
       // Load from local storage as fallback/supplement

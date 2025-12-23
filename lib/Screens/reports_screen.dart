@@ -59,7 +59,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       print('🔄 Starting to load user groups...');
       // Let server determine church from authenticated user
 
-      final groupsResponse = await ReportService.getUserGroups();
+      final groupsResponse = await ReportsService.getUserGroups();
       print(
         '✅ Groups loaded successfully: ${groupsResponse.groups.length} groups',
       );

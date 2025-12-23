@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_zoe/services/reports_service.dart';
 import '../models/group.dart';
 import '../services/report_service.dart';
 
@@ -34,7 +35,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
         _error = null;
       });
 
-      final groupDetails = await ReportService.getGroupDetails(widget.groupId);
+      final groupDetails = await ReportsService.getGroupDetails(widget.groupId);
 
       setState(() {
         _groupDetails = groupDetails;
