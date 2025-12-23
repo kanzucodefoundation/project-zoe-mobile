@@ -12,11 +12,6 @@ import 'reports_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
-  final _mcAttendanceReportTitle = 'attendance';
-  final _sundayReportTitle = 'sunday';
-  final _baptismReportTitle = 'baptism';
-  final _salvationeportTitle = 'salvation';
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -183,6 +178,10 @@ class _HomeScreenState extends State<HomeScreen> {
     AuthProvider auth,
   ) {
     final List<Widget> cards = [];
+    final mcAttendanceReportTitle = 'attendance';
+    final sundayReportTitle = 'sunday';
+    final baptismReportTitle = 'baptism';
+    final salvationReportTitle = 'salvation';
 
     for (final report in titleAndId) {
       final String title = report['title']?.toString() ?? '';
@@ -194,24 +193,17 @@ class _HomeScreenState extends State<HomeScreen> {
       final lowerTitle = title.toLowerCase();
 
       // ---- Report routing logic ----
-      if (lowerTitle.contains('attendance')) {
+      // RBAC example
+      if (lowerTitle.contains(mcAttendanceReportTitle) && auth.isMcShepherd) {
         icon = Icons.church;
-
-        // RBAC example
-        if (auth.isMcShepherd) {
-          targetScreen = McAttendanceReportScreen(reportId: id);
-        }
-      } else if (lowerTitle.contains('garage')) {
-        icon = Icons.garage;
-        targetScreen = GarageReportsScreen(reportId: id);
-      } else if (lowerTitle.contains('sunday') ||
-          lowerTitle.contains('service')) {
+        targetScreen = McAttendanceReportScreen(reportId: id);
+      } else if (lowerTitle.contains(sundayReportTitle)) {
         icon = Icons.church_outlined;
-        // targetScreen = SundayServiceReportScreen(reportId: id);
-      } else if (lowerTitle.contains('baptism')) {
+        targetScreen = GarageReportsScreen(reportId: id);
+      } else if (lowerTitle.contains(baptismReportTitle)) {
         icon = Icons.water_drop;
         // targetScreen = BaptismReportScreen(reportId: id);
-      } else if (lowerTitle.contains('salvation')) {
+      } else if (lowerTitle.contains(salvationReportTitle)) {
         icon = Icons.favorite;
         // targetScreen = SalvationReportScreen(reportId: id);
       }
