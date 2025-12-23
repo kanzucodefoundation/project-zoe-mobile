@@ -222,63 +222,55 @@ class ReportService {
 
   /// Get MC report submissions from the server
   static Future<List<Map<String, dynamic>>> getMcReportSubmissions() async {
-    print('🔍 Testing multiple endpoints for actual submissions...');
+    try {
+      print('🔍 Fetching MC report submissions from server...');
 
-    // Try multiple possible endpoints
-    final endpoints = [
-      '/reports/submissions',
-      '/report-submissions',
-      '/submissions',
-      '/reports/data',
-      '/reports',
-    ];
+      // Try the main submissions endpoint first
+      final response = await _dio.get('/reports/submissions');
+      print('✅ Server response received: ${response.data}');
 
-    for (final endpoint in endpoints) {
-      try {
-        print('📡 Trying endpoint: $endpoint');
-        final response = await _dio.get(endpoint);
-        print('✅ $endpoint Response: ${response.data}');
-
-        if (response.data is List) {
-          final submissions = <Map<String, dynamic>>[];
-          for (var item in response.data) {
-            if (item is Map) {
-              final mapItem = Map<String, dynamic>.from(item);
-              // Check if this looks like a submission with actual data
-              if (mapItem.containsKey('data') &&
-                  mapItem['data'] != null &&
-                  mapItem['data'] is Map &&
-                  (mapItem['data'] as Map).isNotEmpty) {
-                submissions.add(mapItem);
-                print('✅ Found submission with data: ${mapItem['id']}');
-              } else if (endpoint == '/reports' &&
-                  !mapItem.containsKey('fields')) {
-                // This might be a submission without the nested structure
-                submissions.add(mapItem);
-                print('✅ Found potential submission: ${mapItem['id']}');
-              }
-            }
+      if (response.data is List) {
+        final submissions = <Map<String, dynamic>>[];
+        for (var item in response.data) {
+          if (item is Map) {
+            final mapItem = Map<String, dynamic>.from(item);
+            submissions.add(mapItem);
+            print('📋 Added server submission: ${mapItem['id']}');
           }
-
-          if (submissions.isNotEmpty) {
-            print('🎉 Found ${submissions.length} submissions from $endpoint');
-            return submissions;
-          }
-          print(
-            '⚠️ $endpoint returned ${(response.data as List).length} items but no actual submissions',
-          );
-        } else {
-          print(
-            '⚠️ $endpoint response is not a list: ${response.data.runtimeType}',
-          );
         }
-      } catch (e) {
-        print('❌ $endpoint failed: $e');
+        print('🎉 Loaded ${submissions.length} submissions from server');
+        return submissions;
+      } else if (response.data is Map && response.data['data'] is List) {
+        // Handle wrapped response
+        final dataList = response.data['data'] as List;
+        final submissions = <Map<String, dynamic>>[];
+        for (var item in dataList) {
+          if (item is Map) {
+            final mapItem = Map<String, dynamic>.from(item);
+            submissions.add(mapItem);
+          }
+        }
+        print(
+          '🎉 Loaded ${submissions.length} submissions from server (wrapped)',
+        );
+        return submissions;
       }
-    }
 
-    print('💀 No submissions found from any endpoint');
-    return [];
+      print('⚠️ No submissions found in server response');
+      return [];
+    } on DioException catch (e) {
+      print(
+        '❌ Error fetching server submissions: ${e.response?.statusCode} ${e.message}',
+      );
+      if (e.response?.statusCode == 404) {
+        print('ℹ️ Submissions endpoint not available, returning empty list');
+        return [];
+      }
+      throw _handleDioException(e);
+    } catch (e) {
+      print('💀 Unexpected error fetching server submissions: $e');
+      return [];
+    }
   }
 
   /// Get specific MC report details by MC ID
@@ -304,6 +296,47 @@ class ReportService {
       return [];
     } catch (e) {
       print('💀 Unexpected error: ${e.toString()}');
+      return [];
+    }
+  }
+
+  /// Get all submitted reports from server (for display)
+  static Future<List<Map<String, dynamic>>> getAllSubmittedReports() async {
+    try {
+      print('🔍 Fetching all submitted reports from server...');
+
+      // Try to get submitted report data
+      final response = await _dio.get('/report-data');
+      print('✅ Report data response: ${response.data}');
+
+      if (response.data is List) {
+        final reports = <Map<String, dynamic>>[];
+        for (var item in response.data) {
+          if (item is Map) {
+            final mapItem = Map<String, dynamic>.from(item);
+            // Ensure it has the expected structure
+            if (mapItem.containsKey('id') || mapItem.containsKey('reportId')) {
+              reports.add(mapItem);
+            }
+          }
+        }
+        print('📊 Found ${reports.length} submitted reports from server');
+        return reports;
+      }
+
+      print('⚠️ No report data found');
+      return [];
+    } on DioException catch (e) {
+      print(
+        '❌ Error fetching submitted reports: ${e.response?.statusCode} ${e.message}',
+      );
+      if (e.response?.statusCode == 404) {
+        print('ℹ️ Report data endpoint not available');
+        return [];
+      }
+      return [];
+    } catch (e) {
+      print('💀 Unexpected error: $e');
       return [];
     }
   }
