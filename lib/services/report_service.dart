@@ -1310,12 +1310,31 @@ class ReportService {
       final title = json['name'] ?? json['title'] ?? 'Untitled Report';
       final description = json['description'] ?? '';
 
+      // Generate functionName based on report name if not provided
+      String functionName = json['functionName'] ?? '';
+      if (functionName.isEmpty) {
+        // Generate a camelCase function name from the report name
+        final words = title.toLowerCase().split(' ');
+        if (words.isNotEmpty) {
+          functionName =
+              words.first +
+              words
+                  .skip(1)
+                  .map(
+                    (word) => word.isNotEmpty
+                        ? word[0].toUpperCase() + word.substring(1)
+                        : '',
+                  )
+                  .join('');
+        }
+      }
+
       // Parse display columns
       final displayColumns = (json['displayColumns'] as List<dynamic>? ?? [])
           .map((c) => DisplayColumn(name: c['name'], label: c['label']))
           .toList();
 
-      // Parse fields
+      // Parse fields - provide empty list if not available
       final fields = (json['fields'] as List<dynamic>? ?? [])
           .map(
             (f) => ReportField(
@@ -1335,9 +1354,9 @@ class ReportService {
         name: title,
         description: description,
         viewType: json['viewType'] ?? 'table',
-        status: json['status'],
-        functionName: json['functionName'],
-        submissionFrequency: json['submissionFrequency'],
+        status: json['status'] ?? 'active',
+        functionName: functionName,
+        submissionFrequency: json['submissionFrequency'] ?? 'weekly',
         displayColumns: displayColumns,
         fields: fields,
         footer: json['footer'],

@@ -6,7 +6,8 @@ import 'details_screens/mc_report_detail_screen.dart';
 
 /// Full screen MC Attendance Report displaying all MCs and their submitted reports
 class McAttendanceReportScreen extends StatefulWidget {
-  const McAttendanceReportScreen({super.key});
+  final int reportId;
+  const McAttendanceReportScreen({super.key, required this.reportId});
 
   @override
   State<McAttendanceReportScreen> createState() =>

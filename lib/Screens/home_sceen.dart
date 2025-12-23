@@ -4,17 +4,34 @@ import 'package:project_zoe/components/report_card.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/report_provider.dart';
+import '../providers/dashboard_provider.dart';
 import 'mc_reports_display_screen.dart';
+import 'mc_attendance_report_screen.dart';
 import 'garage_reports_display_screen.dart';
 import 'reports_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   final _mcAttendanceReportTitle = 'attendance';
   final _sundayReportTitle = 'sunday';
   final _baptismReportTitle = 'baptism';
   final _salvationeportTitle = 'salvation';
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final _attendanceReportTitle = 'mcAttendanceReport';
+
+  @override
+  void initState() {
+    super.initState();
+    // Load dashboard data when screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DashboardProvider>().loadDashboardSummary();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +102,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          // Dashboard Cards Section
+          // Quick Actions Section
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Text(
@@ -141,204 +158,454 @@ class HomeScreen extends StatelessWidget {
               }
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    ...titleAndId.map((report) {
-                      final id = report['id'];
-                      final title = report['title'].toString();
-
-                      // Determine icon based on title
-                      IconData icon = Icons.description;
-                      Widget? targetScreen;
-
-                      if (title == _mcAttendanceReportTitle) {
-                        icon = Icons.church;
-                        /**
-                         * ! RBAC 
-                         * check if user is McShepherd or ReportChampion
-                         * then allow navigation to McReportsScreen
-                         * More refining needs to be done later
-                         */
-
-                        if (auth.isMcShepherd) {
-                          targetScreen = McReportsScreen(reportId: id);
-                        } else {
-                          targetScreen = null;
-                        }
-                      } else if (title.toLowerCase().contains(
-                            _sundayReportTitle,
-                          ) ||
-                          title.toLowerCase().contains(_baptismReportTitle) ||
-                          title.toLowerCase().contains(_salvationeportTitle)) {
-                        icon = Icons.garage;
-                        targetScreen = GarageReportsScreen(reportId: id);
-                      }
-
-                      return ReportCard(
-                        reportTitle: title,
-                        reportIcon: icon,
-                        iconColor: Colors.black,
-                        onTap: () {
-                          if (targetScreen != null) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => targetScreen!,
-                              ),
-                            );
-                          }
-                        },
-                      );
-                    }),
-                    ReportCard(
-                      reportTitle: 'People',
-                      reportIcon: Icons.people,
-                      iconColor: Colors.black,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PeopleScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                child: _buildQuickActionsGrid(titleAndId, auth),
               );
             },
           ),
           const SizedBox(height: 24),
 
-          // Reports Statistics Section
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-            child: Text(
-              'Report Statistics',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Consumer<ReportProvider>(
-            builder: (context, reportProvider, child) {
-              final summary = reportProvider.reportsSummary;
-              final overdueReports = reportProvider.overdueReports;
-
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // Statistics Grid
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            'Total Reports',
-                            '${summary['total'] ?? 0}',
-                            Icons.description,
-                            Colors.blue.shade600,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildStatCard(
-                            'Pending',
-                            '${summary['pending'] ?? 0}',
-                            Icons.schedule,
-                            Colors.orange.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            'Completed',
-                            '${summary['completed'] ?? 0}',
-                            Icons.check_circle,
-                            Colors.green.shade600,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildStatCard(
-                            'Overdue',
-                            '${overdueReports.length}',
-                            Icons.warning,
-                            Colors.red.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // View All Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          // Navigate to reports page
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ReportsScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.assessment, color: Colors.white),
-                        label: const Text(
-                          'View All Reports',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
+          // Dashboard Summary Section
+          Consumer<DashboardProvider>(
+            builder: (context, dashboardProvider, child) {
+              return _buildDashboardSummary(dashboardProvider);
             },
           ),
-
-          const SizedBox(height: 24),
-          // const DashboardCardsSection(),
-
-          // Announcements Section
-          // const AnnouncementsSection(),
 
           // Bottom padding for navigation bar
           const SizedBox(height: 100),
         ],
       ),
     );
+  }
+
+  Widget _buildQuickActionsGrid(
+    List<Map<String, dynamic>> titleAndId,
+    AuthProvider auth,
+  ) {
+    final List<Widget> cards = [];
+
+    for (final report in titleAndId) {
+      final String title = report['title']?.toString() ?? '';
+      final dynamic id = report['id'];
+
+      IconData icon = Icons.description;
+      Widget? targetScreen;
+
+      final lowerTitle = title.toLowerCase();
+
+      // ---- Report routing logic ----
+      if (lowerTitle.contains('attendance')) {
+        icon = Icons.church;
+
+        // RBAC example
+        if (auth.isMcShepherd) {
+          targetScreen = McAttendanceReportScreen(reportId: id);
+        }
+      } else if (lowerTitle.contains('garage')) {
+        icon = Icons.garage;
+        targetScreen = GarageReportsScreen(reportId: id);
+      } else if (lowerTitle.contains('sunday') ||
+          lowerTitle.contains('service')) {
+        icon = Icons.church_outlined;
+        // targetScreen = SundayServiceReportScreen(reportId: id);
+      } else if (lowerTitle.contains('baptism')) {
+        icon = Icons.water_drop;
+        // targetScreen = BaptismReportScreen(reportId: id);
+      } else if (lowerTitle.contains('salvation')) {
+        icon = Icons.favorite;
+        // targetScreen = SalvationReportScreen(reportId: id);
+      }
+
+      cards.add(
+        ReportCard(
+          reportTitle: title,
+          reportIcon: icon,
+          iconColor: Colors.black,
+          onTap: () {
+            if (targetScreen != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => targetScreen!),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('$title coming soon'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          },
+        ),
+      );
+    }
+
+    // ---- Static People Card ----
+    cards.add(
+      ReportCard(
+        reportTitle: 'People',
+        reportIcon: Icons.people,
+        iconColor: Colors.black,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PeopleScreen()),
+          );
+        },
+      ),
+    );
+
+    // ---- Layout selection ----
+    if (cards.length <= 3) {
+      return Row(
+        children: cards
+            .map(
+              (card) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: card,
+                ),
+              ),
+            )
+            .toList(),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: cards.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 6,
+        crossAxisSpacing: 6,
+        childAspectRatio: 1,
+      ),
+      itemBuilder: (_, index) => cards[index],
+    );
+  }
+
+  Widget _buildDashboardSummary(DashboardProvider dashboardProvider) {
+    if (dashboardProvider.isLoading) {
+      return Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(color: Colors.black),
+        ),
+      );
+    }
+
+    if (dashboardProvider.hasError) {
+      return Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.red.shade300),
+            const SizedBox(height: 8),
+            Text(
+              'Failed to load dashboard data',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              dashboardProvider.errorMessage ?? 'Unknown error',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () => dashboardProvider.refresh(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (!dashboardProvider.hasData) {
+      return const SizedBox.shrink();
+    }
+
+    final summary = dashboardProvider.dashboardSummary!;
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with group info
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.group, color: Colors.blue.shade700, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      summary.group.name,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${summary.group.activeMembers}/${summary.group.memberCount} Active Members',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // This Week Stats
+          Text(
+            'This Week\'s Activity',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Stats Grid
+          Row(
+            children: [
+              Expanded(
+                child: _buildDashboardStatCard(
+                  'Attendance',
+                  summary.thisWeek.attendance.toString(),
+                  Icons.people,
+                  Colors.blue.shade600,
+                  _getTrendIcon(summary.trend.attendanceChange),
+                  _getTrendColor(summary.trend.attendanceChange),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildDashboardStatCard(
+                  'Visitors',
+                  summary.thisWeek.visitors.toString(),
+                  Icons.person_add,
+                  Colors.green.shade600,
+                  _getTrendIcon(summary.trend.visitorsChange),
+                  _getTrendColor(summary.trend.visitorsChange),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          if (summary.thisWeek.newMembers != null ||
+              summary.thisWeek.salvations != null) ...[
+            Row(
+              children: [
+                if (summary.thisWeek.newMembers != null)
+                  Expanded(
+                    child: _buildDashboardStatCard(
+                      'New Members',
+                      summary.thisWeek.newMembers.toString(),
+                      Icons.group_add,
+                      Colors.purple.shade600,
+                      null,
+                      null,
+                    ),
+                  ),
+                if (summary.thisWeek.newMembers != null &&
+                    summary.thisWeek.salvations != null)
+                  const SizedBox(width: 12),
+                if (summary.thisWeek.salvations != null)
+                  Expanded(
+                    child: _buildDashboardStatCard(
+                      'Salvations',
+                      summary.thisWeek.salvations.toString(),
+                      Icons.favorite,
+                      Colors.red.shade600,
+                      null,
+                      null,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+
+          // Recent Activity
+          if (summary.recentActivity.isNotEmpty) ...[
+            Text(
+              'Recent Activity',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _getActivityIcon(summary.recentActivity.first.type),
+                    color: Colors.grey.shade700,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      summary.recentActivity.first.description,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDashboardStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    IconData? trendIcon,
+    Color? trendColor,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const Spacer(),
+              if (trendIcon != null && trendColor != null)
+                Icon(trendIcon, color: trendColor, size: 16),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getTrendIcon(int change) {
+    if (change > 0) return Icons.trending_up;
+    if (change < 0) return Icons.trending_down;
+    return Icons.trending_flat;
+  }
+
+  Color _getTrendColor(int change) {
+    if (change > 0) return Colors.green;
+    if (change < 0) return Colors.red;
+    return Colors.grey;
+  }
+
+  IconData _getActivityIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'report_submitted':
+        return Icons.assignment_turned_in;
+      case 'member_added':
+        return Icons.person_add;
+      case 'meeting_held':
+        return Icons.event;
+      default:
+        return Icons.info;
+    }
   }
 
   String _getFirstName(String fullName) {
