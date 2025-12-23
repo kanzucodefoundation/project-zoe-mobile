@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_zoe/services/reports_service.dart';
 import '../services/report_service.dart';
 import '../models/report.dart';
 import 'details_screens/mc_report_detail_screen.dart';
@@ -34,7 +35,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     try {
       // Load available MCs
       print('🔄 Loading available MCs...');
-      _availableMcs = await ReportService.getAvailableGroups();
+      _availableMcs = await ReportsService.getAvailableGroups();
       print('✅ Loaded ${_availableMcs.length} MCs');
 
       // Load reports for each MC
@@ -58,9 +59,9 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     for (final mc in _availableMcs) {
       try {
         final mcId = mc['id'] as int;
-        final reports = await _loadReportsForMc(mcId);
-        _mcReports[mcId] = reports;
-        print('✅ Loaded ${reports.length} reports for MC ${mc['name']}');
+        // final reports = await _loadReportsForMc(mcId);
+        // _mcReports[mcId] = reports;
+        // print('✅ Loaded ${reports.length} reports for MC ${mc['name']}');
       } catch (e) {
         print('⚠️ Failed to load reports for MC ${mc['name']}: $e');
         _mcReports[mc['id']] = [];
@@ -69,40 +70,40 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
   }
 
   /// Load reports for a specific MC
-  Future<List<Map<String, dynamic>>> _loadReportsForMc(int mcId) async {
-    try {
-      // For now, we'll use the general reports endpoint
-      // In the future, this might be a specific endpoint for MC reports
-      final allReports = await ReportService.getAllReports();
+  // Future<List<Map<String, dynamic>>> _loadReportsForMc(int mcId) async {
+  //   try {
+  //     // For now, we'll use the general reports endpoint
+  //     // In the future, this might be a specific endpoint for MC reports
+  //     final allReports = await ReportsService.getAllReports();
 
-      // Filter reports for this specific MC
-      final mcReports = allReports
-          .where(
-            (report) =>
-                report.data['smallGroupId'] == mcId ||
-                report.data['mcId'] == mcId.toString(),
-          )
-          .map((report) => _convertReportToMap(report))
-          .toList();
+  //     // Filter reports for this specific MC
+  //     final mcReports = allReports
+  //         .where(
+  //           (report) =>
+  //               report.smallGroupId'] == mcId ||
+  //               report.'mcId'] == mcId.toString(),
+  //         )
+  //         .map((report) => _convertReportToMap(report))
+  //         .toList();
 
-      return mcReports;
-    } catch (e) {
-      print('❌ Error loading reports for MC $mcId: $e');
-      return [];
-    }
-  }
+  //     return mcReports;
+  //   } catch (e) {
+  //     print('❌ Error loading reports for MC $mcId: $e');
+  //     return [];
+  //   }
+  // }
 
   /// Convert Report model to Map for easier handling
-  Map<String, dynamic> _convertReportToMap(Report report) {
-    return {
-      'id': report.id,
-      'title': report.title,
-      'description': report.description,
-      'status': report.status.toString().split('.').last,
-      'createdAt': report.createdAt,
-      'data': report.data,
-    };
-  }
+  // Map<String, dynamic> _convertReportToMap(Report report) {
+  //   return {
+  //     'id': report.id,
+  //     'title': report.title,
+  //     'description': report.description,
+  //     'status': report.status.toString().split('.').last,
+  //     'createdAt': report.createdAt,
+  //     'data': report.data,
+  //   };
+  // }
 
   /// Get report count for a specific MC
   int _getReportCountForMc(int mcId) {

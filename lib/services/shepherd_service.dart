@@ -33,6 +33,37 @@ class ShepherdService {
     }
   }
 
+  /// Handle Dio exceptions and convert to readable messages
+  static Exception _handleDioException(DioException e) {
+    String message;
+
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+        message = 'Connection timeout. Please check your internet connection.';
+        break;
+      case DioExceptionType.sendTimeout:
+        message = 'Request timeout. Please try again.';
+        break;
+      case DioExceptionType.receiveTimeout:
+        message = 'Response timeout. Please try again.';
+        break;
+      case DioExceptionType.badResponse:
+        message = e.response?.data['message'] ?? 'Server error occurred';
+        break;
+      case DioExceptionType.cancel:
+        message = 'Request was cancelled';
+        break;
+      case DioExceptionType.connectionError:
+        message = 'Connection error. Please check your internet connection.';
+        break;
+      default:
+        message = 'Network error occurred';
+    }
+
+    return Exception(message);
+  }
+
+  /*
   /// Submit Report with correct payload structure
   static Future<Map<String, dynamic>> submitReport({
     required int reportId,
@@ -91,6 +122,7 @@ class ShepherdService {
       return [];
     }
   }
+
 
   /// Get report submissions for a specific report template
   static Future<List<Map<String, dynamic>>> getReportSubmissions(
@@ -384,36 +416,6 @@ class ShepherdService {
     }
   }
 
-  /// Handle Dio exceptions and convert to readable messages
-  static Exception _handleDioException(DioException e) {
-    String message;
-
-    switch (e.type) {
-      case DioExceptionType.connectionTimeout:
-        message = 'Connection timeout. Please check your internet connection.';
-        break;
-      case DioExceptionType.sendTimeout:
-        message = 'Request timeout. Please try again.';
-        break;
-      case DioExceptionType.receiveTimeout:
-        message = 'Response timeout. Please try again.';
-        break;
-      case DioExceptionType.badResponse:
-        message = e.response?.data['message'] ?? 'Server error occurred';
-        break;
-      case DioExceptionType.cancel:
-        message = 'Request was cancelled';
-        break;
-      case DioExceptionType.connectionError:
-        message = 'Connection error. Please check your internet connection.';
-        break;
-      default:
-        message = 'Network error occurred';
-    }
-
-    return Exception(message);
-  }
-
   // Church name management for testing different tenants
   static String? _overrideChurchName;
 
@@ -438,5 +440,5 @@ class ShepherdService {
     // Return saved church name or default
     // For now, return a default - this can be enhanced to get from storage
     return 'demo';
-  }
+  }*/
 }

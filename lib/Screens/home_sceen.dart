@@ -11,7 +11,10 @@ import 'reports_screen.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  final _attendanceReportTitle = 'getSmallGroupSummaryAttendance';
+  final _mcAttendanceReportTitle = 'attendance';
+  final _sundayReportTitle = 'sunday';
+  final _baptismReportTitle = 'baptism';
+  final _salvationeportTitle = 'salvation';
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +101,7 @@ class HomeScreen extends StatelessWidget {
 
           Consumer<ReportProvider>(
             builder: (context, reportProvider, child) {
-              final functionNameAndId = reportProvider.functionNameAndId;
+              final titleAndId = reportProvider.titleAndId;
               final isLoading = reportProvider.isLoading;
 
               if (isLoading) {
@@ -140,16 +143,15 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    ...functionNameAndId.map((report) {
-                      final id = report['id'].toString();
-                      final functionName = report['functionName'].toString();
+                    ...titleAndId.map((report) {
+                      final id = report['id'];
                       final title = report['title'].toString();
 
                       // Determine icon based on title
                       IconData icon = Icons.description;
                       Widget? targetScreen;
 
-                      if (functionName == _attendanceReportTitle) {
+                      if (title == _mcAttendanceReportTitle) {
                         icon = Icons.church;
                         /**
                          * ! RBAC 
@@ -163,9 +165,11 @@ class HomeScreen extends StatelessWidget {
                         } else {
                           targetScreen = null;
                         }
-                      } else if (functionName.toLowerCase().contains(
-                        'garage',
-                      )) {
+                      } else if (title.toLowerCase().contains(
+                            _sundayReportTitle,
+                          ) ||
+                          title.toLowerCase().contains(_baptismReportTitle) ||
+                          title.toLowerCase().contains(_salvationeportTitle)) {
                         icon = Icons.garage;
                         targetScreen = GarageReportsScreen(reportId: id);
                       }

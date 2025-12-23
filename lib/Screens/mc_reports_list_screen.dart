@@ -36,10 +36,10 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       final localSubmissions = await _loadLocalSubmissions();
 
       // Also try to load from server as backup
-      final serverSubmissions = await ReportService.getMcReportSubmissions();
+      // final serverSubmissions = await ReportService.getMcReportSubmissions();
 
       // Combine both sources (local takes priority)
-      final allSubmissions = [...localSubmissions, ...serverSubmissions];
+      final allSubmissions = [...localSubmissions];
 
       if (mounted) {
         setState(() {
@@ -48,9 +48,9 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
         });
       }
 
-      print(
-        '📋 Loaded ${allSubmissions.length} submissions (${localSubmissions.length} local, ${serverSubmissions.length} server)',
-      );
+      // print(
+      //   '📋 Loaded ${allSubmissions.length} submissions (${localSubmissions.length} local, ${serverSubmissions.length} server)',
+      // );
     } catch (e) {
       print('❌ Error loading submissions: $e');
       if (mounted) {

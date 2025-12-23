@@ -53,30 +53,30 @@ class _GarageAttendanceFormScreenState
         listen: false,
       );
 
-      final report = Report(
-        id: 'garage_${DateTime.now().millisecondsSinceEpoch}',
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
-        type: ReportType.attendance,
-        status: ReportStatus.pending,
-        createdAt: DateTime.now(),
-        createdBy: 'Current User', // Replace with actual user
-        tags: ['garage', 'attendance', 'sunday-service'],
-        priority: 2,
-        data: {
-          'serviceDate': _serviceDate.toIso8601String(),
-          'totalAttendance': int.tryParse(_totalAttendanceController.text) ?? 0,
-          'adults': int.tryParse(_adultsController.text) ?? 0,
-          'youth': int.tryParse(_youthController.text) ?? 0,
-          'children': int.tryParse(_childrenController.text) ?? 0,
-          'newVisitors': int.tryParse(_newVisitorsController.text) ?? 0,
-          'memberAttendance':
-              int.tryParse(_memberAttendanceController.text) ?? 0,
-          'attendanceRate': _calculateAttendanceRate(),
-        },
-      );
+      // final report = Report(
+      //   id: 'garage_${DateTime.now().millisecondsSinceEpoch}',
+      //   title: _titleController.text.trim(),
+      //   description: _descriptionController.text.trim(),
+      //   type: ReportType.attendance,
+      //   status: ReportStatus.pending,
+      //   createdAt: DateTime.now(),
+      //   createdBy: 'Current User', // Replace with actual user
+      //   tags: ['garage', 'attendance', 'sunday-service'],
+      //   priority: 2,
+      //   data: {
+      //     'serviceDate': _serviceDate.toIso8601String(),
+      //     'totalAttendance': int.tryParse(_totalAttendanceController.text) ?? 0,
+      //     'adults': int.tryParse(_adultsController.text) ?? 0,
+      //     'youth': int.tryParse(_youthController.text) ?? 0,
+      //     'children': int.tryParse(_childrenController.text) ?? 0,
+      //     'newVisitors': int.tryParse(_newVisitorsController.text) ?? 0,
+      //     'memberAttendance':
+      //         int.tryParse(_memberAttendanceController.text) ?? 0,
+      //     'attendanceRate': _calculateAttendanceRate(),
+      //   },
+      // );
 
-      await reportProvider.addReport(report);
+      // await reportProvider.addReport(report);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

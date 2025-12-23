@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:project_zoe/models/group.dart';
+import 'package:project_zoe/models/report.dart';
+import 'package:project_zoe/models/reports_model.dart';
+import 'package:project_zoe/services/reports_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/report_template.dart';
@@ -7,7 +11,7 @@ import '../components/long_button.dart';
 
 /// MC Reports Display Screen - Shows MC report template and submissions
 class McReportsScreen extends StatefulWidget {
-  final String reportId;
+  final int reportId;
   const McReportsScreen({super.key, required this.reportId});
 
   @override
@@ -15,7 +19,7 @@ class McReportsScreen extends StatefulWidget {
 }
 
 class _McReportsScreenState extends State<McReportsScreen> {
-  ReportTemplate? _reportTemplate;
+  Report? _report;
   bool _isLoading = true;
   String? _error;
   final Map<int, TextEditingController> _controllers = {};
@@ -39,7 +43,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
   /// Load available MCs from server
   Future<void> _loadAvailableMcs() async {
     try {
-      final groups = await ReportService.getMCGroups();
+      final groups = await ReportsService.getMyGroups();
       if (mounted) {
         setState(() {
           _availableMcs = groups;
@@ -89,20 +93,13 @@ class _McReportsScreenState extends State<McReportsScreen> {
 
     try {
       // Load MC report template with provided ID
-      final templateData = await ReportService.getReportTemplate(
-        widget.reportId,
-      );
+      final templateData = await ReportsService.getReportById(widget.reportId);
 
-      if (templateData != null) {
-        final template = ReportTemplate.fromJson(templateData);
+      final template = Report.fromJson(templateData.toJson());
 
+      if (mounted) {
         setState(() {
-          _reportTemplate = template;
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _error = 'Failed to load MC report template';
+          _report = template;
           _isLoading = false;
         });
       }
@@ -138,7 +135,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _error != null
           ? _buildErrorView()
-          : _reportTemplate != null
+          : _report != null
           ? _buildReportView()
           : const Center(child: Text('No report data found')),
     );
@@ -235,7 +232,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _reportTemplate!.name,
+                      _report!.name,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -244,7 +241,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _reportTemplate!.description,
+                      _report!.description,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
@@ -260,12 +257,12 @@ class _McReportsScreenState extends State<McReportsScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildInfoChip('Frequency', _reportTemplate!.submissionFrequency),
-              // _buildInfoChip('View Type', _reportTemplate!.viewType),
+              _buildInfoChip('Frequency', _report!.submissionFrequency),
+              // _buildInfoChip('View Type', _report!.viewType),
               // _buildInfoChip(
               //   'Status',
-              //   _reportTemplate!.status.toUpperCase(),
-              //   color: _reportTemplate!.active ? Colors.green : Colors.orange,
+              //   _report!.status.toUpperCase(),
+              //   color: _report!.active ? Colors.green : Colors.orange,
               // ),
             ],
           ),
@@ -293,7 +290,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
   }
 
   Widget _buildReportFields() {
-    final visibleFields = _reportTemplate!.fields
+    final visibleFields = _report!.fields!
         .where((field) => !field.hidden)
         .toList();
 
@@ -711,7 +708,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
       // }
 
       // Collect all field values using exact field names
-      for (var field in _reportTemplate!.fields) {
+      for (var field in _report!.fields!) {
         final controller = _controllers[field.id];
         final value = controller?.text ?? '';
 
@@ -761,7 +758,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
 
       // Log the data being sent for debugging
       print('📦 Submitting report data: $reportData');
-      print('🆔 Report template ID: ${_reportTemplate!.id}');
+      print('🆔 Report template ID: ${_report!.id}');
       print('📅 Selected Date: $_selectedDate');
       print('🏠 Selected MC Name: $_selectedMcName');
       print('🆔 Selected MC ID: $_selectedMcId');
@@ -771,8 +768,9 @@ class _McReportsScreenState extends State<McReportsScreen> {
       // });
 
       // Submit the report with correct payload structure
-      await ReportService.submitReport(
-        reportId: _reportTemplate!.id,
+      await ReportsService.submitReport(
+        reportId: _report!.id,
+        groupId: 100, //TODO: Replace with actual group ID
         data: reportData,
       );
 
@@ -811,7 +809,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
       // Enhanced error logging for debugging
       print('❌ Report Submission Failed:');
       print('🔍 Error Details: $e');
-      print('🆔 Report ID: ${_reportTemplate!.id}');
+      print('🆔 Report ID: ${_report!.id}');
 
       String errorMessage = 'Error submitting report';
       if (e.toString().contains('500') ||
@@ -847,7 +845,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
     try {
       // print('🔥 === STORING DATA ===');
       // print('🔥 Input data: $reportData');
-      // print('🔥 Report template: ${_reportTemplate!.name}');
+      // print('🔥 Report template: ${_report!.name}');
       // print('🔥 MC Name being stored: ${reportData['smallGroupName']}');
       // print('🔥 Date being stored: ${reportData['date']}');
       // print('🔥 Input data keys: ${reportData.keys.toList()}');
@@ -857,14 +855,14 @@ class _McReportsScreenState extends State<McReportsScreen> {
       // Create submission object with proper structure including template info
       final submission = {
         'id': DateTime.now().millisecondsSinceEpoch, // Unique ID
-        'reportId': _reportTemplate!.id,
-        'reportName': _reportTemplate!.name,
+        'reportId': _report!.id,
+        'reportName': _report!.name,
         'createdAt': DateTime.now().toIso8601String(),
         'data': reportData, // This preserves exact field names
         'template': {
-          'id': _reportTemplate!.id,
-          'name': _reportTemplate!.name,
-          'fields': _reportTemplate!.fields
+          'id': _report!.id,
+          'name': _report!.name,
+          'fields': _report!.fields!
               .map(
                 (field) => {
                   'id': field.id,

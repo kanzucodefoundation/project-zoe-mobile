@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/report_template.dart';
-import '../services/report_service.dart';
+import 'package:project_zoe/models/report.dart';
+import 'package:project_zoe/models/reports_model.dart';
+import 'package:project_zoe/services/reports_service.dart';
 
 /// Garage Reports Display Screen - Shows Garage report template and submissions
 class GarageReportsScreen extends StatefulWidget {
-  final String reportId;
+  final int reportId;
   const GarageReportsScreen({super.key, required this.reportId});
 
   @override
@@ -12,7 +13,7 @@ class GarageReportsScreen extends StatefulWidget {
 }
 
 class _GarageReportsScreenState extends State<GarageReportsScreen> {
-  ReportTemplate? _reportTemplate;
+  Report? _reportTemplate;
   final List<Map<String, dynamic>> _submissions = [];
   bool _isLoading = true;
   String? _error;
@@ -31,12 +32,10 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
     try {
       // Load Garage report template (ID: 2)
-      final templateData = await ReportService.getReportTemplate(
-        widget.reportId,
-      );
+      final templateData = await ReportsService.getReportById(widget.reportId);
 
       if (templateData != null) {
-        final template = ReportTemplate.fromJson(templateData);
+        final template = Report.fromJson(templateData.toJson());
         // final submissions = await ReportService.getReportSubmissions(2);
 
         setState(() {
@@ -208,12 +207,6 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
             runSpacing: 8,
             children: [
               _buildInfoChip('Frequency', _reportTemplate!.submissionFrequency),
-              _buildInfoChip('View Type', _reportTemplate!.viewType),
-              _buildInfoChip(
-                'Status',
-                _reportTemplate!.status.toUpperCase(),
-                color: _reportTemplate!.active ? Colors.green : Colors.orange,
-              ),
             ],
           ),
         ],
@@ -240,7 +233,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   }
 
   Widget _buildReportFields() {
-    final visibleFields = _reportTemplate!.fields
+    final visibleFields = _reportTemplate!.fields!
         .where((field) => !field.hidden)
         .toList();
 

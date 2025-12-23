@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_zoe/services/reports_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/report_provider.dart';
 import '../services/report_service.dart';
@@ -34,7 +35,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       print('🔄 Starting to load report categories...');
       // Let server determine church from authenticated user
 
-      final categories = await ReportService.getReportCategories();
+      final categories = await ReportsService.getReportCategories();
       print('✅ Categories loaded successfully: $categories');
       setState(() {
         _reportCategories = categories;
@@ -54,7 +55,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       print('🔄 Starting to load small groups...');
       // Let server determine church from authenticated user
 
-      final groups = await ReportService.getAvailableGroups();
+      final groups = await ReportsService.getAvailableGroups();
       print('✅ Groups loaded successfully: $groups');
       setState(() {
         _smallGroups = groups;
@@ -536,8 +537,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ...reports.take(5).map((report) {
               final status = report.status.toString().split('.').last;
               final statusColor = _getStatusColor(status);
-              final weekNumber =
-                  DateTime.now().difference(report.createdAt).inDays ~/ 7 + 1;
+              // final weekNumber =
+              //     DateTime.now().difference(report.createdAt).inDays ~/ 7 + 1;
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -554,7 +555,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            report.title,
+                            report.name,
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
@@ -590,13 +591,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           color: Colors.grey.shade600,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          'Week $weekNumber',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
+                        // Text(
+                        //   'Week $weekNumber',
+                        //   style: TextStyle(
+                        //     fontSize: 12,
+                        //     color: Colors.grey.shade600,
+                        //   ),
+                        // ),
                         const SizedBox(width: 16),
                         Icon(
                           Icons.calendar_today,
@@ -604,15 +605,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           color: Colors.grey.shade600,
                         ),
                         const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            'Submitted ${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ),
+                        // Expanded(
+                        //   child: Text(
+                        //     'Submitted ${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
+                        //     style: TextStyle(
+                        //       fontSize: 12,
+                        //       color: Colors.grey.shade600,
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -624,29 +625,29 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           color: Colors.grey.shade600,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          'By: ${report.createdBy}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        if (report.data['attendance'] != null) ...[
-                          const SizedBox(width: 16),
-                          Icon(
-                            Icons.group,
-                            size: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Attendance: ${report.data['attendance']}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
+                        // Text(
+                        //   'By: ${report.createdBy}',
+                        //   style: TextStyle(
+                        //     fontSize: 12,
+                        //     color: Colors.grey.shade600,
+                        //   ),
+                        // ),
+                        // if (report.data['attendance'] != null) ...[
+                        //   const SizedBox(width: 16),
+                        //   Icon(
+                        //     Icons.group,
+                        //     size: 14,
+                        //     color: Colors.grey.shade600,
+                        //   ),
+                        const SizedBox(width: 4),
+                        // Text(
+                        //   'Attendance: ${report.data['attendance']}',
+                        //   style: TextStyle(
+                        //     fontSize: 12,
+                        //     color: Colors.grey.shade600,
+                        //   ),
+                        // ),
+                        // ],
                       ],
                     ),
                   ],

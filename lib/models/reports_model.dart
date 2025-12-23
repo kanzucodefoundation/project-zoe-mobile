@@ -1,0 +1,81 @@
+// target_group_category.dart
+
+class TargetGroupCategory {
+  final int id;
+  final String name;
+
+  TargetGroupCategory({required this.id, required this.name});
+
+  factory TargetGroupCategory.fromJson(Map<String, dynamic> json) {
+    return TargetGroupCategory(
+      id: json['id'] as int,
+      name: json['name'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'name': name};
+  }
+}
+
+// report_field.dart
+class ReportField {
+  final int id;
+  final String name;
+  final String type;
+  final String label;
+  final bool required;
+  final bool hidden;
+  final List<String>? options;
+  final int order;
+
+  ReportField({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.label,
+    required this.required,
+    required this.hidden,
+    this.options,
+    required this.order,
+  });
+
+  factory ReportField.fromJson(Map<String, dynamic> json) {
+    return ReportField(
+      id: json['id'] as int,
+      name: json['name'] as String,
+      type: json['type'] as String,
+      label: json['label'] as String,
+      required: json['required'] as bool,
+      hidden: json['hidden'] as bool,
+      options: json['options'] != null
+          ? List<String>.from(json['options'] as List)
+          : null,
+      order: json['order'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'type': type,
+      'label': label,
+      'required': required,
+      'hidden': hidden,
+      'options': options,
+      'order': order,
+    };
+  }
+}
+// Example usage:
+// 
+// List endpoint:
+// final response = await http.get(Uri.parse('your-api/reports'));
+// final reportsResponse = ReportsResponse.fromJson(jsonDecode(response.body));
+// final reportsList = reportsResponse.reports;
+//
+// Single report endpoint (with fields):
+// final response = await http.get(Uri.parse('your-api/reports/1'));
+// final report = Report.fromJson(jsonDecode(response.body));
+// final fields = report.fields; // List<ReportField>?
