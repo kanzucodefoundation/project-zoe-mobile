@@ -6,11 +6,50 @@ import 'package:project_zoe/models/report_template.dart';
 import '../api/api_client.dart';
 import '../api/endpoints/report_endpoints.dart';
 import '../models/report.dart';
+import '../models/group.dart';
 
 /// Service class to handle report API calls
 class ReportService {
   static final ApiClient _apiClient = ApiClient();
   static Dio get _dio => _apiClient.dio;
+
+  /// Get user's groups from /groups/me endpoint
+  static Future<GroupsResponse> getUserGroups() async {
+    try {
+      print('🔍 Fetching user groups from /groups/me...');
+      final response = await _dio.get('/groups/me');
+      print('✅ User groups response received: ${response.data}');
+
+      return GroupsResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      print('❌ DioException fetching user groups: ${e.toString()}');
+      print('💥 Error response: ${e.response?.data}');
+      print('🔢 Status code: ${e.response?.statusCode}');
+      throw _handleDioException(e);
+    } catch (e) {
+      print('💀 Unexpected error fetching user groups: ${e.toString()}');
+      throw Exception('Failed to fetch user groups: ${e.toString()}');
+    }
+  }
+
+  /// Get individual group details from /groups/{id} endpoint
+  static Future<Group> getGroupDetails(int groupId) async {
+    try {
+      print('🔍 Fetching group details from /groups/$groupId...');
+      final response = await _dio.get('/groups/$groupId');
+      print('✅ Group details response received: ${response.data}');
+
+      return Group.fromJson(response.data);
+    } on DioException catch (e) {
+      print('❌ DioException fetching group details: ${e.toString()}');
+      print('💥 Error response: ${e.response?.data}');
+      print('🔢 Status code: ${e.response?.statusCode}');
+      throw _handleDioException(e);
+    } catch (e) {
+      print('💀 Unexpected error fetching group details: ${e.toString()}');
+      throw Exception('Failed to fetch group details: ${e.toString()}');
+    }
+  }
 
   /// Get available groups/MCs from server
   static Future<List<Map<String, dynamic>>> getAvailableGroups() async {
