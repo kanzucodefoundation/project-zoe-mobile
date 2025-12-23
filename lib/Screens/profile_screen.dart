@@ -113,7 +113,7 @@ class ProfileScreen extends StatelessWidget {
 
                 // User Name
                 Text(
-                  user.name,
+                  user.fullName,
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
@@ -129,11 +129,13 @@ class ProfileScreen extends StatelessWidget {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: _getRoleColor(user.role),
+                    color: _getRoleColor(user.primaryRole),
                     borderRadius: BorderRadius.circular(25),
                     boxShadow: [
                       BoxShadow(
-                        color: _getRoleColor(user.role).withValues(alpha: 0.3),
+                        color: _getRoleColor(
+                          user.primaryRole,
+                        ).withValues(alpha: 0.3),
                         spreadRadius: 1,
                         blurRadius: 8,
                         offset: const Offset(0, 3),
@@ -144,13 +146,13 @@ class ProfileScreen extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        _getRoleIcon(user.role),
+                        _getRoleIcon(user.primaryRole),
                         color: Colors.white,
                         size: 18,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        user.roleDisplayName.toUpperCase(),
+                        user.primaryRole.toUpperCase(),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -166,8 +168,12 @@ class ProfileScreen extends StatelessWidget {
                 // User Information Section
                 _buildInfoSection('Personal Information', [
                   _buildInfoTile(Icons.email, 'Email', user.email),
-                  _buildInfoTile(Icons.badge, 'User ID', user.id),
-                  _buildInfoTile(Icons.business, 'Department', user.department),
+                  _buildInfoTile(Icons.badge, 'User ID', user.id.toString()),
+                  _buildInfoTile(
+                    Icons.business,
+                    'Department',
+                    user.roles.isNotEmpty ? user.roles.first : 'Unknown',
+                  ),
                 ]),
                 const SizedBox(height: 24),
 
@@ -347,29 +353,33 @@ class ProfileScreen extends StatelessWidget {
   }
 
   /// Get the color for a specific user role
-  Color _getRoleColor(UserRole role) {
-    switch (role) {
-      case UserRole.admin:
-        return const Color(0xFFE53E3E); // Red for admin
-      case UserRole.moderator:
-        return const Color(0xFF059669); // Green for moderator
-      case UserRole.viewer:
-        return const Color(0xFF7C3AED); // Purple for viewer
-      case UserRole.restricted:
-        return const Color(0xFF2563EB); // Blue for restricted
+  Color _getRoleColor(String role) {
+    switch (role.toLowerCase()) {
+      case 'movement leader':
+        return const Color(0xFFE53E3E); // Red for movement leader
+      case 'location pastor':
+        return const Color(0xFF059669); // Green for location pastor
+      case 'zone leader':
+        return const Color(0xFF7C3AED); // Purple for zone leader
+      case 'mc shepherd':
+        return const Color(0xFF2563EB); // Blue for MC shepherd
+      default:
+        return const Color(0xFF6B7280); // Gray for unknown roles
     }
   }
 
   /// Get the icon for a specific user role
-  IconData _getRoleIcon(UserRole role) {
-    switch (role) {
-      case UserRole.admin:
+  IconData _getRoleIcon(String role) {
+    switch (role.toLowerCase()) {
+      case 'movement leader':
         return Icons.admin_panel_settings;
-      case UserRole.moderator:
+      case 'location pastor':
+        return Icons.church;
+      case 'zone leader':
         return Icons.shield;
-      case UserRole.viewer:
-        return Icons.visibility;
-      case UserRole.restricted:
+      case 'mc shepherd':
+        return Icons.group;
+      default:
         return Icons.person;
     }
   }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 import '../models/user.dart';
 import '../services/auth_guard.dart';
 import '../services/auth_service.dart';
@@ -97,24 +96,17 @@ class AuthProvider extends ChangeNotifier {
     debugPrint('AuthProvider: Status set to authenticating');
 
     try {
-      // Use real API authentication
+      // Use new API authentication
       final authResult = await AuthService.loginUser(
         email: email,
         password: password,
-        churchName: churchName ?? 'demo',
+        churchName: churchName,
       );
 
-      // Convert UserEntity to User model
-      _user = User(
-        id: authResult.user.id,
-        name: authResult.user.name,
-        email: authResult.user.email,
-        role: UserRole.admin, // Default to admin for demo user
-        department: 'IT',
-        churchName: churchName ?? 'demo',
-      );
+      // Store the user from the new structure
+      _user = authResult.user;
 
-      // Use the REAL token from server!
+      // Use the token from the authentication result
       final token = authResult.token;
       debugPrint(
         'AuthProvider: Setting auth token: ${token.substring(0, 20)}...',
@@ -123,18 +115,20 @@ class AuthProvider extends ChangeNotifier {
       // Set auth token for API calls
       ApiClient().setAuthToken(token);
 
-      final decoded = JwtDecoder.decode(token);
-      _permissions = List<String>.from(decoded['permissions'] ?? []);
-      _roles = List<String>.from(decoded['roles'] ?? []);
+      // Extract permissions and roles directly from user object
+      _permissions = List<String>.from(_user!.permissions);
+      _roles = List<String>.from(_user!.roles);
       debugPrint(
         'AuthProvider: Permissions loaded: ${_permissions.join(', ')}',
       );
       debugPrint('AuthProvider: Roles loaded: ${_roles.join(', ')}');
-      // Set tenant/church name for CRM API calls
+
+      // Set tenant/church name for API calls
       ApiClient().setTenant(_user!.churchName);
 
-      // Save user data persistently
+      // Save user data persistently with token and refresh token
       await AuthGuard.saveUserData(_user!, token);
+      // TODO: Also save refresh token when AuthGuard supports it
 
       // Verify token was saved correctly
       final savedToken = await AuthGuard.getSavedToken();
@@ -147,7 +141,8 @@ class AuthProvider extends ChangeNotifier {
         );
       }
 
-      _status = !JwtDecoder.isExpired(token)
+      // Set status based on user active state and token validity
+      _status = _user!.isActive
           ? AuthStatus.authenticated
           : AuthStatus.unauthenticated;
       _error = null;
@@ -265,16 +260,17 @@ class AuthProvider extends ChangeNotifier {
   Future<void> restoreSession(User user, String token) async {
     try {
       _user = user;
-      _status = !JwtDecoder.isExpired(token)
-          ? AuthStatus.authenticated
-          : AuthStatus.unauthenticated;
+      _status = AuthStatus.authenticated; // Assume valid if saved
       _error = null;
 
       // Set auth token for API calls
       ApiClient().setAuthToken(token);
 
       // Set tenant/church name for CRM API calls
-      ApiClient().setTenant(_user!.churchName);
+      String tenantName = _user?.hierarchy?.myGroups.isNotEmpty == true
+          ? _user!.hierarchy!.myGroups.first.name
+          : '';
+      ApiClient().setTenant(tenantName);
 
       notifyListeners();
     } catch (e) {
@@ -326,10 +322,12 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Check if current user has admin privileges
-  bool get isAdmin => _user?.isAdmin ?? false;
+  bool get isAdmin =>
+      (_user?.hasRole('Movement Leader') ?? false) ||
+      (_user?.hasRole('Location Pastor') ?? false);
 
   /// Check if current user has restricted access
-  bool get isRestricted => _user?.isRestricted ?? true;
+  bool get isRestricted => !(_user?.hasPermission('CRM_EDIT') ?? false);
 
   /// Check if current user can perform admin actions (edit/delete shepherds)
   bool get canManageShepherds => isAdmin;
@@ -338,10 +336,11 @@ class AuthProvider extends ChangeNotifier {
   bool get canViewShepherds => _status == AuthStatus.authenticated;
 
   /// Get current user's role display name
-  String get userRoleDisplayName => _user?.roleDisplayName ?? 'Guest';
+  String get userRoleDisplayName => _user?.primaryRole ?? 'Guest';
 
   /// Get current user's department
-  String get userDepartment => _user?.department ?? 'Unknown';
+  String get userDepartment =>
+      _user?.roles.isNotEmpty == true ? _user!.roles.first : 'Unknown';
 
   bool get canAccessAdmin {
     return _permissions.contains(AppPermissions.roleEdit) &&

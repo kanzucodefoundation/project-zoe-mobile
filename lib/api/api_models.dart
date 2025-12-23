@@ -2,39 +2,56 @@
 class LoginRequest {
   final String username;
   final String password;
-  final String churchName;
+  final String churchName; // Required for server
 
   LoginRequest({
     required this.username,
     required this.password,
-    required this.churchName,
+    this.churchName = 'worship harvest', // Default value from server docs
   });
 
-  Map<String, dynamic> toJson() => {
-    'username': username,
-    'password': password,
-    'churchName': churchName,
-  };
+  Map<String, dynamic> toJson() {
+    return {
+      'username': username,
+      'password': password,
+      'churchName': churchName,
+    };
+  }
 }
 
 class LoginResponse {
   final String? token;
   final String? message;
-  final Map<String, dynamic>? user;
+  final Map<String, dynamic>?
+  data; // Changed from 'user' to 'data' to hold full response
   final bool success;
 
-  LoginResponse({this.token, this.message, this.user, required this.success});
+  LoginResponse({this.token, this.message, this.data, required this.success});
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
-    // If we have a token and user, it's a successful login
+    // Check if we have the new response structure with token, user, hierarchy
     final hasToken = json['token'] != null;
     final hasUser = json['user'] != null;
+    final hasHierarchy = json['hierarchy'] != null;
 
+    // For new API structure, success means we have all required fields
+    final isNewStructure = hasToken && hasUser && hasHierarchy;
+
+    if (isNewStructure) {
+      return LoginResponse(
+        token: json['token'],
+        message: null, // Success responses typically don't have error messages
+        data: json, // Store entire response for AuthResponse parsing
+        success: true,
+      );
+    }
+
+    // Fallback to old structure or error handling
     return LoginResponse(
       token: json['token'],
       message: json['message'],
-      user: json['user'],
-      success: hasToken && hasUser, // Success if both token and user exist
+      data: json['user'] != null ? {'user': json['user']} : null,
+      success: hasToken && json['user'] != null,
     );
   }
 }
