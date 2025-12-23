@@ -50,13 +50,6 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
 
       print('🔄 Loading report submissions from server and local storage...');
 
-<<<<<<< HEAD
-      // Also try to load from server as backup
-      // final serverSubmissions = await ReportService.getMcReportSubmissions();
-
-      // Combine both sources (local takes priority)
-      final allSubmissions = [...localSubmissions];
-=======
       // Try to load from server first (primary data source)
       final serverSubmissions = await ReportService.getMcReportSubmissions();
       print('📡 Server submissions: ${serverSubmissions.length}');
@@ -87,7 +80,6 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       }
 
       final finalSubmissions = uniqueSubmissions.values.toList();
->>>>>>> f5a54e92f5a9d2d2e0c411bba539122d49942514
 
       if (mounted) {
         setState(() {
@@ -97,15 +89,9 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
         });
       }
 
-<<<<<<< HEAD
-      // print(
-      //   '📋 Loaded ${allSubmissions.length} submissions (${localSubmissions.length} local, ${serverSubmissions.length} server)',
-      // );
-=======
       print(
         '📋 Total loaded: ${finalSubmissions.length} submissions (${serverSubmissions.length + submittedReports.length} from server, ${localSubmissions.length} local)',
       );
->>>>>>> f5a54e92f5a9d2d2e0c411bba539122d49942514
     } catch (e) {
       print('❌ Error loading submissions: $e');
       if (mounted) {

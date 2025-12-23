@@ -3,6 +3,7 @@ import '../models/user.dart';
 import '../services/auth_guard.dart';
 import '../services/auth_service.dart';
 import '../api/api_client.dart';
+import '../helpers/app_permissions.dart';
 
 enum AuthStatus { unauthenticated, authenticating, authenticated, failed }
 
@@ -122,12 +123,8 @@ class AuthProvider extends ChangeNotifier {
       );
       debugPrint('AuthProvider: Roles loaded: ${_roles.join(', ')}');
 
-      // Set tenant/church name for CRM API calls
-      String tenantName = '';
-      if (_user?.hierarchy.myGroups.isNotEmpty == true) {
-        tenantName = _user!.hierarchy.myGroups.first.name;
-      }
-      ApiClient().setTenant(tenantName);
+      // Set tenant/church name for API calls
+      ApiClient().setTenant(_user!.churchName);
 
       // Save user data persistently with token and refresh token
       await AuthGuard.saveUserData(_user!, token);
@@ -158,7 +155,7 @@ class AuthProvider extends ChangeNotifier {
 
       // Handle specific error cases for better user experience
       String errorString = e.toString().toLowerCase();
-
+      
       if (errorString.contains('user not found') ||
           errorString.contains('user does not exist') ||
           errorString.contains('404')) {
@@ -167,8 +164,7 @@ class AuthProvider extends ChangeNotifier {
           errorString.contains('incorrect password') ||
           errorString.contains('wrong password') ||
           errorString.contains('401') ||
-          errorString.contains('unauthorized') ||
-          errorString.contains('invalid credentials')) {
+          errorString.contains('unauthorized')) {
         _error = 'Invalid credentials. Please check your email and password.';
       } else if (errorString.contains('invalid church') ||
           errorString.contains('church not found')) {
@@ -184,6 +180,7 @@ class AuthProvider extends ChangeNotifier {
         // For any other errors, show a clean message but log the full error
         _error = 'Login failed. Please check your credentials and try again.';
         debugPrint('AuthProvider: Unhandled error details: $e');
+      }
       }
 
       notifyListeners();
@@ -219,7 +216,8 @@ class AuthProvider extends ChangeNotifier {
 
       if (success) {
         _status = AuthStatus.unauthenticated;
-        _error = null;
+        _error =
+            'Registration successful! Please log in with your credentials.';
       } else {
         _status = AuthStatus.failed;
         _error = 'Registration failed. Please try again.';
@@ -232,16 +230,37 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> forgotPassword(String email) async {
+  Future<void> forgotPassword(String email) async {
+    try {
+      // Use real API for forgot password
+      await AuthService.forgotPassword(email);
+      // Success - this will be handled by the calling widget
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  /// Reset password with token
+  Future<bool> resetPassword({
+    required String token,
+    required String email,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      await AuthService.forgotPassword(email);
+      final success = await AuthService.resetPassword(
+        token: token,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      );
+
       _isLoading = false;
       notifyListeners();
-      return true;
+      return success;
     } catch (e) {
       _isLoading = false;
       _errorMessage = e.toString();
@@ -261,10 +280,9 @@ class AuthProvider extends ChangeNotifier {
       ApiClient().setAuthToken(token);
 
       // Set tenant/church name for CRM API calls
-      String tenantName = '';
-      if (_user?.hierarchy.myGroups.isNotEmpty == true) {
-        tenantName = _user!.hierarchy.myGroups.first.name;
-      }
+      String tenantName = _user?.hierarchy?.myGroups.isNotEmpty == true
+          ? _user!.hierarchy!.myGroups.first.name
+          : '';
       ApiClient().setTenant(tenantName);
 
       notifyListeners();
@@ -276,11 +294,39 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Logout and clear all user data
-  Future<void> logout() async {
+  /// Set auth status to unauthenticated
+  void setUnauthenticated() {
     _status = AuthStatus.unauthenticated;
     _user = null;
     _error = null;
+    notifyListeners();
+  }
+
+  /// Manually check for existing session (useful for testing)
+  Future<void> checkSession() async {
+    await _checkExistingSession();
+  }
+
+  bool hasRole(String role) {
+    return _roles.contains(role);
+  }
+
+  bool hasPermission(String permission) {
+    return _permissions.contains(permission);
+  }
+
+  /// Logout and clear all persistent data
+  Future<void> logout() async {
+    _user = null;
+    _permissions = [];
+    _roles = [];
+    _status = AuthStatus.unauthenticated;
+
+    // Clear auth token
+    ApiClient().clearAuthToken();
+
+    // Clear tenant/church name
+    ApiClient().clearTenant();
 
     // Clear persistent data
     await AuthGuard.clearUserData();
@@ -300,43 +346,44 @@ class AuthProvider extends ChangeNotifier {
   bool get canManageShepherds => isAdmin;
 
   /// Check if current user can view shepherd details
-  bool get canViewShepherds => true;
+  bool get canViewShepherds => _status == AuthStatus.authenticated;
 
-  /// Check if current user is MC Shepherd
-  bool get isMcShepherd => _user?.hasRole('MC Shepherd') ?? false;
+  /// Get current user's role display name
+  String get userRoleDisplayName => _user?.primaryRole ?? 'Guest';
 
-  /// Check if user has a specific role
-  bool hasRole(String role) => _user?.hasRole(role) ?? false;
+  /// Get current user's department
+  String get userDepartment =>
+      _user?.roles.isNotEmpty == true ? _user!.roles.first : 'Unknown';
 
-  /// Check if current user is web admin
-  bool get isWebAdmin => _user?.hasRole('System Admin') ?? false;
-
-  /// Clear saved data and reset to initial state
-  Future<void> clearUserData() async {
-    _user = null;
-    _permissions = [];
-    _roles = [];
-    _status = AuthStatus.unauthenticated;
-
-    // Clear persistent data
-    await AuthGuard.clearUserData();
-
-    notifyListeners();
+  bool get canAccessAdmin {
+    return _permissions.contains(AppPermissions.roleEdit) &&
+        _permissions.contains(AppPermissions.roleUserView) &&
+        _permissions.contains(AppPermissions.roleUserEdit) &&
+        _permissions.contains(AppPermissions.roleGroupEdit) &&
+        _permissions.contains(AppPermissions.roleGroupView) &&
+        _permissions.contains(AppPermissions.roleEventEdit) &&
+        _permissions.contains(AppPermissions.roleEventView) &&
+        _permissions.contains(AppPermissions.roleReportViewSubmissions) &&
+        _permissions.contains(AppPermissions.roleDashboard) &&
+        _permissions.contains(AppPermissions.roleCrmView) &&
+        _permissions.contains(AppPermissions.roleCrmEdit) &&
+        _permissions.contains(AppPermissions.roleTagView) &&
+        _permissions.contains(AppPermissions.roleTagEdit) &&
+        _permissions.contains(AppPermissions.roleReportView) &&
+        _permissions.contains(AppPermissions.roleReportViewSubmissions);
   }
 
-  Future<bool> resetPassword({
-    required String token,
-    required String newPassword,
-    required String confirmPassword,
-  }) async {
-    try {
-      return await AuthService.resetPassword(
-        token: token,
-        newPassword: newPassword,
-        confirmPassword: confirmPassword,
-      );
-    } catch (e) {
-      throw Exception('Password reset failed: $e');
-    }
+  bool get isMcShepherd {
+    return _permissions.contains(AppPermissions.roleSmallGroupView) &&
+        _permissions.contains(AppPermissions.roleReportView);
+  }
+
+  bool get isReportChampion {
+    return isMcShepherd &&
+        _permissions.contains(AppPermissions.roleReportViewSubmissions);
+  }
+
+  bool get isWebAdmin {
+    return _roles.contains('RoleAdmin');
   }
 }

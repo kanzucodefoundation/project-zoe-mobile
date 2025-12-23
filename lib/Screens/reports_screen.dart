@@ -3,7 +3,10 @@ import 'package:project_zoe/services/reports_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/report_provider.dart';
 import '../services/report_service.dart';
+import '../models/group.dart';
+// import 'mc_attendance_report_screen.dart';
 import 'mc_reports_list_screen.dart';
+import 'group_details_screen.dart';
 
 /// Reports screen displaying all reports with server data
 class ReportsScreen extends StatefulWidget {
@@ -15,9 +18,10 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen> {
   List<Map<String, dynamic>> _reportCategories = [];
-  List<Map<String, dynamic>> _smallGroups = [];
+  GroupsResponse? _groupsResponse;
   bool _isLoadingCategories = true;
   bool _isLoadingGroups = true;
+  bool _showAllGroups = false;
   String? _selectedCategory;
 
   @override
@@ -52,16 +56,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<void> _loadSmallGroups() async {
     try {
-      print('🔄 Starting to load small groups...');
+      print('🔄 Starting to load user groups...');
       // Let server determine church from authenticated user
 
-      final groups = await ReportsService.getAvailableGroups();
-      print('✅ Groups loaded successfully: $groups');
+      final groupsResponse = await ReportService.getUserGroups();
+      print(
+        '✅ Groups loaded successfully: ${groupsResponse.groups.length} groups',
+      );
       setState(() {
-        _smallGroups = groups;
+        _groupsResponse = groupsResponse;
         _isLoadingGroups = false;
       });
-      print('🎯 State updated - groups count: ${_smallGroups.length}');
+      print(
+        '🎯 State updated - groups count: ${_groupsResponse!.groups.length}',
+      );
     } catch (e) {
       print('❌ Error loading groups: $e');
       setState(() {
@@ -122,8 +130,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   const SizedBox(height: 16),
 
                   // MC Report Submissions Status
-                  _buildMcSubmissionsSection(reportProvider),
-
+                  // _buildMcSubmissionsSection(reportProvider),
                   const SizedBox(height: 24),
 
                   // Small Groups Section
@@ -461,9 +468,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return category['name'];
   } */
 
-  Widget _buildMcSubmissionsSection(ReportProvider reportProvider) {
-    final reports = reportProvider.reports;
-
+  Widget _buildSmallGroupsSection() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -487,7 +492,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'MC Report Submissions Status',
+                      'My Groups',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -496,198 +501,25 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Small groups and submission status',
+                      'Groups you are part of',
                       style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],
                 ),
               ),
-              // TextButton(
-              //   onPressed: () {
-              //     // TODO: Show detailed view
-              //   },
-              //   child: const Text(
-              //     'View',
-              //     style: TextStyle(color: Colors.black),
-              //   ),
-              // ),
+              if (_groupsResponse != null && _groupsResponse!.groups.length > 5)
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _showAllGroups = !_showAllGroups;
+                    });
+                  },
+                  child: Text(
+                    _showAllGroups ? 'Show Less' : 'Show All',
+                    style: const TextStyle(color: Colors.blue),
+                  ),
+                ),
             ],
-          ),
-          const SizedBox(height: 16),
-
-          if (reportProvider.isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: CircularProgressIndicator(),
-              ),
-            )
-          else if (reports.isEmpty)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: Text(
-                  'No report submissions yet - Submit your first MC report!',
-                  style: TextStyle(color: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            )
-          else
-            ...reports.take(5).map((report) {
-              final status = report.status.toString().split('.').last;
-              final statusColor = _getStatusColor(status);
-              // final weekNumber =
-              //     DateTime.now().difference(report.createdAt).inDays ~/ 7 + 1;
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            report.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            status.toUpperCase(),
-                            style: TextStyle(
-                              color: statusColor,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.schedule,
-                          size: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                        const SizedBox(width: 4),
-                        // Text(
-                        //   'Week $weekNumber',
-                        //   style: TextStyle(
-                        //     fontSize: 12,
-                        //     color: Colors.grey.shade600,
-                        //   ),
-                        // ),
-                        const SizedBox(width: 16),
-                        Icon(
-                          Icons.calendar_today,
-                          size: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                        const SizedBox(width: 4),
-                        // Expanded(
-                        //   child: Text(
-                        //     'Submitted ${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
-                        //     style: TextStyle(
-                        //       fontSize: 12,
-                        //       color: Colors.grey.shade600,
-                        //     ),
-                        //   ),
-                        // ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.person,
-                          size: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                        const SizedBox(width: 4),
-                        // Text(
-                        //   'By: ${report.createdBy}',
-                        //   style: TextStyle(
-                        //     fontSize: 12,
-                        //     color: Colors.grey.shade600,
-                        //   ),
-                        // ),
-                        // if (report.data['attendance'] != null) ...[
-                        //   const SizedBox(width: 16),
-                        //   Icon(
-                        //     Icons.group,
-                        //     size: 14,
-                        //     color: Colors.grey.shade600,
-                        //   ),
-                        const SizedBox(width: 4),
-                        // Text(
-                        //   'Attendance: ${report.data['attendance']}',
-                        //   style: TextStyle(
-                        //     fontSize: 12,
-                        //     color: Colors.grey.shade600,
-                        //   ),
-                        // ),
-                        // ],
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSmallGroupsSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Small Groups',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Available small groups',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 16),
 
@@ -698,45 +530,148 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 child: CircularProgressIndicator(),
               ),
             )
-          else if (_smallGroups.isEmpty)
+          else if (_groupsResponse == null || _groupsResponse!.groups.isEmpty)
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(20),
                 child: Text(
-                  'No small groups available',
+                  'No groups found',
                   style: TextStyle(color: Colors.grey),
                 ),
               ),
             )
-          else
-            ..._smallGroups.map((group) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.green.withValues(alpha: 0.1),
-                    child: const Icon(
-                      Icons.group,
-                      color: Colors.green,
-                      size: 20,
-                    ),
-                  ),
-                  title: Text(
-                    group['name'],
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  // subtitle: Text('ID: ${group['id']}'),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${group['name']} details coming soon'),
+          else ...[
+            // Display groups with limit
+            ...(_showAllGroups
+                    ? _groupsResponse!.groups
+                    : _groupsResponse!.groups.take(5))
+                .map((group) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.green.withValues(alpha: 0.1),
+                        child: const Icon(
+                          Icons.group,
+                          color: Colors.green,
+                          size: 20,
+                        ),
                       ),
-                    );
-                  },
+                      title: Text(
+                        group.name,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(group.categoryName),
+                          if (group.role != null)
+                            Text(
+                              'Role: ${group.role}',
+                              style: const TextStyle(
+                                color: Colors.blue,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
+                      ),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${group.activeMembers}/${group.memberCount}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const Text(
+                            'members',
+                            style: TextStyle(fontSize: 10, color: Colors.grey),
+                          ),
+                          const Icon(Icons.arrow_forward_ios, size: 12),
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GroupDetailsScreen(
+                              groupId: group.id,
+                              groupName: group.name,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }),
+
+            // Summary info
+            if (_groupsResponse!.summary.totalGroups > 0) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
                 ),
-              );
-            }),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Column(
+                      children: [
+                        Text(
+                          '${_groupsResponse!.summary.totalGroups}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const Text(
+                          'Total Groups',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      width: 1,
+                      height: 30,
+                      color: Colors.blue.withValues(alpha: 0.3),
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          '${_groupsResponse!.summary.totalMembers}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const Text(
+                          'Total Members',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
         ],
       ),
     );
