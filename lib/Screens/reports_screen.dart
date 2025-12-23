@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:project_zoe/services/reports_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/report_provider.dart';
-import '../services/report_service.dart';
+import '../providers/auth_provider.dart';
 import '../models/group.dart';
-// import 'mc_attendance_report_screen.dart';
+import '../components/report_card.dart';
+import 'mc_attendance_report_screen.dart';
+import 'garage_reports_display_screen.dart';
 import 'mc_reports_list_screen.dart';
 import 'group_details_screen.dart';
 
@@ -122,6 +124,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                   // Report Types Section
                   _buildReportTypesSection(),
+
+                  const SizedBox(height: 24),
+
+                  // Submit Reports Section
+                  _buildSubmitReportsSection(),
 
                   const SizedBox(height: 16),
 
@@ -677,19 +684,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'inprogress':
-        return Colors.blue;
-      default:
-        return Colors.grey;
-    }
-  }
-
   Widget _buildReportTypesSection() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -814,6 +808,119 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSubmitReportsSection() {
+    return Consumer<ReportProvider>(
+      builder: (context, reportProvider, child) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Submit Reports',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Create and submit your reports',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 16),
+              _buildSubmitReportsGrid(reportProvider, authProvider),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSubmitReportsGrid(
+    ReportProvider reportProvider,
+    AuthProvider authProvider,
+  ) {
+    final List<Widget> cards = [];
+    final titleAndId = reportProvider.titleAndId;
+
+    // Process all reports from server (the original 5 that were on home screen)
+    for (final report in titleAndId) {
+      final String title = report['title']?.toString() ?? '';
+      final dynamic id = report['id'];
+
+      IconData icon = Icons.description;
+      Widget? targetScreen;
+
+      final lowerTitle = title.toLowerCase();
+
+      // Set icons and navigation based on report type
+      if (lowerTitle.contains('attendance') && authProvider.isMcShepherd) {
+        icon = Icons.church;
+        targetScreen = McAttendanceReportScreen(reportId: id);
+      } else if (lowerTitle.contains('sunday')) {
+        icon = Icons.church_outlined;
+        targetScreen = GarageReportsScreen(reportId: id);
+      } else if (lowerTitle.contains('baptism')) {
+        icon = Icons.water_drop;
+      } else if (lowerTitle.contains('salvation')) {
+        icon = Icons.favorite;
+      } else if (lowerTitle.contains('prayer') ||
+          lowerTitle.contains('follow')) {
+        icon = Icons.pending_actions;
+      }
+
+      cards.add(
+        ReportCard(
+          reportTitle: title,
+          reportIcon: icon,
+          iconColor: Colors.black,
+          onTap: () {
+            if (targetScreen != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => targetScreen!),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('$title coming soon'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          },
+        ),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: cards.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 1,
+      ),
+      itemBuilder: (_, index) => cards[index],
     );
   }
 }

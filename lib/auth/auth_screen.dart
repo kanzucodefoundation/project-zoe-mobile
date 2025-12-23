@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../components/custom_button.dart';
+import '../components/submit_button.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 
@@ -75,7 +75,7 @@ class AuthScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           // Login button
-                          CustomButton(
+                          SubmitButton(
                             text: 'Log in',
                             onPressed: () {
                               Navigator.push(
@@ -93,7 +93,7 @@ class AuthScreen extends StatelessWidget {
                           const SizedBox(height: 16),
 
                           // Sign up button
-                          CustomButton(
+                          SubmitButton(
                             text: "Don't have an Account? Sign Up",
                             onPressed: () {
                               Navigator.push(

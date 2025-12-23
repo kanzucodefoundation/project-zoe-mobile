@@ -180,10 +180,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final List<Widget> cards = [];
     final mcAttendanceReportTitle = 'attendance';
     final sundayReportTitle = 'sunday';
-    final baptismReportTitle = 'baptism';
     final salvationReportTitle = 'salvation';
 
-    for (final report in titleAndId) {
+    // Filter to show only MC, Sunday, and Salvation reports
+    final priorityReports = titleAndId.where((report) {
+      final String title = report['title']?.toString().toLowerCase() ?? '';
+      return title.contains(mcAttendanceReportTitle) ||
+          title.contains(sundayReportTitle) ||
+          title.contains(salvationReportTitle);
+    }).toList();
+
+    for (final report in priorityReports) {
       final String title = report['title']?.toString() ?? '';
       final dynamic id = report['id'];
 
@@ -193,16 +200,12 @@ class _HomeScreenState extends State<HomeScreen> {
       final lowerTitle = title.toLowerCase();
 
       // ---- Report routing logic ----
-      // RBAC example
       if (lowerTitle.contains(mcAttendanceReportTitle) && auth.isMcShepherd) {
         icon = Icons.church;
         targetScreen = McAttendanceReportScreen(reportId: id);
       } else if (lowerTitle.contains(sundayReportTitle)) {
         icon = Icons.church_outlined;
         targetScreen = GarageReportsScreen(reportId: id);
-      } else if (lowerTitle.contains(baptismReportTitle)) {
-        icon = Icons.water_drop;
-        // targetScreen = BaptismReportScreen(reportId: id);
       } else if (lowerTitle.contains(salvationReportTitle)) {
         icon = Icons.favorite;
         // targetScreen = SalvationReportScreen(reportId: id);
@@ -232,48 +235,36 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // ---- Static People Card ----
-    cards.add(
-      ReportCard(
-        reportTitle: 'People',
-        reportIcon: Icons.people,
-        iconColor: Colors.black,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PeopleScreen()),
-          );
-        },
-      ),
-    );
-
-    // ---- Layout selection ----
-    if (cards.length <= 3) {
-      return Row(
-        children: cards
-            .map(
-              (card) => Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: card,
-                ),
-              ),
-            )
-            .toList(),
+    // Add \"More Reports\" card if needed to fill 3 slots or if there are more reports
+    while (cards.length < 3) {
+      cards.add(
+        ReportCard(
+          reportTitle: 'More Reports',
+          reportIcon: Icons.more_horiz,
+          iconColor: Colors.black,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ReportsScreen()),
+            );
+          },
+        ),
       );
     }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: cards.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 6,
-        crossAxisSpacing: 6,
-        childAspectRatio: 1,
-      ),
-      itemBuilder: (_, index) => cards[index],
+    // ---- Layout selection - always use Row for exactly 3 cards ----
+    return Row(
+      children: cards
+          .take(3)
+          .map(
+            (card) => Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: card,
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 

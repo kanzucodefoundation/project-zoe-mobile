@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:project_zoe/models/report.dart';
 import 'package:project_zoe/models/reports_model.dart';
 import 'package:project_zoe/services/reports_service.dart';
+import '../components/text_field.dart';
+import '../components/submit_button.dart';
+import '../components/custom_date_picker.dart';
 
 /// Garage Reports Display Screen - Shows Garage report template and submissions
 class GarageReportsScreen extends StatefulWidget {
@@ -18,10 +21,25 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   bool _isLoading = true;
   String? _error;
 
+  // Form related
+  final _formKey = GlobalKey<FormState>();
+  final Map<String, TextEditingController> _controllers = {};
+  DateTime? _selectedDate;
+  bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
     _loadReportData();
+  }
+
+  @override
+  void dispose() {
+    // Dispose all text controllers
+    for (var controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _loadReportData() async {
@@ -34,21 +52,14 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       // Load Garage report template (ID: 2)
       final templateData = await ReportsService.getReportById(widget.reportId);
 
-      if (templateData != null) {
-        final template = Report.fromJson(templateData.toJson());
-        // final submissions = await ReportService.getReportSubmissions(2);
+      final template = Report.fromJson(templateData.toJson());
+      // final submissions = await ReportService.getReportSubmissions(2);
 
-        setState(() {
-          _reportTemplate = template;
-          // _submissions = submissions;
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _error = 'Failed to load Garage report template';
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _reportTemplate = template;
+        // _submissions = submissions;
+        _isLoading = false;
+      });
     } catch (e) {
       setState(() {
         _error = 'Error loading report data: ${e.toString()}';
@@ -136,12 +147,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
           _buildReportHeader(),
           const SizedBox(height: 24),
 
-          // Report Fields
-          _buildReportFields(),
+          // Report Fields with Form
+          _buildReportFieldsWithForm(),
           const SizedBox(height: 24),
-
-          // Submissions Section
-          _buildSubmissionsSection(),
         ],
       ),
     );
@@ -232,7 +240,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     );
   }
 
-  Widget _buildReportFields() {
+  Widget _buildReportFieldsWithForm() {
     final visibleFields = _reportTemplate!.fields!
         .where((field) => !field.hidden)
         .toList();
@@ -250,87 +258,343 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
           ),
         ],
       ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Report Fields',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Fill out the fields below to submit your report',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 20),
+
+            // Generate form fields
+            ...visibleFields.map(
+              (field) => _buildTemplateFieldWithInput(field),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Submit button
+            SubmitButton(
+              text: _isSubmitting ? 'Submitting...' : 'Submit Report',
+              onPressed: _isSubmitting ? () {} : _submitReport,
+              backgroundColor: Colors.black,
+              textColor: Colors.white,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTemplateFieldWithInput(ReportField field) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Report Fields',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+          // Field info header (without type)
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: field.required ? Colors.red : Colors.grey,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  field.label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Fields required for this report submission',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-          ),
-          const SizedBox(height: 16),
-          ...visibleFields.map((field) => _buildFieldItem(field)),
+          const SizedBox(height: 8),
+          // Dynamic input field based on field type and name
+          _buildInputForField(field),
         ],
       ),
     );
   }
 
-  Widget _buildFieldItem(ReportField field) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            margin: const EdgeInsets.only(top: 6),
-            decoration: BoxDecoration(
-              color: field.required ? Colors.red : Colors.grey,
-              shape: BoxShape.circle,
+  Widget _buildInputForField(ReportField field) {
+    final fieldName = field.name.toLowerCase();
+    final fieldLabel = field.label.toLowerCase();
+
+    // Date picker for date fields (but NOT service type)
+    if ((fieldName.contains('date') || fieldLabel.contains('date')) &&
+        !fieldName.contains('type') &&
+        !fieldLabel.contains('type')) {
+      return CustomDatePicker(
+        hintText: 'Select ${field.label.toLowerCase()}',
+        prefixIcon: Icons.calendar_today,
+        selectedDate: _selectedDate,
+        onDateSelected: (date) {
+          setState(() {
+            _selectedDate = date;
+          });
+        },
+        validator: field.required
+            ? (value) {
+                if (value == null) {
+                  return '${field.label} is required';
+                }
+                return null;
+              }
+            : null,
+      );
+    }
+
+    // Initialize controller if not exists
+    if (!_controllers.containsKey(field.name)) {
+      _controllers[field.name] = TextEditingController();
+    }
+
+    // Text area for long text fields
+    if (field.type.toLowerCase() == 'textarea' ||
+        fieldLabel.contains('comment') ||
+        fieldLabel.contains('note') ||
+        fieldLabel.contains('description') ||
+        fieldLabel.contains('summary')) {
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+        ),
+        child: TextFormField(
+          controller: _controllers[field.name],
+          maxLines: 4,
+          validator: field.required
+              ? (value) {
+                  if (value == null || value.isEmpty) {
+                    return '${field.label} is required';
+                  }
+                  return null;
+                }
+              : null,
+          decoration: InputDecoration(
+            hintText: 'Enter ${field.label.toLowerCase()}',
+            hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        field.label,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                      ),
-                    ),
-                    if (field.required) ...[
-                      const SizedBox(width: 4),
-                      const Text(
-                        '*',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Type: ${field.type}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-              ],
+        ),
+      );
+    }
+
+    // Regular text field
+    return CustomTextField(
+      hintText: 'Enter ${field.label.toLowerCase()}',
+      controller: _controllers[field.name],
+      keyboardType: _getKeyboardType(field.type),
+      validator: field.required
+          ? (value) {
+              if (value == null || value.isEmpty) {
+                return '${field.label} is required';
+              }
+              return null;
+            }
+          : null,
+    );
+  }
+
+  Widget _buildSubmitForm() {
+    if (_reportTemplate?.fields == null) return const SizedBox();
+
+    final visibleFields = _reportTemplate!.fields!
+        .where((field) => !field.hidden)
+        .toList();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Submit Report',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
+            const SizedBox(height: 4),
+            Text(
+              'Fill out the report fields below',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 20),
+
+            // Generate form fields
+            ...visibleFields.map((field) => _buildFormField(field)),
+
+            const SizedBox(height: 20),
+
+            // Submit button
+            SubmitButton(
+              text: _isSubmitting ? 'Submitting...' : 'Submit Report',
+              onPressed: _isSubmitting ? () {} : _submitReport,
+              backgroundColor: Colors.orange,
+              textColor: Colors.white,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormField(ReportField field) {
+    // Initialize controller if not exists
+    if (!_controllers.containsKey(field.name)) {
+      _controllers[field.name] = TextEditingController();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            field.label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          CustomTextField(
+            hintText: 'Enter ${field.label.toLowerCase()}',
+            controller: _controllers[field.name],
+            keyboardType: _getKeyboardType(field.type),
+            validator: field.required
+                ? (value) {
+                    if (value == null || value.isEmpty) {
+                      return '${field.label} is required';
+                    }
+                    return null;
+                  }
+                : null,
           ),
         ],
       ),
     );
+  }
+
+  TextInputType _getKeyboardType(String type) {
+    switch (type.toLowerCase()) {
+      case 'number':
+      case 'integer':
+        return TextInputType.number;
+      case 'email':
+        return TextInputType.emailAddress;
+      case 'phone':
+        return TextInputType.phone;
+      case 'url':
+        return TextInputType.url;
+      default:
+        return TextInputType.text;
+    }
+  }
+
+  Future<void> _submitReport() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // Collect form data
+      final Map<String, dynamic> formData = {};
+      for (var entry in _controllers.entries) {
+        formData[entry.key] = entry.value.text;
+      }
+
+      // Add report metadata
+      if (_selectedDate != null) {
+        formData['serviceDate'] = _selectedDate!.toIso8601String();
+      }
+      formData['reportId'] = widget.reportId;
+      formData['submittedAt'] = DateTime.now().toIso8601String();
+
+      print('🚀 Submitting garage report: $formData');
+
+      // TODO: Implement actual submission logic
+      // await ReportsService.submitReport(formData);
+
+      // Simulate submission delay
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Report submitted successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Clear form
+        for (var controller in _controllers.values) {
+          controller.clear();
+        }
+        setState(() {
+          _selectedDate = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error submitting report: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   Widget _buildSubmissionsSection() {
