@@ -16,7 +16,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _churchController = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -32,52 +31,18 @@ class _LoginScreenState extends State<LoginScreen> {
       final authProvider = context.read<AuthProvider>();
       authProvider.clearError();
 
-      setState(() {
-        _isLoading = true;
-      });
+      // Let AuthProvider handle all errors and loading state
+      await authProvider.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+        churchName: _churchController.text.trim().isEmpty
+            ? null
+            : _churchController.text.trim(),
+      );
 
-      try {
-        final authProvider = context.read<AuthProvider>();
-
-        await authProvider.login(
-          _emailController.text.trim(),
-          _passwordController.text,
-          churchName: _churchController.text.trim(),
-        );
-
-        // Navigation is handled by AppWrapper automatically
-        // when AuthProvider status changes to authenticated
-      } catch (e) {
-        if (mounted) {
-          String errorMessage = 'An error occurred. Please try again.';
-
-          if (e.toString().contains('user not found') ||
-              e.toString().contains('User does not exist')) {
-            errorMessage =
-                'User not found. Please check your credentials or register first.';
-          } else if (e.toString().contains('network') ||
-              e.toString().contains('connection')) {
-            errorMessage =
-                'Network error. Please check your internet connection.';
-          } else if (e.toString().contains('timeout')) {
-            errorMessage = 'Request timed out. Please try again.';
-          }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }
+      // Navigation is handled by AppWrapper automatically
+      // when AuthProvider status changes to authenticated
+      // Errors are displayed via Consumer<AuthProvider> widget below
     }
   }
 
@@ -228,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 30),
 
                     // Login Button
-                    _isLoading
+                    (authProvider.status == AuthStatus.authenticating)
                         ? const Center(
                             child: CircularProgressIndicator(
                               color: Colors.black,
