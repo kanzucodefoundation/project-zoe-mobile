@@ -50,7 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _showSnackBar('All notifications cancelled');
                       }
                     },
-                    activeColor: Colors.green,
+                    activeThumbColor: Colors.green,
                   ),
                 ),
 
@@ -79,7 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             }
                           }
                         : null,
-                    activeColor: Colors.blue,
+                    activeThumbColor: Colors.blue,
                   ),
                   enabled: _notificationsEnabled,
                 ),

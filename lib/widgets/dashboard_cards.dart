@@ -18,10 +18,8 @@ class DashboardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 4,
-      shadowColor: Colors.grey.withOpacity(0.3),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shadowColor: Colors.grey.withValues(alpha: 0.3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -62,10 +60,7 @@ class DashboardCard extends StatelessWidget {
               Flexible(
                 child: Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey.shade700,
-                  ),
+                  style: TextStyle(fontSize: 10, color: Colors.grey.shade700),
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -128,13 +123,13 @@ class DashboardCardsSection extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Summary data card (full width)
           Card(
             elevation: 4,
-            shadowColor: Colors.grey.withOpacity(0.3),
+            shadowColor: Colors.grey.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -148,11 +143,7 @@ class DashboardCardsSection extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.analytics,
-                      size: 40,
-                      color: Colors.black,
-                    ),
+                    Icon(Icons.analytics, size: 40, color: Colors.black),
                     const SizedBox(height: 12),
                     const Text(
                       'Summary data for\nMC and Garage reports.',
@@ -177,13 +168,13 @@ class DashboardCardsSection extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Church Finance card (full width)
           Card(
             elevation: 4,
-            shadowColor: Colors.grey.withOpacity(0.3),
+            shadowColor: Colors.grey.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -197,11 +188,7 @@ class DashboardCardsSection extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.account_balance,
-                      size: 40,
-                      color: Colors.black,
-                    ),
+                    Icon(Icons.account_balance, size: 40, color: Colors.black),
                     const SizedBox(height: 12),
                     const Text(
                       'Church Finance',

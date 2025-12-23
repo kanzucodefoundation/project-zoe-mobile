@@ -167,6 +167,8 @@ Current backend endpoints:
 ### Debug Build
 
 ```bash
+flutter clean
+flutter pub get
 flutter run --debug
 ```
 

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:project_zoe/providers/auth_provider.dart';
-import 'package:provider/provider.dart';
 
 class BeautifulBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -15,8 +13,8 @@ class BeautifulBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    final canSeeAdmin = auth.isWebAdmin;
+    // final auth = context.watch<AuthProvider>();
+    // final canSeeAdmin = auth.isWebAdmin;
 
     final tabs = <GButton>[
       const GButton(
