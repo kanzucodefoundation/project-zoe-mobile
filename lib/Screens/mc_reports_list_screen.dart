@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'dart:convert';
 import '../services/report_service.dart';
+import '../providers/auth_provider.dart';
+import '../api/api_client.dart';
 
 class McReportsListScreen extends StatefulWidget {
   const McReportsListScreen({super.key});
@@ -12,8 +15,12 @@ class McReportsListScreen extends StatefulWidget {
 
 class _McReportsListScreenState extends State<McReportsListScreen> {
   List<Map<String, dynamic>> _reportSubmissions = [];
+  // Master copy of submissions (server + local) used for filtering
+  List<Map<String, dynamic>> _allSubmissions = [];
   bool _isLoading = true;
   String? _error;
+  DateTime? _filterStart;
+  DateTime? _filterEnd;
 
   @override
   void initState() {
@@ -30,32 +37,89 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
         });
       }
 
-      print('🔄 Loading MC report submissions from local storage...');
+      // Ensure authentication context is set before making API calls
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (authProvider.user != null) {
+        // Set tenant header for API requests
+        ApiClient().setTenant(authProvider.user!.churchName);
+        print('🏛️ Set tenant header: ${authProvider.user!.churchName}');
+      } else {
+        print('⚠️ No authenticated user found');
+        throw Exception('User not authenticated. Please login again.');
+      }
 
-      // Load from local storage first (submitted data)
-      final localSubmissions = await _loadLocalSubmissions();
+      print('🔄 Loading report submissions from server and local storage...');
 
+<<<<<<< HEAD
       // Also try to load from server as backup
       // final serverSubmissions = await ReportService.getMcReportSubmissions();
 
       // Combine both sources (local takes priority)
       final allSubmissions = [...localSubmissions];
+=======
+      // Try to load from server first (primary data source)
+      final serverSubmissions = await ReportService.getMcReportSubmissions();
+      print('📡 Server submissions: ${serverSubmissions.length}');
+
+      // Also try the general submitted reports endpoint
+      final submittedReports = await ReportService.getAllSubmittedReports();
+      print('📊 Submitted reports: ${submittedReports.length}');
+
+      // Load from local storage as fallback/supplement
+      final localSubmissions = await _loadLocalSubmissions();
+      print('💾 Local submissions: ${localSubmissions.length}');
+
+      // Combine all sources (server data takes priority)
+      final allSubmissions = [
+        ...serverSubmissions,
+        ...submittedReports,
+        ...localSubmissions,
+      ];
+
+      // Remove duplicates based on ID if any
+      final uniqueSubmissions = <String, Map<String, dynamic>>{};
+      for (final submission in allSubmissions) {
+        final id =
+            submission['id']?.toString() ??
+            submission['reportId']?.toString() ??
+            DateTime.now().millisecondsSinceEpoch.toString();
+        uniqueSubmissions[id] = submission;
+      }
+
+      final finalSubmissions = uniqueSubmissions.values.toList();
+>>>>>>> f5a54e92f5a9d2d2e0c411bba539122d49942514
 
       if (mounted) {
         setState(() {
-          _reportSubmissions = allSubmissions;
+          _allSubmissions = finalSubmissions;
+          _reportSubmissions = finalSubmissions;
           _isLoading = false;
         });
       }
 
+<<<<<<< HEAD
       // print(
       //   '📋 Loaded ${allSubmissions.length} submissions (${localSubmissions.length} local, ${serverSubmissions.length} server)',
       // );
+=======
+      print(
+        '📋 Total loaded: ${finalSubmissions.length} submissions (${serverSubmissions.length + submittedReports.length} from server, ${localSubmissions.length} local)',
+      );
+>>>>>>> f5a54e92f5a9d2d2e0c411bba539122d49942514
     } catch (e) {
       print('❌ Error loading submissions: $e');
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          // Provide more user-friendly error message
+          if (e.toString().contains('User not authenticated')) {
+            _error = 'Authentication required. Please logout and login again.';
+          } else if (e.toString().contains('Internal server error') ||
+              e.toString().contains('500')) {
+            _error = 'Server error. Please try again later or contact support.';
+          } else {
+            _error =
+                'Failed to load reports. Please check your connection and try again.';
+          }
           _isLoading = false;
         });
       }
@@ -83,101 +147,14 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.filter_alt, color: Colors.black),
+            tooltip: 'Filter by date range',
+            onPressed: _openFilterSheet,
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh, color: Colors.black),
             onPressed: _loadReportSubmissions,
           ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: _clearLocalSubmissions,
-          ),
-          // IconButton(
-          //   icon: const Icon(Icons.bug_report, color: Colors.orange),
-          //   onPressed: () async {
-          //     // Debug test to check what data is available
-          //     try {
-          //       final submissions =
-          //           await ReportService.getMcReportSubmissions();
-          //       if (mounted) {
-          //         // Create more readable debug info
-          //         String debugInfo =
-          //             'Total Submissions: ${submissions.length}\n\n';
-
-          //         if (submissions.isEmpty) {
-          //           debugInfo += 'NO SUBMISSIONS FOUND!\n\n';
-          //           debugInfo += 'Possible reasons:\n';
-          //           debugInfo += '1. Reports not saved to database\n';
-          //           debugInfo += '2. Wrong API endpoint\n';
-          //           debugInfo += '3. Authentication issue\n';
-          //           debugInfo += '4. Server error during submission\n\n';
-          //           debugInfo +=
-          //               'Try submitting a report first, then check debug again.';
-          //         } else {
-          //           debugInfo += '=== FIELD NAMES PRESERVED ===\n';
-          //           debugInfo += 'Total submissions: ${submissions.length}\n\n';
-
-          //           for (int i = 0; i < submissions.length; i++) {
-          //             final submission = submissions[i];
-          //             final data = submission['data'] ?? {};
-
-          //             debugInfo += '=== SUBMISSION ${i + 1} ===\n';
-          //             debugInfo += 'Report ID: ${submission['id'] ?? 'N/A'}\n';
-          //             debugInfo +=
-          //                 'Template ID: ${submission['reportId'] ?? submission['templateId'] ?? 'N/A'}\n';
-          //             debugInfo +=
-          //                 'Created: ${submission['createdAt'] ?? 'N/A'}\n\n';
-
-          //             debugInfo += 'KEY FIELDS (exact casing):\n';
-          //             debugInfo +=
-          //                 '• smallGroupName: ${data['smallGroupName'] ?? 'NOT FOUND'}\n';
-          //             debugInfo += '• date: ${data['date'] ?? 'NOT FOUND'}\n';
-          //             debugInfo +=
-          //                 '• mcHostHome: ${data['mcHostHome'] ?? 'NOT FOUND'}\n';
-          //             debugInfo +=
-          //                 '• totalMembers: ${data['totalMembers'] ?? 'NOT FOUND'}\n';
-          //             debugInfo +=
-          //                 '• attendance: ${data['attendance'] ?? 'NOT FOUND'}\n';
-
-          //             debugInfo +=
-          //                 '\nALL FIELDS SUBMITTED (preserving camelCase):\n';
-          //             data.forEach((key, value) {
-          //               debugInfo += '📋 $key: $value\n';
-          //             });
-          //             debugInfo += '\n';
-          //           }
-          //         }
-
-          //         showDialog(
-          //           context: context,
-          //           builder: (context) => AlertDialog(
-          //             title: Text('Debug: ${submissions.length} Reports'),
-          //             content: SizedBox(
-          //               width: double.maxFinite,
-          //               height: 400,
-          //               child: SingleChildScrollView(
-          //                 child: Text(
-          //                   debugInfo.isEmpty ? 'No data received' : debugInfo,
-          //                   style: const TextStyle(fontFamily: 'monospace'),
-          //                 ),
-          //               ),
-          //             ),
-          //             actions: [
-          //               TextButton(
-          //                 onPressed: () => Navigator.pop(context),
-          //                 child: const Text('Close'),
-          //               ),
-          //             ],
-          //           ),
-          //         );
-          //       }
-          //     } catch (e) {
-          //       if (mounted) {
-          //         ScaffoldMessenger.of(
-          //           context,
-          //         ).showSnackBar(SnackBar(content: Text('Debug Error: $e')));
-          //       }
-          //     }
-          //   },
-          // ),
         ],
       ),
       body: _isLoading
@@ -236,10 +213,10 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.folder_open, size: 64, color: Colors.grey.shade400),
+            Icon(Icons.cloud_off, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
-              'No Reports Yet',
+              'No Reports Found',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -248,20 +225,31 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'No MC reports have been submitted yet. Submit a report first to see it here.',
+              'No reports have been found from the server or local storage. Submit a report or check your connection.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context); // Go back to reports screen
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Submit a Report'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _loadReportSubmissions,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Refresh'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Go back to reports screen
+                  },
+                  child: const Text('Submit Report'),
+                ),
+              ],
             ),
           ],
         ),
@@ -433,6 +421,182 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
     );
   }
 
+  /// Open filter bottom sheet to choose start and end dates
+  void _openFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: MediaQuery.of(context).viewInsets,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Filter reports by date range',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _selectFilterDate(context, true),
+                      child: Text(
+                        _filterStart == null
+                            ? 'Start date'
+                            : '${_filterStart!.day}/${_filterStart!.month}/${_filterStart!.year}',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _selectFilterDate(context, false),
+                      child: Text(
+                        _filterEnd == null
+                            ? 'End date'
+                            : '${_filterEnd!.day}/${_filterEnd!.month}/${_filterEnd!.year}',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _clearDateFilter();
+                    },
+                    child: const Text('Clear'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _applyDateFilter();
+                    },
+                    child: const Text('Apply'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Select a date for filter (isStart = true -> start date)
+  Future<void> _selectFilterDate(BuildContext context, bool isStart) async {
+    final DateTime initial = isStart
+        ? (_filterStart ?? DateTime.now().subtract(const Duration(days: 30)))
+        : (_filterEnd ?? DateTime.now());
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      if (mounted) {
+        setState(() {
+          if (isStart) {
+            _filterStart = picked;
+          } else {
+            _filterEnd = picked;
+          }
+        });
+      }
+    }
+  }
+
+  void _clearDateFilter() {
+    if (mounted) {
+      setState(() {
+        _filterStart = null;
+        _filterEnd = null;
+        _reportSubmissions = List.from(_allSubmissions);
+      });
+    }
+  }
+
+  void _applyDateFilter() {
+    if (_filterStart == null && _filterEnd == null) {
+      // nothing to do
+      return;
+    }
+
+    final start = _filterStart ?? DateTime(2000);
+    final end = _filterEnd ?? DateTime.now();
+
+    final filtered = _allSubmissions.where((submission) {
+      final sd = _extractSubmissionDate(submission);
+      if (sd == null) return false;
+      return !sd.isBefore(start) && !sd.isAfter(end);
+    }).toList();
+
+    if (mounted) {
+      setState(() {
+        _reportSubmissions = filtered;
+      });
+    }
+  }
+
+  /// Extract a DateTime from a submission record, trying common fields
+  DateTime? _extractSubmissionDate(Map<String, dynamic> submission) {
+    try {
+      // Prefer explicit submitted date in data
+      final data = submission['data'];
+      if (data is Map) {
+        final raw =
+            data['date'] ?? data['createdAt'] ?? submission['createdAt'];
+        if (raw != null) {
+          final s = raw.toString();
+          // Try ISO parse first
+          final iso = DateTime.tryParse(s);
+          if (iso != null) return iso;
+
+          // Try dd/MM/yyyy
+          final parts = s.split('/');
+          if (parts.length == 3) {
+            final d = int.tryParse(parts[0]);
+            final m = int.tryParse(parts[1]);
+            final y = int.tryParse(parts[2]);
+            if (d != null && m != null && y != null) {
+              return DateTime(y, m, d);
+            }
+          }
+
+          // Try fallback numeric timestamp
+          final millis = int.tryParse(s);
+          if (millis != null) {
+            return DateTime.fromMillisecondsSinceEpoch(millis);
+          }
+        }
+      }
+
+      // Try top-level createdAt
+      final top = submission['createdAt'];
+      if (top != null) {
+        final t = top.toString();
+        final iso = DateTime.tryParse(t);
+        if (iso != null) return iso;
+      }
+    } catch (e) {
+      print('⚠️ Error extracting date from submission: $e');
+    }
+
+    return null;
+  }
+
   void _showReportDetails(Map<String, dynamic> submission) {
     showModalBottomSheet(
       context: context,
@@ -581,26 +745,6 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
     } catch (e) {
       print('❌ Error loading local submissions: $e');
       return [];
-    }
-  }
-
-  /// Clear local submissions (for testing)
-  Future<void> _clearLocalSubmissions() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('mc_report_submissions');
-      if (mounted) {
-        setState(() {
-          _reportSubmissions.clear();
-        });
-      }
-      print('🗑️ Cleared local submissions');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Local submissions cleared')),
-      );
-      _loadReportSubmissions(); // Reload
-    } catch (e) {
-      print('❌ Error clearing local submissions: $e');
     }
   }
 }

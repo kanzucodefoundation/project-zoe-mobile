@@ -20,7 +20,7 @@ void main() {
         final response = await AuthApi.login(request);
         print('Login successful: ${response.success}');
         print('Token received: ${response.token != null}');
-        print('User data: ${response.user}');
+        print('User data: ${response.data}');
         expect(response.success, isTrue);
         expect(response.token, isNotNull);
       } catch (e) {

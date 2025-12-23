@@ -18,7 +18,7 @@ class CustomDrawer extends StatelessWidget {
               return UserAccountsDrawerHeader(
                 decoration: const BoxDecoration(color: Colors.black),
                 accountName: Text(
-                  authProvider.user?.name ?? 'User Name',
+                  authProvider.user?.fullName ?? 'User Name',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -32,7 +32,7 @@ class CustomDrawer extends StatelessWidget {
                 currentAccountPicture: CircleAvatar(
                   backgroundColor: Colors.white,
                   child: Text(
-                    _getUserInitial(authProvider.user?.name),
+                    _getUserInitial(authProvider.user?.fullName),
                     style: const TextStyle(
                       color: Colors.black,
                       fontSize: 24,

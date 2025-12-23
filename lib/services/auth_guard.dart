@@ -29,45 +29,59 @@ class AuthGuard {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_tokenKey, token);
-      await prefs.setString(_userIdKey, user.id);
-      await prefs.setString(_userNameKey, user.name);
+      await prefs.setString(_userIdKey, user.id.toString());
+      await prefs.setString(_userNameKey, user.fullName);
       await prefs.setString(_userEmailKey, user.email);
-      await prefs.setString(_userRoleKey, user.role.name);
-      await prefs.setString(_userDepartmentKey, user.department);
+      await prefs.setString(_userRoleKey, user.primaryRole);
+      await prefs.setString(
+        _userDepartmentKey,
+        user.roles.isNotEmpty ? user.roles.first : 'Unknown',
+      );
       await prefs.setString(_churchNameKey, user.churchName);
+      // Save additional user data as JSON for complex structures
+      await prefs.setString('user_roles', user.roles.join(','));
+      await prefs.setString('user_permissions', user.permissions.join(','));
     } catch (e) {
       debugPrint('Error saving user data: $e');
     }
-    
   }
 
-  /// Get saved user data
+  /// Get saved user data (simplified for new model)
   static Future<User?> getSavedUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString(_userIdKey);
+      final userIdString = prefs.getString(_userIdKey);
       final userName = prefs.getString(_userNameKey);
       final userEmail = prefs.getString(_userEmailKey);
       final userRoleString = prefs.getString(_userRoleKey);
-      final userDepartment = prefs.getString(_userDepartmentKey);
+      final userRolesString = prefs.getString('user_roles');
+      final userPermissionsString = prefs.getString('user_permissions');
 
-      if (userId != null &&
-          userName != null &&
-          userEmail != null &&
-          userRoleString != null &&
-          userDepartment != null) {
-        final userRole = UserRole.values.firstWhere(
-          (role) => role.name == userRoleString,
-          orElse: () => UserRole.restricted,
+      if (userIdString != null && userName != null && userEmail != null) {
+        // Parse saved data
+        final userId = int.tryParse(userIdString) ?? 0;
+        final roles =
+            userRolesString?.split(',') ?? [userRoleString ?? 'Unknown'];
+        final permissions = userPermissionsString?.split(',') ?? [];
+
+        // Create a simplified hierarchy for saved user (no detailed groups)
+        final hierarchy = UserHierarchy(
+          myGroups: [],
+          canManageGroupIds: [],
+          canViewGroupIds: [],
         );
 
         return User(
           id: userId,
-          name: userName,
+          contactId: 1, // Default for saved user
+          username: userEmail,
           email: userEmail,
-          role: userRole,
-          department: userDepartment,
-          churchName: prefs.getString(_churchNameKey) ?? 'demo',
+          fullName: userName,
+          avatar: 'https://i.pravatar.cc/200?img=$userId',
+          isActive: true,
+          roles: roles,
+          permissions: permissions,
+          hierarchy: hierarchy,
         );
       }
       return null;

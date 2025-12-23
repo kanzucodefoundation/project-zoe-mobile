@@ -44,7 +44,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          _getFirstName(authProvider.user?.name ?? 'User'),
+                          _getFirstName(authProvider.user?.fullName ?? 'User'),
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 14,
@@ -65,7 +65,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       radius: 20,
                       backgroundColor: Colors.black,
                       child: Text(
-                        _getInitials(authProvider.user?.name ?? 'User'),
+                        _getInitials(authProvider.user?.fullName ?? 'User'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -104,7 +104,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     radius: 30,
                     backgroundColor: Colors.black,
                     child: Text(
-                      _getInitials(authProvider.user?.name ?? 'User'),
+                      _getInitials(authProvider.user?.fullName ?? 'User'),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
@@ -114,7 +114,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    authProvider.user?.name ?? 'User Name',
+                    authProvider.user?.fullName ?? 'User Name',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -133,7 +133,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                     decoration: BoxDecoration(
                       color: _getRoleColor(
-                        authProvider.user?.role ?? UserRole.restricted,
+                        authProvider.user?.primaryRole ?? 'Unknown',
                       ),
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -142,15 +142,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       children: [
                         Icon(
                           _getRoleIcon(
-                            authProvider.user?.role ?? UserRole.restricted,
+                            authProvider.user?.primaryRole ?? 'Unknown',
                           ),
                           color: Colors.white,
                           size: 14,
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          (authProvider.user?.roleDisplayName ??
-                                  'Restricted User')
+                          (authProvider.user?.primaryRole ?? 'Unknown Role')
                               .toUpperCase(),
                           style: const TextStyle(
                             fontSize: 10,
@@ -227,29 +226,33 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   /// Get the color for a specific user role
-  Color _getRoleColor(UserRole role) {
-    switch (role) {
-      case UserRole.admin:
-        return const Color(0xFFE53E3E); // Red for admin
-      case UserRole.moderator:
-        return const Color(0xFF059669); // Green for moderator
-      case UserRole.viewer:
-        return const Color(0xFF7C3AED); // Purple for viewer
-      case UserRole.restricted:
-        return const Color(0xFF2563EB); // Blue for restricted
+  Color _getRoleColor(String role) {
+    switch (role.toLowerCase()) {
+      case 'movement leader':
+        return const Color(0xFFE53E3E); // Red for movement leader
+      case 'location pastor':
+        return const Color(0xFF059669); // Green for location pastor
+      case 'zone leader':
+        return const Color(0xFF7C3AED); // Purple for zone leader
+      case 'mc shepherd':
+        return const Color(0xFF2563EB); // Blue for MC shepherd
+      default:
+        return const Color(0xFF6B7280); // Gray for unknown roles
     }
   }
 
   /// Get the icon for a specific user role
-  IconData _getRoleIcon(UserRole role) {
-    switch (role) {
-      case UserRole.admin:
+  IconData _getRoleIcon(String role) {
+    switch (role.toLowerCase()) {
+      case 'movement leader':
         return Icons.admin_panel_settings;
-      case UserRole.moderator:
+      case 'location pastor':
+        return Icons.church;
+      case 'zone leader':
         return Icons.shield;
-      case UserRole.viewer:
-        return Icons.visibility;
-      case UserRole.restricted:
+      case 'mc shepherd':
+        return Icons.group;
+      default:
         return Icons.person;
     }
   }

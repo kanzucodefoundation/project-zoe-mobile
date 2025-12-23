@@ -15,11 +15,9 @@ class CustomDrawer extends StatelessWidget {
           Consumer<AuthProvider>(
             builder: (context, authProvider, child) {
               return UserAccountsDrawerHeader(
-                decoration: const BoxDecoration(
-                  color: Colors.black,
-                ),
+                decoration: const BoxDecoration(color: Colors.black),
                 accountName: Text(
-                  authProvider.user?.name ?? 'User Name',
+                  authProvider.user?.fullName ?? 'User Name',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -28,15 +26,12 @@ class CustomDrawer extends StatelessWidget {
                 ),
                 accountEmail: Text(
                   authProvider.user?.email ?? 'user@example.com',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 currentAccountPicture: CircleAvatar(
                   backgroundColor: Colors.white,
                   child: Text(
-                    _getUserInitial(authProvider.user?.name),
+                    _getUserInitial(authProvider.user?.fullName),
                     style: const TextStyle(
                       color: Colors.black,
                       fontSize: 24,
@@ -113,10 +108,7 @@ class CustomDrawer extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: const Text(
               'Project Zoe v1.0.0',
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
           ),
         ],
@@ -151,13 +143,17 @@ class CustomDrawer extends StatelessWidget {
 
   String _getUserInitial(String? name) {
     if (name == null || name.isEmpty) return 'U';
-    
-    final parts = name.trim().split(' ').where((part) => part.isNotEmpty).toList();
-    
+
+    final parts = name
+        .trim()
+        .split(' ')
+        .where((part) => part.isNotEmpty)
+        .toList();
+
     if (parts.isNotEmpty && parts[0].isNotEmpty) {
       return parts[0][0].toUpperCase();
     }
-    
+
     return 'U';
   }
 }

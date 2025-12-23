@@ -70,7 +70,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Hello, ${_getFirstName(authProvider.user?.name ?? "User")}! Ready to make a difference?',
+                            'Hello, ${_getFirstName(authProvider.user?.fullName ?? "User")}! Ready to make a difference?',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey.shade600,
