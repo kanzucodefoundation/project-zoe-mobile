@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class CustomButton extends StatelessWidget {
+class SubmitButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
   final bool isOutlined;
@@ -10,7 +10,7 @@ class CustomButton extends StatelessWidget {
   final double? height;
   final double? borderRadius;
 
-  const CustomButton({
+  const SubmitButton({
     super.key,
     required this.text,
     required this.onPressed,

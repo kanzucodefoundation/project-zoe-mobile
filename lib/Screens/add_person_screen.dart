@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:project_zoe/models/people.dart';
 import 'package:provider/provider.dart';
 
-import '../components/custom_text_field.dart';
+import '../components/text_field.dart';
 import '../components/long_button.dart';
 import '../providers/people_provider.dart';
 

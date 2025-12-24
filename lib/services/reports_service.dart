@@ -16,19 +16,24 @@ class ReportsService {
   /// Get available groups/MCs from server
   static Future<List<Map<String, dynamic>>> getAvailableGroups() async {
     try {
-      debugPrint('🔍 Fetching groups from /groups/combo...');
-      final response = await _dio.get('/groups/combo');
-      // debugPrint('✅ Groups response received: ${response.data}');
-      // debugPrint('📊 Response type: ${response.data.runtimeType}');
+      debugPrint('🔍 Fetching groups from /groups/me...');
+      final response = await _dio.get('/groups/me');
+      debugPrint('✅ Groups response received: ${response.data}');
+      debugPrint('📊 Response type: ${response.data.runtimeType}');
 
-      final List<dynamic> groupsData = response.data ?? [];
-      // debugPrint('📝 Parsed groups count: ${groupsData.length}');
+      // Handle the new API response structure: { groups: [...], summary: {...} }
+      final Map<String, dynamic> responseData = response.data ?? {};
+      final List<dynamic> groupsData = responseData['groups'] ?? [];
+      debugPrint('📝 Parsed groups count: ${groupsData.length}');
 
       final result = groupsData
           .map(
             (group) => {
               'id': group['id'],
               'name': group['name'] ?? 'Unknown Group',
+              'type': group['type'] ?? 'Unknown Type',
+              'categoryName': group['categoryName'] ?? 'Unknown Category',
+              'role': group['role'] ?? 'Member',
             },
           )
           .toList();
@@ -426,30 +431,4 @@ class ReportsService {
 
     return Exception(message);
   }
-
-  // // Church name management for testing different tenants
-  // static String? _overrideChurchName;
-
-  // /// Set church name override for testing
-  // static void setChurchName(String churchName) {
-  //   _overrideChurchName = churchName;
-  //   // Also set it in the API client for headers
-  //   _apiClient.setTenant(churchName);
-  // }
-
-  // /// Clear church name override
-  // static void clearChurchNameOverride() {
-  //   _overrideChurchName = null;
-  //   _apiClient.clearTenant();
-  // }
-
-  // /// Get current church name (with override support)
-  // static Future<String> getChurchName() async {
-  //   if (_overrideChurchName != null) {
-  //     return _overrideChurchName!;
-  //   }
-  //   // Return saved church name or default
-  //   // For now, return a default - this can be enhanced to get from storage
-  //   return 'demo';
-  // }
 }

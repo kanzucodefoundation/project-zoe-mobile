@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../components/custom_button.dart';
-import '../components/custom_text_field.dart';
+import '../components/submit_button.dart';
+import '../components/text_field.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -409,7 +409,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ? const Center(
                           child: CircularProgressIndicator(color: Colors.black),
                         )
-                      : CustomButton(
+                      : SubmitButton(
                           text: 'CREATE ACCOUNT',
                           onPressed: _handleRegister,
                           backgroundColor: Colors.black,
