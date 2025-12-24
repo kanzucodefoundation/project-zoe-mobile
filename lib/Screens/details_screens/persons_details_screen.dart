@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/people_provider.dart';
+import '../../providers/contacts_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/people.dart';
 import '../add_person_screen.dart';
@@ -57,7 +57,7 @@ class _PersonsDetailsScreenState extends State<PersonsDetailsScreen>
     try {
       if (!mounted || _disposed) return;
 
-      final provider = Provider.of<PeopleProvider>(context, listen: false);
+      final provider = Provider.of<ContactsProvider>(context, listen: false);
       final details = await provider
           .loadContactDetails(widget.shepherdId)
           .timeout(const Duration(seconds: 15));
@@ -84,7 +84,7 @@ class _PersonsDetailsScreenState extends State<PersonsDetailsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<PeopleProvider, AuthProvider>(
+    return Consumer2<ContactsProvider, AuthProvider>(
       builder: (context, provider, authProvider, _) {
         try {
           final contact = provider.getShepherdById(widget.shepherdId);
@@ -165,7 +165,6 @@ class _PersonsDetailsScreenState extends State<PersonsDetailsScreen>
                             ),
                             boxShadow: [
                               BoxShadow(
-                                // ignore: deprecated_member_use
                                 color: Colors.black.withOpacity(0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 5),
@@ -533,7 +532,7 @@ class _PersonsDetailsScreenState extends State<PersonsDetailsScreen>
     }
 
     // Fallback to contact.cellGroup if no detailed data is available
-    final contact = Provider.of<PeopleProvider>(
+    final contact = Provider.of<ContactsProvider>(
       context,
       listen: false,
     ).getShepherdById(widget.shepherdId);

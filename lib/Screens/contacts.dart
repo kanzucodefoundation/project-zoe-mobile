@@ -2,20 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../components/long_button.dart';
-import '../providers/people_provider.dart';
+import '../providers/contacts_provider.dart';
 import '../providers/auth_provider.dart';
 import '../tiles/shepherds_tile.dart';
 import 'add_person_screen.dart';
 import 'details_screens/persons_details_screen.dart';
 
-class PeopleScreen extends StatelessWidget {
-  const PeopleScreen({super.key});
+class ContactsScreen extends StatefulWidget {
+  const ContactsScreen({super.key});
 
+  @override
+  State<ContactsScreen> createState() => _ContactsScreenState();
+}
+
+// Backward compatibility alias
+typedef PeopleScreen = ContactsScreen;
+
+class _ContactsScreenState extends State<ContactsScreen> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => PeopleProvider(),
-      child: Consumer2<PeopleProvider, AuthProvider>(
+      create: (_) {
+        final provider = ContactsProvider();
+        // Load contacts with church name from auth provider after creation
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final authProvider = Provider.of<AuthProvider>(
+            context,
+            listen: false,
+          );
+          final churchName = authProvider.user?.churchName ?? 'fellowship';
+          provider.loadContacts(churchName: churchName);
+        });
+        return provider;
+      },
+      child: Consumer2<ContactsProvider, AuthProvider>(
         builder: (context, provider, authProvider, _) {
           final canManage = provider.canManageShepherds(authProvider);
           return Scaffold(
@@ -24,7 +44,7 @@ class PeopleScreen extends StatelessWidget {
               backgroundColor: Colors.white,
               elevation: 0,
               title: const Text(
-                'People',
+                'Contacts',
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 20,
@@ -39,7 +59,9 @@ class PeopleScreen extends StatelessWidget {
             ),
             body: RefreshIndicator(
               onRefresh: () async {
-                await provider.loadShepherds();
+                final churchName =
+                    authProvider.user?.churchName ?? 'fellowship';
+                await provider.loadContacts(churchName: churchName);
               },
               child: Column(
                 children: [
@@ -50,7 +72,7 @@ class PeopleScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Church Shepherds',
+                          'Contacts',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
@@ -59,7 +81,7 @@ class PeopleScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Manage and view all church shepherds information',
+                          'Manage and view all church contacts information',
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.grey.shade600,
@@ -71,7 +93,7 @@ class PeopleScreen extends StatelessWidget {
                         // Add Shepherd Button
                         if (canManage)
                           LongButton(
-                            text: 'Add a person',
+                            text: 'Add a contact',
                             onPressed: () {
                               // Clear provider state to ensure add mode
                               provider.clear();
@@ -86,7 +108,10 @@ class PeopleScreen extends StatelessWidget {
                                 ),
                               ).then((_) {
                                 // Refresh the list when returning from add screen
-                                provider.loadShepherds();
+                                final churchName =
+                                    authProvider.user?.churchName ??
+                                    'fellowship';
+                                provider.loadContacts(churchName: churchName);
                               });
                             },
                             backgroundColor: Colors.black,
@@ -107,7 +132,7 @@ class PeopleScreen extends StatelessWidget {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    'Only administrators can add new people',
+                                    'Only administrators can add new contacts',
                                     style: TextStyle(
                                       color: Colors.grey.shade600,
                                       fontSize: 14,
@@ -134,7 +159,7 @@ class PeopleScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '${provider.shepherds.length} People',
+                          '${provider.shepherds.length} Contacts',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -166,7 +191,7 @@ class PeopleScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'No People Found',
+                                  'No Contacts Found',
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
@@ -175,7 +200,7 @@ class PeopleScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Add people to get started',
+                                  'Add contacts to get started',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey.shade500,

@@ -1,26 +1,9 @@
-// ===== LEGACY IMPORTS AND PROVIDER (COMMENTED OUT) =====
-// import 'package:flutter/material.dart';
-// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-// import 'package:project_zoe/api/endpoints/user_endpoints.dart';
-// import 'package:project_zoe/models/people.dart';
-// import 'package:project_zoe/services/shepherd_service.dart';
-// import '../models/shepherd.dart';
-// import '../providers/auth_provider.dart';
-
-// ===== NEW CONTACT MANAGEMENT IMPORTS =====
 import 'package:flutter/material.dart';
 import '../models/people.dart';
 import '../api/endpoints/contact_endpoints.dart';
 import '../providers/auth_provider.dart';
 
-// ===== LEGACY PEOPLE PROVIDER (COMMENTED OUT) =====
-// class PeopleProvider extends ChangeNotifier {
-//   final formKey = GlobalKey<FormState>();
-//   ... all legacy code commented out ...
-// }
-
-// ===== NEW CONTACT MANAGEMENT PROVIDER =====
-class PeopleProvider extends ChangeNotifier {
+class ContactsProvider extends ChangeNotifier {
   // Form management
   final formKey = GlobalKey<FormState>();
 
@@ -63,7 +46,7 @@ class PeopleProvider extends ChangeNotifier {
   int? get editingShepherdId => _editingShepherdId;
 
   // Initialize and load contacts
-  PeopleProvider() {
+  ContactsProvider() {
     _initializeContacts();
   }
 
@@ -255,12 +238,13 @@ class PeopleProvider extends ChangeNotifier {
   }
 
   /// Load all contacts from CRM API
-  Future<void> loadContacts() async {
+  Future<void> loadContacts({String? churchName}) async {
     _isLoadingShepherds = true;
     notifyListeners();
 
     try {
       print('PeopleProvider: Loading contacts from API');
+      print('PeopleProvider: Using church name: ${churchName ?? 'fellowship'}');
       print(
         'PeopleProvider: API Base URL: ${ContactEndpoints.apiClient.dio.options.baseUrl}',
       );
@@ -268,7 +252,7 @@ class PeopleProvider extends ChangeNotifier {
         'PeopleProvider: API Headers: ${ContactEndpoints.apiClient.dio.options.headers}',
       );
 
-      _contacts = await ContactEndpoints.getAllContacts();
+      _contacts = await ContactEndpoints.getAllContacts(churchName: churchName);
       print('PeopleProvider: Successfully loaded ${_contacts.length} contacts');
     } catch (e) {
       print('PeopleProvider ERROR: Failed to load contacts - $e');
