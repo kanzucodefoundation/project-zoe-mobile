@@ -30,7 +30,7 @@ class _DropdownState extends State<Dropdown> {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<Map<String, dynamic>>(
-      value: widget.value,
+      initialValue: widget.value,
       onChanged: widget.isLoading ? null : widget.onChanged,
       validator: widget.validator,
       decoration: InputDecoration(

@@ -52,7 +52,7 @@ class AuthService {
     } catch (e) {
       // Re-throw with more context
       if (e is Exception) {
-        throw e;
+        rethrow;
       }
       throw Exception('Authentication failed: $e');
     }

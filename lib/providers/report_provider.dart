@@ -1,9 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:project_zoe/models/report_template.dart';
 import 'package:project_zoe/services/reports_service.dart';
 import '../models/report.dart';
-import '../helpers/report_helpers.dart';
-import '../services/report_service.dart';
 
 /// Provider for managing reports state and operations
 class ReportProvider extends ChangeNotifier {
@@ -15,7 +12,7 @@ class ReportProvider extends ChangeNotifier {
   List<Report> _reports = [];
   List<Report> get reports => _reports;
 
-  List<Report> _singleReports = [];
+  final List<Report> _singleReports = [];
   List<Report> get singleReports => _singleReports;
 
   bool _isLoading = false;
