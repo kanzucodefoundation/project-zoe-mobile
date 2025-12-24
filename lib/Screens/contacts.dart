@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../components/long_button.dart';
 import '../providers/contacts_provider.dart';
 import '../providers/auth_provider.dart';
-import '../tiles/shepherds_tile.dart';
-import 'add_person_screen.dart';
-import 'details_screens/persons_details_screen.dart';
+import '../tiles/contact_tile.dart';
+import 'details_screens/contact_details_screen.dart';
+import 'add_contact_screen.dart';
 
 class ContactsScreen extends StatefulWidget {
   const ContactsScreen({super.key});
@@ -37,7 +36,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
       },
       child: Consumer2<ContactsProvider, AuthProvider>(
         builder: (context, provider, authProvider, _) {
-          final canManage = provider.canManageShepherds(authProvider);
+          // Role management commented out for now - will be implemented later
+          // final canManage = true; // Simplify for now
+
           return Scaffold(
             backgroundColor: Colors.white,
             appBar: AppBar(
@@ -52,191 +53,199 @@ class _ContactsScreenState extends State<ContactsScreen> {
                 ),
               ),
               centerTitle: true,
-              // leading: IconButton(
-              //   icon: const Icon(Icons.arrow_back, color: Colors.black),
-              //   onPressed: () => Navigator.pop(context),
-              // ),
             ),
             body: RefreshIndicator(
               onRefresh: () async {
                 final churchName =
                     authProvider.user?.churchName ?? 'fellowship';
-                await provider.loadContacts(churchName: churchName);
+                await provider.refreshContacts(churchName: churchName);
               },
-              child: Column(
-                children: [
+              child: CustomScrollView(
+                slivers: [
                   // Header Section
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Contacts',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Manage and view all church contacts information',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Add Shepherd Button
-                        if (canManage)
-                          LongButton(
-                            text: 'Add a contact',
-                            onPressed: () {
-                              // Clear provider state to ensure add mode
-                              provider.clear();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      ChangeNotifierProvider.value(
-                                        value: provider,
-                                        child: const AddPeopleScreen(),
-                                      ),
-                                ),
-                              ).then((_) {
-                                // Refresh the list when returning from add screen
-                                final churchName =
-                                    authProvider.user?.churchName ??
-                                    'fellowship';
-                                provider.loadContacts(churchName: churchName);
-                              });
-                            },
-                            backgroundColor: Colors.black,
-                            textColor: Colors.white,
-                          )
-                        else
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.info, color: Colors.grey.shade600),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'Only administrators can add new contacts',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  // Shepherds Count
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.group,
-                          size: 20,
-                          color: Colors.grey.shade600,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${provider.shepherds.length} Contacts',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Shepherds List
-                  Expanded(
-                    child: provider.isLoadingShepherds
-                        ? const Center(
-                            child: CircularProgressIndicator(
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Contacts',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
                               color: Colors.black,
                             ),
-                          )
-                        : provider.shepherds.isEmpty
-                        ? Center(
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Manage and view church contacts',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Add Contact Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const AddPeopleScreen(),
+                                  ),
+                                ).then((_) {
+                                  // Refresh contacts after returning
+                                  final churchName =
+                                      authProvider.user?.churchName ??
+                                      'fellowship';
+                                  provider.refreshContacts(
+                                    churchName: churchName,
+                                  );
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.person_add_outlined,
+                                size: 20,
+                              ),
+                              label: const Text(
+                                'Add Contact',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Contacts Count
+                          Text(
+                            'Contacts (${provider.contacts.length})',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+                  // Contacts List
+                  provider.isLoading
+                      ? const SliverFillRemaining(
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      : provider.error != null
+                      ? SliverFillRemaining(
+                          child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.group_off,
-                                  size: 80,
-                                  color: Colors.grey.shade400,
+                                  Icons.error_outline,
+                                  size: 64,
+                                  color: Colors.red.shade400,
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'No Contacts Found',
+                                  'Error Loading Contacts',
                                   style: TextStyle(
                                     fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey.shade600,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red.shade600,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Add contacts to get started',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade500,
-                                  ),
+                                  provider.error!,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey.shade600),
+                                ),
+                                const SizedBox(height: 24),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    final churchName =
+                                        authProvider.user?.churchName ??
+                                        'fellowship';
+                                    provider.loadContacts(
+                                      churchName: churchName,
+                                    );
+                                  },
+                                  child: const Text('Retry'),
                                 ),
                               ],
                             ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.only(bottom: 20),
-                            itemCount: provider.shepherds.length,
-                            itemBuilder: (context, index) {
-                              final contact = provider.shepherds[index];
-                              return ShepherdsTile(
-                                shepherdAvatar: contact.avatar,
-                                shepherdName: contact.name,
-                                shepherdEmail: contact.email,
-                                buttonText: 'View',
-                                onButtonPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ChangeNotifierProvider.value(
-                                            value: provider,
-                                            child: PersonsDetailsScreen(
-                                              shepherdId: contact.id,
-                                            ),
-                                          ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
                           ),
-                  ),
+                        )
+                      : provider.contacts.isEmpty
+                      ? const SliverFillRemaining(
+                          child: Center(
+                            child: Text(
+                              'No contacts found',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        )
+                      : SliverList(
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            final contact = provider.contacts[index];
+                            // Comment out debug print for production
+                            // print(
+                            //   '🏠 ContactsScreen: Rendering ${contact.name} with avatar: ${contact.avatar}',
+                            // );
+
+                            return ContactTile(
+                              shepherdName: contact.name,
+                              shepherdEmail: contact.email ?? 'No email',
+                              shepherdAvatar: contact.avatar ?? '',
+                              buttonText: 'View',
+                              onButtonPressed: () {
+                                // Comment out debug print for production
+                                // print(
+                                //   '🏠 ContactsScreen: Navigating to details for contact ${contact.id}',
+                                // );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ChangeNotifierProvider.value(
+                                          value: provider,
+                                          child: ContactDetailsScreen(
+                                            contactId: contact.id,
+                                          ),
+                                        ),
+                                  ),
+                                );
+                              },
+                            );
+                          }, childCount: provider.contacts.length),
+                        ),
                 ],
               ),
             ),

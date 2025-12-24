@@ -18,6 +18,37 @@ class ShepherdsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Comment out debug print for production
+    // print(
+    //   'ShepherdsTile: Building tile for $shepherdName with avatar: $shepherdAvatar',
+    // );
+
+    // Get first letter for fallback avatar
+    String getInitials() {
+      if (shepherdName.isEmpty) return '?';
+      final names = shepherdName.trim().split(' ');
+      if (names.length >= 2) {
+        return '${names.first[0]}${names.last[0]}'.toUpperCase();
+      }
+      return names.first[0].toUpperCase();
+    }
+
+    // Get different colors based on name hash
+    MaterialColor getAvatarColor() {
+      final colors = [
+        Colors.blue,
+        Colors.green,
+        Colors.orange,
+        Colors.purple,
+        Colors.teal,
+        Colors.red,
+        Colors.indigo,
+        Colors.pink,
+      ];
+      final hash = shepherdName.hashCode;
+      return colors[hash.abs() % colors.length];
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
@@ -36,10 +67,87 @@ class ShepherdsTile extends StatelessWidget {
       child: Row(
         children: [
           // Shepherd Avatar
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.grey.shade200,
-            backgroundImage: NetworkImage(shepherdAvatar),
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade300, width: 2),
+            ),
+            child: ClipOval(
+              child: shepherdAvatar.isNotEmpty && shepherdAvatar != 'null'
+                  ? Image.network(
+                      shepherdAvatar,
+                      fit: BoxFit.cover,
+                      width: 60,
+                      height: 60,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Comment out debug prints for production
+                        // print(
+                        //   'ShepherdsTile: Avatar loading error for $shepherdName',
+                        // );
+                        // print('ShepherdsTile: Avatar URL: $shepherdAvatar');
+                        // print('ShepherdsTile: Error: $error');
+
+                        // Return first letter avatar on error
+                        final avatarColor = getAvatarColor();
+                        return Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: avatarColor.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              getInitials(),
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: avatarColor.shade700,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          width: 60,
+                          height: 60,
+                          color: Colors.grey.shade200,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.grey.shade400,
+                              strokeWidth: 2,
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: getAvatarColor().shade100,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          getInitials(),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: getAvatarColor().shade700,
+                          ),
+                        ),
+                      ),
+                    ),
+            ),
           ),
 
           const SizedBox(width: 16),
