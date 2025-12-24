@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:project_zoe/Screens/people_screen.dart';
 import 'package:project_zoe/components/report_card.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/report_provider.dart';
 import '../providers/dashboard_provider.dart';
-import 'mc_reports_display_screen.dart';
 import 'mc_attendance_report_screen.dart';
 import 'garage_reports_display_screen.dart';
 import 'reports_screen.dart';

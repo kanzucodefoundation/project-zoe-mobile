@@ -1,12 +1,7 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_zoe/models/people.dart';
-import 'package:project_zoe/models/report_template.dart';
 import '../api/api_client.dart';
-import '../api/endpoints/report_endpoints.dart';
-import '../models/report.dart';
 
 /// Service class to handle report API calls
 class ShepherdService {
