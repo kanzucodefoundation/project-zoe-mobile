@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../components/text_field.dart';
 import '../components/long_button.dart';
-import '../providers/people_provider.dart';
+import '../providers/contacts_provider.dart';
 
 class AddPeopleScreen extends StatefulWidget {
   final People? shepherd; // If provided, screen is in edit mode
@@ -26,7 +26,7 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<PeopleProvider>(
+    return Consumer<ContactsProvider>(
       builder: (context, prov, _) {
         // Initialize for edit if needed
         if (!_isInitialized && widget.shepherd != null) {

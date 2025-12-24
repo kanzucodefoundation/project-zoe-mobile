@@ -10,25 +10,41 @@ class ContactEndpoints {
 
   /// Get all contacts from CRM
   /// Endpoint: GET /api/crm/contacts
-  static Future<List<Contact>> getAllContacts() async {
+  static Future<List<Contact>> getAllContacts({String? churchName}) async {
     try {
       print('API: Fetching all contacts from /api/crm/contacts');
+      print('API: Using church name: ${churchName ?? 'fellowship'}');
 
       final response = await _apiClient.dio.get(
         '/crm/contacts',
         options: Options(
           headers: {
-            'X-Church-Name': 'demo', // Temporarily hard-code church name
+            'X-Church-Name':
+                churchName ?? 'fellowship', // Use fellowship as default
           },
         ),
       );
 
       if (response.statusCode == 200) {
-        print('API: Successfully fetched ${response.data.length} contacts');
+        // Handle the response structure: {"contacts": [...]}
+        final responseData = response.data;
+        List<dynamic> contactsJson;
+
+        if (responseData is Map<String, dynamic> &&
+            responseData.containsKey('contacts')) {
+          contactsJson = responseData['contacts'] as List<dynamic>;
+        } else if (responseData is List<dynamic>) {
+          // Fallback for direct array response
+          contactsJson = responseData;
+        } else {
+          throw Exception('Unexpected response format');
+        }
+
+        print('API: Successfully fetched ${contactsJson.length} contacts');
         print(
-          'API: First contact structure: ${response.data.isNotEmpty ? response.data[0] : "No contacts"}',
+          'API: First contact structure: ${contactsJson.isNotEmpty ? contactsJson[0] : "No contacts"}',
         );
-        final List<dynamic> contactsJson = response.data;
+
         return contactsJson.map((json) => Contact.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load contacts: ${response.statusCode}');
