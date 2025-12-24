@@ -200,7 +200,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final lowerTitle = title.toLowerCase();
 
       // ---- Report routing logic ----
-      if (lowerTitle.contains(mcAttendanceReportTitle) && auth.isMcShepherd) {
+      if (lowerTitle.contains(mcAttendanceReportTitle) &&
+          auth.isMcShepherdPermissions) {
         icon = Icons.church;
         targetScreen = McAttendanceReportScreen(reportId: id);
       } else if (lowerTitle.contains(sundayReportTitle)) {

@@ -373,7 +373,9 @@ class ReportsService {
           final report = Report.fromJson(
             reportsData[i] as Map<String, dynamic>,
           );
-          reports.add(report);
+          if (report.active == true && report.status == 'active') {
+            reports.add(report);
+          }
         } catch (e) {
           debugPrint('⚠️ Failed to parse report item $i: $e');
           debugPrint('📄 Raw item: ${reportsData[i]}');

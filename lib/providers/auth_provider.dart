@@ -3,6 +3,7 @@ import '../models/user.dart';
 import '../services/auth_guard.dart';
 import '../services/auth_service.dart';
 import '../api/api_client.dart';
+import '../helpers/app_permissions.dart';
 
 enum AuthStatus { unauthenticated, authenticating, authenticated, failed }
 
@@ -303,7 +304,7 @@ class AuthProvider extends ChangeNotifier {
   bool get canViewShepherds => true;
 
   /// Check if current user is MC Shepherd
-  bool get isMcShepherd => _user?.hasRole('MC Shepherd') ?? false;
+  bool get isMcShepherdRole => _user?.hasRole('MC Shepherd') ?? false;
 
   /// Check if user has a specific role
   bool hasRole(String role) => _user?.hasRole(role) ?? false;
@@ -338,5 +339,12 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       throw Exception('Password reset failed: $e');
     }
+  }
+
+  bool get isMcShepherdPermissions {
+    return _permissions.contains(AppPermissions.roleCrmView) &&
+        _permissions.contains(AppPermissions.roleCrmEdit) &&
+        _permissions.contains(AppPermissions.roleReportSubmit) &&
+        _permissions.contains(AppPermissions.roleReportView);
   }
 }

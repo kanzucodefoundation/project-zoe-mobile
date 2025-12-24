@@ -20,6 +20,7 @@ class AppPermissions {
   static const String roleEventEdit = 'EVENT_EDIT';
 
   static const String roleReportView = 'REPORT_VIEW';
+  static const String roleReportSubmit = 'REPORT_SUBMIT';
   static const String roleReportViewSubmissions = 'REPORT_VIEW_SUBMISSIONS';
 
   static const String manageHelp = 'MANAGE_HELP';
@@ -39,6 +40,7 @@ class AppPermissions {
     roleEventView,
     roleEventEdit,
     roleReportView,
+    roleReportSubmit,
     roleReportViewSubmissions,
     manageHelp,
   ];

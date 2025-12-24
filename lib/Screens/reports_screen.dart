@@ -860,6 +860,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final List<Widget> cards = [];
     final titleAndId = reportProvider.titleAndId;
 
+    final mcAttendanceReportTitle = 'attendance';
+    final sundayReportTitle = 'sunday';
+    final salvationReportTitle = 'salvation';
+    final baptismReportTitle = 'baptism';
+
     // Process all reports from server (the original 5 that were on home screen)
     for (final report in titleAndId) {
       final String title = report['title']?.toString() ?? '';
@@ -871,15 +876,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
       final lowerTitle = title.toLowerCase();
 
       // Set icons and navigation based on report type
-      if (lowerTitle.contains('attendance') && authProvider.isMcShepherd) {
+      if (lowerTitle.contains(mcAttendanceReportTitle) &&
+          authProvider.isMcShepherdPermissions) {
         icon = Icons.church;
         targetScreen = McAttendanceReportScreen(reportId: id);
-      } else if (lowerTitle.contains('sunday')) {
+      } else if (lowerTitle.contains(sundayReportTitle)) {
         icon = Icons.church_outlined;
         targetScreen = GarageReportsScreen(reportId: id);
-      } else if (lowerTitle.contains('baptism')) {
+      } else if (lowerTitle.contains(baptismReportTitle)) {
         icon = Icons.water_drop;
-      } else if (lowerTitle.contains('salvation')) {
+      } else if (lowerTitle.contains(salvationReportTitle)) {
         icon = Icons.favorite;
       } else if (lowerTitle.contains('prayer') ||
           lowerTitle.contains('follow')) {
