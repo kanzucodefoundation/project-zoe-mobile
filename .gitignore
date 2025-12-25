@@ -28,6 +28,7 @@ migrate_working_dir/
 **/ios/Flutter/.last_build_id
 .dart_tool/
 .flutter-plugins-dependencies
+.flutter-plugins*
 .pub-cache/
 .pub/
 /build/
@@ -45,3 +46,16 @@ app.*.map.json
 /android/app/release
 /server_readme.md
 /test_endpoints.sh
+
+.kotlin/
+
+# Local Gradle cache (project-scoped)
+.gradle-cache/
+
+# Gradle
+.gradle/
+build/
+
+# Android
+android/.gradle/
+android/build/

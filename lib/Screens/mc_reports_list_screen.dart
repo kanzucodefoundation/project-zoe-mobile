@@ -3,7 +3,6 @@ import 'package:project_zoe/services/reports_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
-
 import '../providers/auth_provider.dart';
 import '../api/api_client.dart';
 

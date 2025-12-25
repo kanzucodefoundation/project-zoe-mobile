@@ -1,4 +1,5 @@
 /// Authentication models for the new server structure
+library;
 
 /// Group model for user's groups and hierarchy
 class UserGroup {

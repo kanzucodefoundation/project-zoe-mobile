@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:project_zoe/models/report.dart';
 import 'package:project_zoe/models/reports_model.dart';
 import 'package:project_zoe/services/reports_service.dart';
-
 import '../components/text_field.dart';
 import '../components/submit_button.dart';
 import '../components/dropdown.dart';
@@ -197,12 +196,12 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
-            onPressed: _loadMcData,
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.refresh, color: Colors.black),
+        //     onPressed: _loadMcData,
+        //   ),
+        // ],
       ),
       body: _buildBody(),
     );
@@ -761,14 +760,14 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
                 style: TextStyle(fontSize: 12, color: Colors.red[600]),
               ),
             ),
-          if (!_isLoadingMcs && _availableMcs.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                '${_availableMcs.length} MCs loaded from server',
-                style: TextStyle(fontSize: 12, color: Colors.green[600]),
-              ),
-            ),
+          // if (!_isLoadingMcs && _availableMcs.isNotEmpty)
+          //   Padding(
+          //     padding: const EdgeInsets.only(top: 4),
+          //     child: Text(
+          //       '${_availableMcs.length} MCs loaded from server',
+          //       style: TextStyle(fontSize: 12, color: Colors.green[600]),
+          //     ),
+          //   ),
         ],
       );
     }
