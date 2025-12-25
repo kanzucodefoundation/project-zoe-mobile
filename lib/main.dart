@@ -7,7 +7,8 @@ import 'providers/auth_provider.dart';
 import 'providers/report_provider.dart';
 import 'widgets/app_wrapper.dart';
 import 'api/api_client.dart';
-import 'screens/garage_attendance_screen.dart';
+import 'Screens/baptism_reports_display_screen.dart';
+import 'Screens/salvation_reports_display_screen.dart';
 import 'Screens/reports_screen.dart';
 import 'screens/admin_screen.dart';
 import 'auth/login_screen.dart';
@@ -52,9 +53,13 @@ class MyApp extends StatelessWidget {
         routes: {
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
+
           // '/mc-report': (context) => const McReportScreen(),
           // '/mc-reports-display': (context) => const McReportsScreen(),
-          '/garage-attendance': (context) => const GarageAttendanceScreen(),
+          '/baptism-reports': (context) =>
+              const BaptismReportsScreen(reportId: 0),
+          '/salvation-reports': (context) =>
+              const SalvationReportsScreen(reportId: 0),
           // '/garage-reports-display': (context) => const GarageReportsScreen(),
           // '/shepherds-details': (context) =>
           //     const ShepherdDetailsScreen(shepherdId: 0),

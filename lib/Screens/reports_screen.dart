@@ -8,7 +8,12 @@ import '../components/report_card.dart';
 import 'mc_attendance_report_screen.dart';
 import 'garage_reports_display_screen.dart';
 import 'mc_reports_list_screen.dart';
+import 'garage_reports_list_screen.dart';
+import 'baptism_reports_list_screen.dart';
+import 'salvation_reports_list_screen.dart';
 import 'group_details_screen.dart';
+import 'baptism_reports_display_screen.dart';
+import 'salvation_reports_display_screen.dart';
 
 /// Reports screen displaying all reports with server data
 class ReportsScreen extends StatefulWidget {
@@ -744,6 +749,51 @@ class _ReportsScreenState extends State<ReportsScreen> {
               );
             },
           ),
+          const SizedBox(height: 12),
+          _buildReportTypeCard(
+            title: 'Submitted Garage Reports',
+            description: 'View all submitted garage report details',
+            icon: Icons.assignment_turned_in,
+            color: Colors.orange,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const GarageReportsListScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildReportTypeCard(
+            title: 'Submitted Baptism Reports',
+            description: 'View all submitted baptism report details',
+            icon: Icons.assignment_turned_in,
+            color: Colors.blue,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BaptismReportsListScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildReportTypeCard(
+            title: 'Submitted Salvation Reports',
+            description: 'View all submitted salvation report details',
+            icon: Icons.assignment_turned_in,
+            color: Colors.green.shade700,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SalvationReportsListScreen(),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -885,8 +935,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
         targetScreen = GarageReportsScreen(reportId: id);
       } else if (lowerTitle.contains(baptismReportTitle)) {
         icon = Icons.water_drop;
+        targetScreen = BaptismReportsScreen(reportId: id);
       } else if (lowerTitle.contains(salvationReportTitle)) {
         icon = Icons.favorite;
+        targetScreen = SalvationReportsScreen(reportId: id);
       } else if (lowerTitle.contains('prayer') ||
           lowerTitle.contains('follow')) {
         icon = Icons.pending_actions;

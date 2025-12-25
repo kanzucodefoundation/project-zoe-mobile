@@ -8,6 +8,7 @@ import '../providers/dashboard_provider.dart';
 import 'mc_reports_display_screen.dart';
 import 'mc_attendance_report_screen.dart';
 import 'garage_reports_display_screen.dart';
+import 'salvation_reports_display_screen.dart';
 import 'reports_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -209,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
         targetScreen = GarageReportsScreen(reportId: id);
       } else if (lowerTitle.contains(salvationReportTitle)) {
         icon = Icons.favorite;
-        // targetScreen = SalvationReportScreen(reportId: id);
+        targetScreen = SalvationReportsScreen(reportId: id);
       }
 
       cards.add(

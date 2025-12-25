@@ -102,7 +102,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
       context: context,
       initialDate: widget.selectedDate ?? DateTime.now(),
       firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
+      lastDate: DateTime.now(), // Only allow today and past dates
     );
 
     if (picked != null && picked != widget.selectedDate) {

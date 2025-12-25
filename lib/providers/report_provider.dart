@@ -1,9 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:project_zoe/models/report_template.dart';
+
 import 'package:project_zoe/services/reports_service.dart';
 import '../models/report.dart';
-import '../helpers/report_helpers.dart';
-import '../services/report_service.dart';
 
 /// Provider for managing reports state and operations
 class ReportProvider extends ChangeNotifier {
