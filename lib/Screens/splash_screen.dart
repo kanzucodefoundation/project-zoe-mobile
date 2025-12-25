@@ -35,7 +35,7 @@ class SplashScreen extends StatelessWidget {
             SizedBox(height: 16),
             // Subtitle
             Text(
-              'Church Management System',
+              'Church Relationship Management System',
               style: TextStyle(color: Colors.white70, fontSize: 16),
             ),
             SizedBox(height: 48),
