@@ -47,7 +47,7 @@ class _GarageAttendanceFormScreenState
     });
 
     try {
-      final reportProvider = Provider.of<ReportProvider>(
+      Provider.of<ReportProvider>(
         context,
         listen: false,
       );
@@ -104,12 +104,6 @@ class _GarageAttendanceFormScreenState
     }
   }
 
-  double _calculateAttendanceRate() {
-    final total = int.tryParse(_totalAttendanceController.text) ?? 0;
-    final members = int.tryParse(_memberAttendanceController.text) ?? 0;
-    if (members == 0) return 0.0;
-    return (total / members) * 100;
-  }
 
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
