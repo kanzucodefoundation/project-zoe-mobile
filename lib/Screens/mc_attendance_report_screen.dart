@@ -196,12 +196,12 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
-            onPressed: _loadMcData,
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.refresh, color: Colors.black),
+        //     onPressed: _loadMcData,
+        //   ),
+        // ],
       ),
       body: _buildBody(),
     );
@@ -760,14 +760,14 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
                 style: TextStyle(fontSize: 12, color: Colors.red[600]),
               ),
             ),
-          if (!_isLoadingMcs && _availableMcs.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                '${_availableMcs.length} MCs loaded from server',
-                style: TextStyle(fontSize: 12, color: Colors.green[600]),
-              ),
-            ),
+          // if (!_isLoadingMcs && _availableMcs.isNotEmpty)
+          //   Padding(
+          //     padding: const EdgeInsets.only(top: 4),
+          //     child: Text(
+          //       '${_availableMcs.length} MCs loaded from server',
+          //       style: TextStyle(fontSize: 12, color: Colors.green[600]),
+          //     ),
+          //   ),
         ],
       );
     }
