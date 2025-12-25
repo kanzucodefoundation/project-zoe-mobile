@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project_zoe/services/reports_service.dart';
-import '../models/group.dart';
+import '../../models/group.dart';
 
 class GroupDetailsScreen extends StatefulWidget {
   final int groupId;

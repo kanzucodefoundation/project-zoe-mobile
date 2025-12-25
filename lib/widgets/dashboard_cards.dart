@@ -125,7 +125,6 @@ class DashboardCardsSection extends StatelessWidget {
           ),
 
           const SizedBox(height: 16),
-
           // Summary data card (full width)
           Card(
             elevation: 4,

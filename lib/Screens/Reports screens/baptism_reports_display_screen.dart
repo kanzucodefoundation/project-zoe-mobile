@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:project_zoe/models/report.dart';
-import 'package:project_zoe/models/reports_model.dart';
 import 'package:project_zoe/services/reports_service.dart';
-import '../components/text_field.dart';
-import '../components/submit_button.dart';
-import '../components/custom_date_picker.dart';
 
-/// Garage Reports Display Screen - Shows Garage report template and submissions
-class GarageReportsScreen extends StatefulWidget {
+import '../../components/submit_button.dart';
+import '../../components/custom_date_picker.dart';
+
+/// Baptism Reports Display Screen - Shows Baptism report template and submissions
+class BaptismReportsScreen extends StatefulWidget {
   final int reportId;
-  const GarageReportsScreen({super.key, required this.reportId});
+  const BaptismReportsScreen({super.key, required this.reportId});
 
   @override
-  State<GarageReportsScreen> createState() => _GarageReportsScreenState();
+  State<BaptismReportsScreen> createState() => _BaptismReportsScreenState();
 }
 
-class _GarageReportsScreenState extends State<GarageReportsScreen> {
+class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
   Report? _reportTemplate;
   final List<Map<String, dynamic>> _submissions = [];
   bool _isLoading = true;
@@ -35,7 +34,6 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
   @override
   void dispose() {
-    // Dispose all text controllers
     for (var controller in _controllers.values) {
       controller.dispose();
     }
@@ -49,15 +47,16 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     });
 
     try {
-      // Load Garage report template (ID: 2)
       final templateData = await ReportsService.getReportById(widget.reportId);
-
       final template = Report.fromJson(templateData.toJson());
-      // final submissions = await ReportService.getReportSubmissions(2);
+      final submissions = await ReportsService.getReportSubmissions(
+        widget.reportId,
+      );
 
       setState(() {
         _reportTemplate = template;
-        // _submissions = submissions;
+        _submissions.clear();
+        _submissions.addAll(submissions);
         _isLoading = false;
       });
     } catch (e) {
@@ -80,7 +79,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Garage Reports',
+          'Baptism Reports',
           style: TextStyle(
             color: Colors.black,
             fontSize: 20,
@@ -143,12 +142,11 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Report Header Card
           _buildReportHeader(),
           const SizedBox(height: 24),
-
-          // Report Fields with Form
           _buildReportFieldsWithForm(),
+          const SizedBox(height: 24),
+          _buildSubmissionsSection(),
           const SizedBox(height: 24),
         ],
       ),
@@ -178,10 +176,14 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
+                  color: Colors.blue.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.garage, size: 24, color: Colors.orange),
+                child: const Icon(
+                  Icons.water_drop,
+                  size: 24,
+                  color: Colors.blue,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -226,7 +228,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: (color ?? Colors.orange).withValues(alpha: 0.1),
+        color: (color ?? Colors.blue).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
@@ -234,7 +236,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: color ?? Colors.orange.shade700,
+          color: color ?? Colors.blue.shade700,
         ),
       ),
     );
@@ -277,15 +279,10 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 20),
-
-            // Generate form fields
             ...visibleFields.map(
               (field) => _buildTemplateFieldWithInput(field),
             ),
-
             const SizedBox(height: 24),
-
-            // Submit button
             SubmitButton(
               text: _isSubmitting ? 'Submitting...' : 'Submit Report',
               onPressed: _isSubmitting ? () {} : _submitReport,
@@ -298,13 +295,12 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     );
   }
 
-  Widget _buildTemplateFieldWithInput(ReportField field) {
+  Widget _buildTemplateFieldWithInput(field) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Field info header (without type)
           Row(
             children: [
               Container(
@@ -329,18 +325,16 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          // Dynamic input field based on field type and name
           _buildInputForField(field),
         ],
       ),
     );
   }
 
-  Widget _buildInputForField(ReportField field) {
+  Widget _buildInputForField(field) {
     final fieldName = field.name.toLowerCase();
     final fieldLabel = field.label.toLowerCase();
 
-    // Date picker for date fields (but NOT service type)
     if ((fieldName.contains('date') || fieldLabel.contains('date')) &&
         !fieldName.contains('type') &&
         !fieldLabel.contains('type')) {
@@ -364,12 +358,10 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       );
     }
 
-    // Initialize controller if not exists
     if (!_controllers.containsKey(field.name)) {
       _controllers[field.name] = TextEditingController();
     }
 
-    // Text area for long text fields
     if (field.type.toLowerCase() == 'textarea' ||
         fieldLabel.contains('comment') ||
         fieldLabel.contains('note') ||
@@ -404,11 +396,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       );
     }
 
-    // Regular text field
-    return CustomTextField(
-      hintText: 'Enter ${field.label.toLowerCase()}',
+    // Default single line text input
+    return TextFormField(
       controller: _controllers[field.name],
-      keyboardType: _getKeyboardType(field.type),
       validator: field.required
           ? (value) {
               if (value == null || value.isEmpty) {
@@ -417,124 +407,28 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
               return null;
             }
           : null,
-    );
-  }
-
-  Widget _buildSubmitForm() {
-    if (_reportTemplate?.fields == null) return const SizedBox();
-
-    final visibleFields = _reportTemplate!.fields!
-        .where((field) => !field.hidden)
-        .toList();
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Submit Report',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Fill out the report fields below',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 20),
-
-            // Generate form fields
-            ...visibleFields.map((field) => _buildFormField(field)),
-
-            const SizedBox(height: 20),
-
-            // Submit button
-            SubmitButton(
-              text: _isSubmitting ? 'Submitting...' : 'Submit Report',
-              onPressed: _isSubmitting ? () {} : _submitReport,
-              backgroundColor: Colors.orange,
-              textColor: Colors.white,
-            ),
-          ],
+      decoration: InputDecoration(
+        hintText: 'Enter ${field.label.toLowerCase()}',
+        hintStyle: TextStyle(color: Colors.grey[500]),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
         ),
       ),
     );
   }
 
-  Widget _buildFormField(ReportField field) {
-    // Initialize controller if not exists
-    if (!_controllers.containsKey(field.name)) {
-      _controllers[field.name] = TextEditingController();
+  void _submitReport() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final data = <String, dynamic>{};
+    for (var entry in _controllers.entries) {
+      data[entry.key] = entry.value.text;
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            field.label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          CustomTextField(
-            hintText: 'Enter ${field.label.toLowerCase()}',
-            controller: _controllers[field.name],
-            keyboardType: _getKeyboardType(field.type),
-            validator: field.required
-                ? (value) {
-                    if (value == null || value.isEmpty) {
-                      return '${field.label} is required';
-                    }
-                    return null;
-                  }
-                : null,
-          ),
-        ],
-      ),
-    );
-  }
-
-  TextInputType _getKeyboardType(String type) {
-    switch (type.toLowerCase()) {
-      case 'number':
-      case 'integer':
-        return TextInputType.number;
-      case 'email':
-        return TextInputType.emailAddress;
-      case 'phone':
-        return TextInputType.phone;
-      case 'url':
-        return TextInputType.url;
-      default:
-        return TextInputType.text;
-    }
-  }
-
-  Future<void> _submitReport() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
+    if (_selectedDate != null) {
+      data['date'] = _selectedDate!.toIso8601String();
     }
 
     setState(() {
@@ -542,58 +436,24 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     });
 
     try {
-      // Collect form data
-      final Map<String, dynamic> formData = {};
-      for (var entry in _controllers.entries) {
-        formData[entry.key] = entry.value.text;
-      }
+      // Using report service to submit
+      await ReportsService.submitReport(
+        groupId: 0,
+        reportId: widget.reportId,
+        data: data,
+      );
 
-      // Add report metadata
-      if (_selectedDate != null) {
-        formData['serviceDate'] = _selectedDate!.toIso8601String();
-      }
-      formData['reportId'] = widget.reportId;
-      formData['submittedAt'] = DateTime.now().toIso8601String();
-
-      print('🚀 Submitting garage report: $formData');
-
-      // TODO: Implement actual submission logic
-      // await ReportsService.submitReport(formData);
-
-      // Simulate submission delay
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Report submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Clear form
-        for (var controller in _controllers.values) {
-          controller.clear();
-        }
-        setState(() {
-          _selectedDate = null;
-        });
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Report submitted successfully')),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error submitting report: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to submit report: $e')));
     } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
+      setState(() {
+        _isSubmitting = false;
+      });
     }
   }
 
@@ -665,7 +525,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Submit your first Garage report to see it here',
+                      'Submit your first Baptism report to see it here',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade500,
@@ -690,8 +550,8 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   Widget _buildSubmissionItem(Map<String, dynamic> submission) {
     final submissionDate =
         submission['date'] ?? submission['submittedAt'] ?? 'Unknown date';
-    final serviceName = submission['serviceName'] ?? 'Sunday Service';
-    final attendance = submission['totalAttendance']?.toString() ?? '0';
+    final title = submission['title'] ?? 'Baptism Report';
+    final count = submission['baptismCount']?.toString() ?? '0';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -706,10 +566,10 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
+              color: Colors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: const Icon(Icons.assignment, size: 16, color: Colors.orange),
+            child: const Icon(Icons.water_drop, size: 16, color: Colors.blue),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -717,7 +577,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  serviceName,
+                  title,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -726,7 +586,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$submissionDate • $attendance attended',
+                  '$submissionDate • $count baptisms',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
               ],

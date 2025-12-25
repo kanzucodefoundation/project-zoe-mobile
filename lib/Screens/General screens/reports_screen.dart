@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:project_zoe/services/reports_service.dart';
 import 'package:provider/provider.dart';
-import '../providers/report_provider.dart';
-import '../providers/auth_provider.dart';
-import '../models/group.dart';
-import '../components/report_card.dart';
-import 'mc_attendance_report_screen.dart';
-import 'garage_reports_display_screen.dart';
-import 'mc_reports_list_screen.dart';
-import 'group_details_screen.dart';
+import '../../providers/report_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../models/group.dart';
+import '../../components/report_card.dart';
+import '../Reports screens/mc_attendance_report_screen.dart';
+import '../Reports screens/garage_reports_display_screen.dart';
+import '../Reports screens/mc_reports_list_screen.dart';
+import '../Reports screens/garage_reports_list_screen.dart';
+import '../Reports screens/baptism_reports_list_screen.dart';
+import '../Reports screens/salvation_reports_list_screen.dart';
+import '../details_screens/group_details_screen.dart';
+import '../Reports screens/baptism_reports_display_screen.dart';
+import '../Reports screens/salvation_reports_display_screen.dart';
 
 /// Reports screen displaying all reports with server data
 class ReportsScreen extends StatefulWidget {
@@ -24,6 +29,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   bool _isLoadingCategories = true;
   bool _isLoadingGroups = true;
   bool _showAllGroups = false;
+  bool _showAllReportTypes = false;
   String? _selectedCategory;
 
   @override
@@ -685,6 +691,68 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildReportTypesSection() {
+    final reportTypeWidgets = [
+      _buildReportTypeCard(
+        title: 'Submitted MC Reports',
+        description: 'View all submitted MC report details',
+        icon: Icons.assignment_turned_in,
+        color: Colors.green,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const McReportsListScreen(),
+            ),
+          );
+        },
+      ),
+      const SizedBox(height: 12),
+      _buildReportTypeCard(
+        title: 'Submitted Garage Reports',
+        description: 'View all submitted garage report details',
+        icon: Icons.assignment_turned_in,
+        color: Colors.orange,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const GarageReportsListScreen(),
+            ),
+          );
+        },
+      ),
+      const SizedBox(height: 12),
+      _buildReportTypeCard(
+        title: 'Submitted Baptism Reports',
+        description: 'View all submitted baptism report details',
+        icon: Icons.assignment_turned_in,
+        color: Colors.blue,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const BaptismReportsListScreen(),
+            ),
+          );
+        },
+      ),
+      const SizedBox(height: 12),
+      _buildReportTypeCard(
+        title: 'Submitted Salvation Reports',
+        description: 'View all submitted salvation report details',
+        icon: Icons.assignment_turned_in,
+        color: Colors.green.shade700,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SalvationReportsListScreen(),
+            ),
+          );
+        },
+      ),
+    ];
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -715,35 +783,43 @@ class _ReportsScreenState extends State<ReportsScreen> {
             style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 16),
-          // _buildReportTypeCard(
-          //   title: 'MC Attendance Report',
-          //   description: 'View submissions for all Missional Communities',
-          //   icon: Icons.groups,
-          //   color: Colors.blue,
-          //   onTap: () {
-          //     Navigator.push(
-          //       context,
-          //       MaterialPageRoute(
-          //         builder: (context) => const McAttendanceReportScreen(),
-          //       ),
-          //     );
-          //   },
-          // ),
-          // const SizedBox(height: 12),
-          _buildReportTypeCard(
-            title: 'Submitted MC Reports',
-            description: 'View all submitted MC report details',
-            icon: Icons.assignment_turned_in,
-            color: Colors.green,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const McReportsListScreen(),
+          // Show first 2 report types or all if _showAllReportTypes is true
+          ...(_showAllReportTypes ? reportTypeWidgets : reportTypeWidgets.take(3).toList()),
+          if (!_showAllReportTypes && reportTypeWidgets.length > 3) ...[
+            const SizedBox(height: 16),
+            Center(
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _showAllReportTypes = true;
+                  });
+                },
+                icon: const Icon(Icons.expand_more),
+                label: const Text('Load More Report Types'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
-              );
-            },
-          ),
+              ),
+            ),
+          ] else if (_showAllReportTypes && reportTypeWidgets.length > 3) ...[
+            const SizedBox(height: 16),
+            Center(
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _showAllReportTypes = false;
+                  });
+                },
+                icon: const Icon(Icons.expand_less),
+                label: const Text('Show Less'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -885,8 +961,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
         targetScreen = GarageReportsScreen(reportId: id);
       } else if (lowerTitle.contains(baptismReportTitle)) {
         icon = Icons.water_drop;
+        targetScreen = BaptismReportsScreen(reportId: id);
       } else if (lowerTitle.contains(salvationReportTitle)) {
         icon = Icons.favorite;
+        targetScreen = SalvationReportsScreen(reportId: id);
       } else if (lowerTitle.contains('prayer') ||
           lowerTitle.contains('follow')) {
         icon = Icons.pending_actions;
