@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:project_zoe/models/report.dart';
 import 'package:project_zoe/models/reports_model.dart';
 import 'package:project_zoe/services/reports_service.dart';
-import '../components/text_field.dart';
-import '../components/submit_button.dart';
-import '../components/dropdown.dart';
-import '../components/custom_date_picker.dart';
-import 'details_screens/mc_report_detail_screen.dart';
+import '../../components/text_field.dart';
+import '../../components/submit_button.dart';
+import '../../components/dropdown.dart';
+import '../../components/custom_date_picker.dart';
+import '../details_screens/mc_report_detail_screen.dart';
 
 /// MC Attendance Report Screen - Shows MC report template and submissions
 class McAttendanceReportScreen extends StatefulWidget {
@@ -22,7 +22,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
   Report? _reportTemplate;
   List<Map<String, dynamic>> _availableMcs = [];
   final Map<int, List<Map<String, dynamic>>> _mcReports = {};
-  final List<Map<String, dynamic>> _submissions = [];
   bool _isLoading = true;
   String? _error;
 
@@ -111,7 +110,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
 
     for (final mc in _availableMcs) {
       try {
-        final mcId = mc['id'] as int;
         // final reports = await _loadReportsForMc(mcId);
         // _mcReports[mcId] = reports;
         // print('✅ Loaded ${reports.length} reports for MC ${mc['name']}');

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:project_zoe/models/report.dart';
 import 'package:project_zoe/services/reports_service.dart';
 
-import '../components/submit_button.dart';
-import '../components/custom_date_picker.dart';
+import '../../components/submit_button.dart';
+import '../../components/custom_date_picker.dart';
 
 /// Baptism Reports Display Screen - Shows Baptism report template and submissions
 class BaptismReportsScreen extends StatefulWidget {
@@ -49,7 +49,9 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
     try {
       final templateData = await ReportsService.getReportById(widget.reportId);
       final template = Report.fromJson(templateData.toJson());
-      final submissions = await ReportsService.getReportSubmissions(widget.reportId);
+      final submissions = await ReportsService.getReportSubmissions(
+        widget.reportId,
+      );
 
       setState(() {
         _reportTemplate = template;

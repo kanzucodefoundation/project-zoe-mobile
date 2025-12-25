@@ -5,15 +5,15 @@ import '../../providers/report_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/group.dart';
 import '../../components/report_card.dart';
-import 'Reports screens/mc_attendance_report_screen.dart';
-import 'Reports screens/garage_reports_display_screen.dart';
-import 'Reports screens/mc_reports_list_screen.dart';
-import 'Reports screens/garage_reports_list_screen.dart';
-import 'Reports screens/baptism_reports_list_screen.dart';
-import 'Reports screens/salvation_reports_list_screen.dart';
-import 'details_screens/group_details_screen.dart';
-import 'Reports screens/baptism_reports_display_screen.dart';
-import 'Reports screens/salvation_reports_display_screen.dart';
+import '../Reports screens/mc_attendance_report_screen.dart';
+import '../Reports screens/garage_reports_display_screen.dart';
+import '../Reports screens/mc_reports_list_screen.dart';
+import '../Reports screens/garage_reports_list_screen.dart';
+import '../Reports screens/baptism_reports_list_screen.dart';
+import '../Reports screens/salvation_reports_list_screen.dart';
+import '../details_screens/group_details_screen.dart';
+import '../Reports screens/baptism_reports_display_screen.dart';
+import '../Reports screens/salvation_reports_display_screen.dart';
 
 /// Reports screen displaying all reports with server data
 class ReportsScreen extends StatefulWidget {
@@ -784,9 +784,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ),
           const SizedBox(height: 16),
           // Show first 2 report types or all if _showAllReportTypes is true
-          ...(_showAllReportTypes
-              ? reportTypeWidgets
-              : reportTypeWidgets.take(3).toList()),
+          ...(_showAllReportTypes ? reportTypeWidgets : reportTypeWidgets.take(3).toList()),
           if (!_showAllReportTypes && reportTypeWidgets.length > 3) ...[
             const SizedBox(height: 16),
             Center(
@@ -800,10 +798,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 label: const Text('Load More Report Types'),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
               ),
             ),
@@ -820,10 +815,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 label: const Text('Show Less'),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
               ),
             ),

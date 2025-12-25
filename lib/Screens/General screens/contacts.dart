@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/contacts_provider.dart';
-import '../providers/auth_provider.dart';
-import '../tiles/contact_tile.dart';
-import 'details_screens/contact_details_screen.dart';
+import '../../providers/contacts_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../tiles/contact_tile.dart';
+import '../details_screens/contact_details_screen.dart';
 import 'add_contact_screen.dart';
 
 class ContactsScreen extends StatefulWidget {

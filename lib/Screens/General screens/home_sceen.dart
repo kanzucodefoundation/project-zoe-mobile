@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:project_zoe/Screens/contacts.dart';
 import 'package:project_zoe/components/report_card.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../providers/report_provider.dart';
-import '../providers/dashboard_provider.dart';
-import 'mc_attendance_report_screen.dart';
-import 'garage_reports_display_screen.dart';
-import 'salvation_reports_display_screen.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/report_provider.dart';
+import '../../providers/dashboard_provider.dart';
+import '../Reports screens/mc_attendance_report_screen.dart';
+import '../Reports screens/garage_reports_display_screen.dart';
+import '../Reports screens/salvation_reports_display_screen.dart';
 import 'reports_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,8 +16,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _attendanceReportTitle = 'mcAttendanceReport';
-
   @override
   void initState() {
     super.initState();

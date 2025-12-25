@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:project_zoe/Screens/contacts.dart';
+import 'package:project_zoe/Screens/General%20screens/contacts.dart';
 import 'custom_app_bar.dart';
 import 'custom_drawer.dart';
 import 'beautiful_bottom_nav.dart';
-import '../Screens/home_sceen.dart';
-import '../Screens/reports_screen.dart';
+import '../Screens/General screens/home_sceen.dart';
+import '../Screens/General screens/reports_screen.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:project_zoe/models/report.dart';
-import 'package:project_zoe/services/reports_service.dart';
+import 'package:provider/provider.dart';
 
-import '../components/submit_button.dart';
-import '../components/custom_date_picker.dart';
+import '../../components/submit_button.dart';
+import '../../components/custom_date_picker.dart';
+import '../../providers/salvation_reports_provider.dart';
+import '../../tiles/report_submission_tile.dart';
 
 /// Salvation Reports Display Screen - Shows Salvation report template and submissions
 class SalvationReportsScreen extends StatefulWidget {
@@ -15,21 +16,17 @@ class SalvationReportsScreen extends StatefulWidget {
 }
 
 class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
-  Report? _reportTemplate;
-  final List<Map<String, dynamic>> _submissions = [];
-  bool _isLoading = true;
-  String? _error;
-
   // Form related
   final _formKey = GlobalKey<FormState>();
   final Map<String, TextEditingController> _controllers = {};
   DateTime? _selectedDate;
-  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _loadReportData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SalvationReportsProvider>().loadReportData(widget.reportId);
+    });
   }
 
   @override
@@ -40,62 +37,41 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     super.dispose();
   }
 
-  Future<void> _loadReportData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final templateData = await ReportsService.getReportById(widget.reportId);
-      final template = Report.fromJson(templateData.toJson());
-      final submissions = await ReportsService.getReportSubmissions(widget.reportId);
-
-      setState(() {
-        _reportTemplate = template;
-        _submissions.clear();
-        _submissions.addAll(submissions);
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = 'Error loading report data: ${e.toString()}';
-        _isLoading = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Salvation Reports',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    return Consumer<SalvationReportsProvider>(
+      builder: (context, provider, child) {
+        return Scaffold(
+          backgroundColor: Colors.grey.shade50,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text(
+              'Salvation Reports',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? _buildErrorView()
-          : _reportTemplate != null
-          ? _buildReportView()
-          : const Center(child: Text('No report data found')),
+          body: provider.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : provider.error != null
+              ? _buildErrorView(provider)
+              : provider.reportTemplate != null
+              ? _buildReportView(provider)
+              : const Center(child: Text('No report data found')),
+        );
+      },
     );
   }
 
-  Widget _buildErrorView() {
+  Widget _buildErrorView(SalvationReportsProvider provider) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -114,13 +90,13 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _error!,
+              provider.error!,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: _loadReportData,
+              onPressed: () => provider.loadReportData(widget.reportId),
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
@@ -134,24 +110,24 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     );
   }
 
-  Widget _buildReportView() {
+  Widget _buildReportView(SalvationReportsProvider provider) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildReportHeader(),
+          _buildReportHeader(provider),
           const SizedBox(height: 24),
-          _buildReportFieldsWithForm(),
+          _buildReportFieldsWithForm(provider),
           const SizedBox(height: 24),
-          _buildSubmissionsSection(),
+          _buildSubmissionsSection(provider),
           const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Widget _buildReportHeader() {
+  Widget _buildReportHeader(SalvationReportsProvider provider) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -189,7 +165,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _reportTemplate!.name,
+                      provider.reportTemplate!.name,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -198,7 +174,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _reportTemplate!.description,
+                      provider.reportTemplate!.description,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
@@ -214,7 +190,10 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildInfoChip('Frequency', _reportTemplate!.submissionFrequency),
+              _buildInfoChip(
+                'Frequency',
+                provider.reportTemplate!.submissionFrequency,
+              ),
             ],
           ),
         ],
@@ -240,8 +219,8 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     );
   }
 
-  Widget _buildReportFieldsWithForm() {
-    final visibleFields = _reportTemplate!.fields!
+  Widget _buildReportFieldsWithForm(SalvationReportsProvider provider) {
+    final visibleFields = provider.reportTemplate!.fields!
         .where((field) => !field.hidden)
         .toList();
 
@@ -282,8 +261,8 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
             ),
             const SizedBox(height: 24),
             SubmitButton(
-              text: _isSubmitting ? 'Submitting...' : 'Submit Report',
-              onPressed: _isSubmitting ? () {} : _submitReport,
+              text: provider.isSubmitting ? 'Submitting...' : 'Submit Report',
+              onPressed: provider.isSubmitting ? () {} : _submitReport,
               backgroundColor: Colors.black,
               textColor: Colors.white,
             ),
@@ -428,32 +407,40 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
       data['date'] = _selectedDate!.toIso8601String();
     }
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    final provider = Provider.of<SalvationReportsProvider>(
+      context,
+      listen: false,
+    );
+    final success = await provider.submitReport(widget.reportId, data);
 
-    try {
-      await ReportsService.submitReport(
-        groupId: 0,
-        reportId: widget.reportId,
-        data: data,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Report submitted successfully')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to submit report: $e')));
-    } finally {
+    if (success) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Report submitted successfully')),
+        );
+      }
+      // Clear form after successful submission
+      _formKey.currentState!.reset();
+      for (var controller in _controllers.values) {
+        controller.clear();
+      }
       setState(() {
-        _isSubmitting = false;
+        _selectedDate = null;
       });
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to submit report: ${provider.error ?? 'Unknown error'}',
+            ),
+          ),
+        );
+      }
     }
   }
 
-  Widget _buildSubmissionsSection() {
+  Widget _buildSubmissionsSection(SalvationReportsProvider provider) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -486,20 +473,15 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${_submissions.length} submissions found',
+                    '${provider.submissions.length} submissions found',
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                 ],
               ),
-              IconButton(
-                onPressed: _loadReportData,
-                icon: const Icon(Icons.refresh),
-                tooltip: 'Refresh submissions',
-              ),
             ],
           ),
           const SizedBox(height: 16),
-          if (_submissions.isEmpty)
+          if (provider.submissions.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24),
@@ -533,62 +515,16 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
             )
           else
             Column(
-              children: _submissions
+              children: provider.submissions
                   .take(5)
-                  .map((submission) => _buildSubmissionItem(submission))
+                  .map(
+                    (submission) => ReportSubmissionTile(
+                      submission: submission,
+                      themeColor: Colors.green,
+                    ),
+                  )
                   .toList(),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubmissionItem(Map<String, dynamic> submission) {
-    final submissionDate =
-        submission['date'] ?? submission['submittedAt'] ?? 'Unknown date';
-    final title = submission['title'] ?? 'Salvation Report';
-    final count = submission['salvationCount']?.toString() ?? '0';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Icon(Icons.favorite, size: 16, color: Colors.green),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '$submissionDate • $count salvations',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 16),
         ],
       ),
     );

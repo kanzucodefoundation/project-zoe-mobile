@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:project_zoe/models/report.dart';
 import 'package:project_zoe/models/reports_model.dart';
 import 'package:project_zoe/services/reports_service.dart';
-import '../components/text_field.dart';
-import '../components/submit_button.dart';
-import '../components/custom_date_picker.dart';
+import '../../components/text_field.dart';
+import '../../components/submit_button.dart';
+import '../../components/custom_date_picker.dart';
 
 /// Garage Reports Display Screen - Shows Garage report template and submissions
 class GarageReportsScreen extends StatefulWidget {
@@ -53,7 +53,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       final templateData = await ReportsService.getReportById(widget.reportId);
 
       final template = Report.fromJson(templateData.toJson());
-      final submissions = await ReportsService.getReportSubmissions(widget.reportId);
+      final submissions = await ReportsService.getReportSubmissions(
+        widget.reportId,
+      );
 
       setState(() {
         _reportTemplate = template;
@@ -151,7 +153,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
           // Report Fields with Form
           _buildReportFieldsWithForm(),
           const SizedBox(height: 24),
-          
+
           // Submissions Section
           _buildSubmissionsSection(),
           const SizedBox(height: 24),

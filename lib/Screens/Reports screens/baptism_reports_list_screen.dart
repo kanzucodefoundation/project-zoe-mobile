@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:project_zoe/services/reports_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import 'dart:convert';
 
-import '../providers/auth_provider.dart';
-import '../api/api_client.dart';
+import '../../providers/auth_provider.dart';
+import '../../api/api_client.dart';
 
-class SalvationReportsListScreen extends StatefulWidget {
-  const SalvationReportsListScreen({super.key});
+class BaptismReportsListScreen extends StatefulWidget {
+  const BaptismReportsListScreen({super.key});
 
   @override
-  State<SalvationReportsListScreen> createState() => _SalvationReportsListScreenState();
+  State<BaptismReportsListScreen> createState() =>
+      _BaptismReportsListScreenState();
 }
 
-class _SalvationReportsListScreenState extends State<SalvationReportsListScreen> {
+class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
   List<Map<String, dynamic>> _reportSubmissions = [];
   List<Map<String, dynamic>> _allSubmissions = [];
   bool _isLoading = true;
   String? _error;
   DateTime? _filterStart;
   DateTime? _filterEnd;
-  int _itemsToShow = 2;
+  int _itemsToShow = 2; // Show only 2 items initially
 
   @override
   void initState() {
@@ -45,8 +44,8 @@ class _SalvationReportsListScreenState extends State<SalvationReportsListScreen>
         throw Exception('User not authenticated. Please login again.');
       }
 
-      // Get salvation reports (assuming report ID 4 for salvation)
-      final submissions = await ReportsService.getReportSubmissions(4);
+      // Get baptism reports (assuming report ID 3 for baptism)
+      final submissions = await ReportsService.getReportSubmissions(3);
 
       if (mounted) {
         setState(() {
@@ -71,16 +70,144 @@ class _SalvationReportsListScreenState extends State<SalvationReportsListScreen>
         _reportSubmissions = List.from(_allSubmissions);
       } else {
         _reportSubmissions = _allSubmissions.where((submission) {
-          final submissionDate = DateTime.tryParse(submission['date'] ?? submission['submittedAt'] ?? '');
+          final submissionDate = DateTime.tryParse(
+            submission['date'] ?? submission['submittedAt'] ?? '',
+          );
           if (submissionDate == null) return false;
-          
-          if (_filterStart != null && submissionDate.isBefore(_filterStart!)) return false;
-          if (_filterEnd != null && submissionDate.isAfter(_filterEnd!.add(const Duration(days: 1)))) return false;
-          
+
+          if (_filterStart != null && submissionDate.isBefore(_filterStart!))
+            return false;
+          if (_filterEnd != null &&
+              submissionDate.isAfter(_filterEnd!.add(const Duration(days: 1))))
+            return false;
+
           return true;
         }).toList();
       }
+      _itemsToShow = 2; // Reset pagination when filters change
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Baptism Report Submissions',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_alt, color: Colors.black),
+            tooltip: 'Filter by date range',
+            onPressed: _openFilterSheet,
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+          ? _buildErrorView()
+          : _buildReportsList(),
+    );
+  }
+
+  Widget _buildErrorView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
+            const SizedBox(height: 16),
+            Text(
+              'Error Loading Reports',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.red.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _loadReportSubmissions,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReportsList() {
+    return RefreshIndicator(
+      onRefresh: _loadReportSubmissions,
+      child: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _itemsToShow < _reportSubmissions.length
+                  ? _itemsToShow + 1
+                  : _reportSubmissions.length,
+              itemBuilder: (context, index) {
+                if (index == _itemsToShow &&
+                    _itemsToShow < _reportSubmissions.length) {
+                  return _buildLoadMoreButton();
+                }
+                return _buildReportItem(_reportSubmissions[index]);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadMoreButton() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            setState(() {
+              _itemsToShow += 5; // Load 5 more items
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          ),
+          child: Text(
+            'Load More (${_reportSubmissions.length - _itemsToShow} remaining)',
+          ),
+        ),
+      ),
+    );
   }
 
   void _openFilterSheet() {
@@ -174,166 +301,43 @@ class _SalvationReportsListScreenState extends State<SalvationReportsListScreen>
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Salvation Report Submissions',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_alt, color: Colors.black),
-            tooltip: 'Filter by date range',
-            onPressed: _openFilterSheet,
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? _buildErrorView()
-          : _buildReportsList(),
-    );
-  }
-
-  Widget _buildErrorView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
-            const SizedBox(height: 16),
-            Text(
-              'Error Loading Reports',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.red.shade700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _error!,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _loadReportSubmissions,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReportsList() {
-    return RefreshIndicator(
-      onRefresh: _loadReportSubmissions,
-      child: _reportSubmissions.isEmpty
-          ? _buildEmptyState()
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _itemsToShow < _reportSubmissions.length ? _itemsToShow + 1 : _reportSubmissions.length,
-                    itemBuilder: (context, index) {
-                      if (index == _itemsToShow && _itemsToShow < _reportSubmissions.length) {
-                        return _buildLoadMoreButton();
-                      }
-                      return _buildReportItem(_reportSubmissions[index]);
-                    },
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
   Widget _buildEmptyState() {
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
+    return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.favorite,
-              size: 64,
-              color: Colors.green.shade300,
-            ),
+            Icon(Icons.water_drop, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
-              'No Salvation Reports Found',
+              'No Baptism Reports Found',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
+                color: Colors.grey.shade600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'No salvation reports have been submitted yet.',
+              'No baptism reports have been submitted yet, or they don\'t match your current filters.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadMoreButton() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      child: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            setState(() {
-              _itemsToShow += 5; // Load 5 more items
-            });
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-          ),
-          child: Text('Load More (${_reportSubmissions.length - _itemsToShow} remaining)'),
         ),
       ),
     );
   }
 
   Widget _buildReportItem(Map<String, dynamic> report) {
-    final reportDate = report['date'] ?? report['submittedAt'] ?? 'Unknown date';
-    final salvationCount = report['salvationCount']?.toString() ?? report['count']?.toString() ?? '0';
-    final title = report['title'] ?? 'Salvation Report';
+    final reportDate =
+        report['date'] ?? report['submittedAt'] ?? 'Unknown date';
+    final baptismCount =
+        report['baptismCount']?.toString() ??
+        report['count']?.toString() ??
+        '0';
+    final title = report['title'] ?? 'Baptism Report';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -354,21 +358,14 @@ class _SalvationReportsListScreenState extends State<SalvationReportsListScreen>
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: Colors.green.withValues(alpha: 0.1),
+            color: Colors.blue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(
-            Icons.favorite,
-            color: Colors.green,
-            size: 24,
-          ),
+          child: const Icon(Icons.water_drop, color: Colors.blue, size: 24),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,24 +373,15 @@ class _SalvationReportsListScreenState extends State<SalvationReportsListScreen>
             const SizedBox(height: 4),
             Text(
               'Date: $reportDate',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             Text(
-              'Salvations: $salvationCount',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              'Baptisms: $baptismCount',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
           ],
         ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: Colors.grey.shade400,
-        ),
+        trailing: Icon(Icons.chevron_right, color: Colors.grey.shade400),
         onTap: () {
           // TODO: Navigate to detailed view
         },

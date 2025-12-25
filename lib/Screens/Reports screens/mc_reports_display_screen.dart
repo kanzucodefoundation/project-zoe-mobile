@@ -4,7 +4,7 @@ import 'package:project_zoe/models/reports_model.dart';
 import 'package:project_zoe/services/reports_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import '../components/long_button.dart';
+import '../../components/long_button.dart';
 
 /// MC Reports Display Screen - Shows MC report template and submissions
 class McReportsScreen extends StatefulWidget {

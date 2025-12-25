@@ -5,15 +5,16 @@ import 'package:project_zoe/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/report_provider.dart';
+import 'providers/salvation_reports_provider.dart';
 import 'widgets/app_wrapper.dart';
 import 'api/api_client.dart';
-import 'Screens/baptism_reports_display_screen.dart';
-import 'Screens/salvation_reports_display_screen.dart';
-import 'Screens/reports_screen.dart';
-import 'screens/admin_screen.dart';
+import 'Screens/Reports screens/baptism_reports_display_screen.dart';
+import 'Screens/Reports screens/salvation_reports_display_screen.dart';
+import 'Screens/General screens/reports_screen.dart';
+import 'Screens/General screens/admin_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
-import 'Screens/settings_screen.dart';
+import 'Screens/General screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +36,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
+        ChangeNotifierProvider<SalvationReportsProvider>(
+          create: (_) => SalvationReportsProvider(),
+        ),
         ChangeNotifierProvider<ContactsProvider>(
           create: (_) => ContactsProvider(),
         ),

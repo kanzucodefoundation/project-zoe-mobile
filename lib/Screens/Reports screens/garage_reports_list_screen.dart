@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:project_zoe/services/reports_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import 'dart:convert';
 
-import '../providers/auth_provider.dart';
-import '../api/api_client.dart';
+import '../../providers/auth_provider.dart';
+import '../../api/api_client.dart';
 
-class BaptismReportsListScreen extends StatefulWidget {
-  const BaptismReportsListScreen({super.key});
+class GarageReportsListScreen extends StatefulWidget {
+  const GarageReportsListScreen({super.key});
 
   @override
-  State<BaptismReportsListScreen> createState() => _BaptismReportsListScreenState();
+  State<GarageReportsListScreen> createState() =>
+      _GarageReportsListScreenState();
 }
 
-class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
+class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
   List<Map<String, dynamic>> _reportSubmissions = [];
   List<Map<String, dynamic>> _allSubmissions = [];
   bool _isLoading = true;
@@ -45,8 +44,8 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
         throw Exception('User not authenticated. Please login again.');
       }
 
-      // Get baptism reports (assuming report ID 3 for baptism)
-      final submissions = await ReportsService.getReportSubmissions(3);
+      // Get garage reports (assuming report ID 2 for garage)
+      final submissions = await ReportsService.getReportSubmissions(2);
 
       if (mounted) {
         setState(() {
@@ -71,12 +70,17 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
         _reportSubmissions = List.from(_allSubmissions);
       } else {
         _reportSubmissions = _allSubmissions.where((submission) {
-          final submissionDate = DateTime.tryParse(submission['date'] ?? submission['submittedAt'] ?? '');
+          final submissionDate = DateTime.tryParse(
+            submission['date'] ?? submission['submittedAt'] ?? '',
+          );
           if (submissionDate == null) return false;
-          
-          if (_filterStart != null && submissionDate.isBefore(_filterStart!)) return false;
-          if (_filterEnd != null && submissionDate.isAfter(_filterEnd!.add(const Duration(days: 1)))) return false;
-          
+
+          if (_filterStart != null && submissionDate.isBefore(_filterStart!))
+            return false;
+          if (_filterEnd != null &&
+              submissionDate.isAfter(_filterEnd!.add(const Duration(days: 1))))
+            return false;
+
           return true;
         }).toList();
       }
@@ -96,7 +100,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Baptism Report Submissions',
+          'Garage Report Submissions',
           style: TextStyle(
             color: Colors.black,
             fontSize: 20,
@@ -148,7 +152,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -166,9 +170,12 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: _itemsToShow < _reportSubmissions.length ? _itemsToShow + 1 : _reportSubmissions.length,
+              itemCount: _itemsToShow < _reportSubmissions.length
+                  ? _itemsToShow + 1
+                  : _reportSubmissions.length,
               itemBuilder: (context, index) {
-                if (index == _itemsToShow && _itemsToShow < _reportSubmissions.length) {
+                if (index == _itemsToShow &&
+                    _itemsToShow < _reportSubmissions.length) {
                   return _buildLoadMoreButton();
                 }
                 return _buildReportItem(_reportSubmissions[index]);
@@ -191,11 +198,13 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
             });
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
+            backgroundColor: Colors.orange,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
           ),
-          child: Text('Load More (${_reportSubmissions.length - _itemsToShow} remaining)'),
+          child: Text(
+            'Load More (${_reportSubmissions.length - _itemsToShow} remaining)',
+          ),
         ),
       ),
     );
@@ -292,46 +301,11 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
     }
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.water_drop,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No Baptism Reports Found',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'No baptism reports have been submitted yet, or they don\'t match your current filters.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildReportItem(Map<String, dynamic> report) {
-    final reportDate = report['date'] ?? report['submittedAt'] ?? 'Unknown date';
-    final baptismCount = report['baptismCount']?.toString() ?? report['count']?.toString() ?? '0';
-    final title = report['title'] ?? 'Baptism Report';
+    final reportDate =
+        report['date'] ?? report['submittedAt'] ?? 'Unknown date';
+    final attendance = report['totalAttendance']?.toString() ?? '0';
+    final serviceName = report['serviceName'] ?? 'Sunday Service';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -352,21 +326,14 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: Colors.blue.withValues(alpha: 0.1),
+            color: Colors.orange.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(
-            Icons.water_drop,
-            color: Colors.blue,
-            size: 24,
-          ),
+          child: const Icon(Icons.garage, color: Colors.orange, size: 24),
         ),
         title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          serviceName,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -374,24 +341,15 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
             const SizedBox(height: 4),
             Text(
               'Date: $reportDate',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             Text(
-              'Baptisms: $baptismCount',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              'Attendance: $attendance',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
           ],
         ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: Colors.grey.shade400,
-        ),
+        trailing: Icon(Icons.chevron_right, color: Colors.grey.shade400),
         onTap: () {
           // TODO: Navigate to detailed view
         },
