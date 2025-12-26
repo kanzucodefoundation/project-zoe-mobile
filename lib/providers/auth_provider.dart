@@ -309,6 +309,9 @@ class AuthProvider extends ChangeNotifier {
   /// Check if user has a specific role
   bool hasRole(String role) => _user?.hasRole(role) ?? false;
 
+  /// Check if user has a specific permission
+  bool hasPermission(String permission) => _permissions.contains(permission);
+
   /// Check if current user is web admin
   bool get isWebAdmin => _user?.hasRole('System Admin') ?? false;
 

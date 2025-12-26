@@ -162,6 +162,8 @@ class User {
   bool get canAccessCRM =>
       hasPermission('CRM_VIEW') || hasPermission('CRM_EDIT');
 
+  bool get canEditCRM => hasPermission('CRM_EDIT');
+
   /// Get church name from first group's category or default
   String get churchName {
     if (hierarchy.myGroups.isNotEmpty) {

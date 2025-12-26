@@ -198,8 +198,9 @@ class ReportSubmissionTile extends StatelessWidget {
   }
 
   Widget _buildDetailRow(String key, dynamic value) {
-    if (value == null || value.toString().isEmpty)
+    if (value == null || value.toString().isEmpty) {
       return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),

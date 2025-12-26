@@ -75,11 +75,15 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
           );
           if (submissionDate == null) return false;
 
-          if (_filterStart != null && submissionDate.isBefore(_filterStart!))
+          if (_filterStart != null && submissionDate.isBefore(_filterStart!)) {
             return false;
+          }
           if (_filterEnd != null &&
-              submissionDate.isAfter(_filterEnd!.add(const Duration(days: 1))))
+              submissionDate.isAfter(
+                _filterEnd!.add(const Duration(days: 1)),
+              )) {
             return false;
+          }
 
           return true;
         }).toList();

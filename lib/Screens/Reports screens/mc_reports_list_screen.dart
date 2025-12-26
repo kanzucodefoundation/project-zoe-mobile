@@ -42,44 +42,51 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       if (authProvider.user != null) {
         // Set tenant header for API requests
         ApiClient().setTenant(authProvider.user!.churchName);
-        print('🏛️ Set tenant header: ${authProvider.user!.churchName}');
+        debugPrint('🏛️ Set tenant header: ${authProvider.user!.churchName}');
       } else {
-        print('⚠️ No authenticated user found');
+        debugPrint('⚠️ No authenticated user found');
         throw Exception('User not authenticated. Please login again.');
       }
 
-      print('🔄 Loading report submissions from server and local storage...');
+      debugPrint(
+        '🔄 Loading report submissions from server and local storage...',
+      );
 
       // Try to load from server first (primary data source)
-      final serverSubmissions = await ReportsService.getMcReportSubmissions();
-      print('📡 Server submissions: ${serverSubmissions.length}');
+      final serverSubmissions = await ReportsService.getMcReportSubmissions(
+        reportId: 1,
+      );
+      debugPrint('📡 Server submissions: ${serverSubmissions.submissions}');
 
       // Also try the general submitted reports endpoint
       final submittedReports = await ReportsService.getAllSubmittedReports();
-      print('📊 Submitted reports: ${submittedReports.length}');
+      debugPrint('📊 Submitted reports: ${submittedReports.length}');
 
       // Load from local storage as fallback/supplement
       final localSubmissions = await _loadLocalSubmissions();
-      print('💾 Local submissions: ${localSubmissions.length}');
+      debugPrint('💾 Local submissions: ${localSubmissions.length}');
 
       // Combine all sources (server data takes priority)
       final allSubmissions = [
-        ...serverSubmissions,
+        ...serverSubmissions.submissions,
         ...submittedReports,
         ...localSubmissions,
       ];
 
       // Remove duplicates based on ID if any
-      final uniqueSubmissions = <String, Map<String, dynamic>>{};
-      for (final submission in allSubmissions) {
-        final id =
-            submission['id']?.toString() ??
-            submission['reportId']?.toString() ??
-            DateTime.now().millisecondsSinceEpoch.toString();
-        uniqueSubmissions[id] = submission;
-      }
+      // final uniqueSubmissions = <String, Map<String, dynamic>>{};
+      // for (final submission in allSubmissions) {
+      //   final id =
+      //       submission['id']?.toString() ??
+      //       submission['reportId']?.toString() ??
+      //       DateTime.now().millisecondsSinceEpoch.toString();
+      //   uniqueSubmissions[id] = submission;
+      // }
 
-      final finalSubmissions = uniqueSubmissions.values.toList();
+      // final finalSubmissions = uniqueSubmissions.values.toList();
+      final finalSubmissions = serverSubmissions.submissions
+          .map((s) => s.toJson())
+          .toList(); // Use only server submissions for now
 
       if (mounted) {
         setState(() {
@@ -89,11 +96,11 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
         });
       }
 
-      print(
-        '📋 Total loaded: ${finalSubmissions.length} submissions (${serverSubmissions.length + submittedReports.length} from server, ${localSubmissions.length} local)',
+      debugPrint(
+        '📋 Total loaded: ${finalSubmissions.length} submissions (${serverSubmissions.submissions.length} from server, ${localSubmissions.length} local)',
       );
     } catch (e) {
-      print('❌ Error loading submissions: $e');
+      debugPrint('❌ Error loading submissions: $e');
       if (mounted) {
         setState(() {
           // Provide more user-friendly error message
@@ -211,7 +218,7 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'No reports have been found from the server or local storage. Submit a report or check your connection.',
+              'No reports have been found from the server. Submit a report or check your connection.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
@@ -229,12 +236,12 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                OutlinedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Go back to reports screen
-                  },
-                  child: const Text('Submit Report'),
-                ),
+                // OutlinedButton(
+                //   onPressed: () {
+                //     Navigator.pop(context); // Go back to reports screen
+                //   },
+                //   child: const Text('Submit Report'),
+                // ),
               ],
             ),
           ],
@@ -258,8 +265,8 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
   }
 
   Widget _buildReportCard(Map<String, dynamic> submission) {
-    print('\n🔎 === BUILDING REPORT CARD ===');
-    print('🔎 Full submission: $submission');
+    debugPrint('\n🔎 === BUILDING REPORT CARD ===');
+    debugPrint('🔎 Full submission: $submission');
 
     // Extract data from the correct structure: {reportId: 5, data: {...}}
     final data = submission['data'];
@@ -269,31 +276,29 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       reportData = Map<String, dynamic>.from(data);
     }
 
-    print('📊 Raw submission structure:');
-    print('  - ID: ${submission['id']}');
-    print('  - Report ID: ${submission['reportId']}');
-    print('  - Created At: ${submission['createdAt']}');
-    print('  - Data type: ${data.runtimeType}');
-    print('  - Data content: $data');
-    print('📋 Extracted report data: $reportData');
-    print('📋 Report data keys: ${reportData.keys.toList()}');
-    print('📋 Report data values: ${reportData.values.toList()}');
+    debugPrint('📊 Raw submission structure:');
+    debugPrint('  - ID: ${submission['id']}');
+    debugPrint('  - Report ID: ${submission['reportId']}');
+    debugPrint('  - Created At: ${submission['submittedAt']}');
+    debugPrint('  - Data type: ${data.runtimeType}');
+    debugPrint('  - Data content: $data');
+    debugPrint('📋 Extracted report data: $reportData');
+    debugPrint('📋 Report data keys: ${reportData.keys.toList()}');
+    debugPrint('📋 Report data values: ${reportData.values.toList()}');
 
     // Extract MC info using exact field names (preserving camelCase)
     String mcName = reportData['smallGroupName']?.toString() ?? 'Unknown MC';
     String date =
-        reportData['date']?.toString() ??
-        submission['createdAt']?.toString().split('T')[0] ??
-        'No Date';
+        submission['submittedAt']?.toString().split('T')[0] ?? 'No Date';
     String host = reportData['mcHostHome']?.toString() ?? 'No Host';
 
-    print('✅ === FINAL EXTRACTED VALUES ===');
-    print('  - MC Name: "$mcName" (from key: smallGroupName)');
-    print('  - Raw smallGroupName: ${reportData['smallGroupName']}');
-    print('  - Date: "$date" (from key: date)');
-    print('  - Raw date: ${reportData['date']}');
-    print('  - Host: "$host" (from key: mcHostHome)');
-    print('🔍 All available fields: ${reportData.keys.toList()}');
+    debugPrint('✅ === FINAL EXTRACTED VALUES ===');
+    debugPrint('  - MC Name: "$mcName" (from key: smallGroupName)');
+    debugPrint('  - Raw smallGroupName: ${reportData['smallGroupName']}');
+    debugPrint('  - Date: "$date" (from key: date)');
+    debugPrint('  - Raw date: ${reportData['date']}');
+    debugPrint('  - Host: "$host" (from key: mcHostHome)');
+    debugPrint('🔍 All available fields: ${reportData.keys.toList()}');
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -314,7 +319,7 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: Colors.blue.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -393,7 +398,7 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
@@ -401,7 +406,7 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w500,
-          color: color.withOpacity(0.8),
+          color: color.withValues(alpha: 0.8),
         ),
       ),
     );
@@ -543,7 +548,7 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       final data = submission['data'];
       if (data is Map) {
         final raw =
-            data['date'] ?? data['createdAt'] ?? submission['createdAt'];
+            data['date'] ?? data['submittedAt'] ?? submission['submittedAt'];
         if (raw != null) {
           final s = raw.toString();
           // Try ISO parse first
@@ -569,15 +574,15 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
         }
       }
 
-      // Try top-level createdAt
-      final top = submission['createdAt'];
+      // Try top-level submittedAt
+      final top = submission['submittedAt'];
       if (top != null) {
         final t = top.toString();
         final iso = DateTime.tryParse(t);
         if (iso != null) return iso;
       }
     } catch (e) {
-      print('⚠️ Error extracting date from submission: $e');
+      debugPrint('⚠️ Error extracting date from submission: $e');
     }
 
     return null;
@@ -722,14 +727,16 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
               json.decode(submissionString) as Map<String, dynamic>;
           submissions.add(submission);
         } catch (e) {
-          print('⚠️ Error parsing stored submission: $e');
+          debugPrint('⚠️ Error parsing stored submission: $e');
         }
       }
 
-      print('💾 Loaded ${submissions.length} submissions from local storage');
+      debugPrint(
+        '💾 Loaded ${submissions.length} submissions from local storage',
+      );
       return submissions;
     } catch (e) {
-      print('❌ Error loading local submissions: $e');
+      debugPrint('❌ Error loading local submissions: $e');
       return [];
     }
   }
