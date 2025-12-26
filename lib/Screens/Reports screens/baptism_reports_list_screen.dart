@@ -45,12 +45,18 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
       }
 
       // Get baptism reports (assuming report ID 3 for baptism)
-      final submissions = await ReportsService.getReportSubmissions(3);
+      final submissions = await ReportsService.getMcReportSubmissions(
+        reportId: 3,
+      );
 
       if (mounted) {
         setState(() {
-          _allSubmissions = submissions;
-          _reportSubmissions = submissions;
+          _allSubmissions = submissions.submissions
+              .map((e) => e.toJson())
+              .toList();
+          _reportSubmissions = submissions.submissions
+              .map((e) => e.toJson())
+              .toList();
           _isLoading = false;
         });
       }
@@ -336,12 +342,11 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
 
   Widget _buildReportItem(Map<String, dynamic> report) {
     final reportDate =
-        report['date'] ?? report['submittedAt'] ?? 'Unknown date';
-    final baptismCount =
-        report['baptismCount']?.toString() ??
-        report['count']?.toString() ??
-        '0';
-    final title = report['title'] ?? 'Baptism Report';
+        report['submittedAt']?.toString().split('T')[0] ?? 'No Date';
+    final reportData = report['data'] ?? {};
+    final baptismCount = reportData['numberOfBaptisms']?.toString() ?? '0';
+    final groupName = report['groupName'] ?? 'Baptism Report';
+    final groupId = report['groupId'] ?? '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -368,7 +373,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
           child: const Icon(Icons.water_drop, color: Colors.blue, size: 24),
         ),
         title: Text(
-          title,
+          groupName,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
@@ -376,11 +381,11 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
           children: [
             const SizedBox(height: 4),
             Text(
-              'Date: $reportDate',
+              'Date of Submission: $reportDate',
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             Text(
-              'Baptisms: $baptismCount',
+              'Number of Baptisms: $baptismCount',
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
           ],
