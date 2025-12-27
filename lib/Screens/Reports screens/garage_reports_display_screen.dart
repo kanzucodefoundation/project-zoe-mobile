@@ -12,7 +12,13 @@ import '../../tiles/report_submission_card_tile.dart';
 /// Garage Reports Display Screen - Shows Garage report template and submissions
 class GarageReportsScreen extends StatefulWidget {
   final int reportId;
-  const GarageReportsScreen({super.key, required this.reportId});
+  final Map<String, dynamic>? editingSubmission;
+
+  const GarageReportsScreen({
+    super.key,
+    required this.reportId,
+    this.editingSubmission,
+  });
 
   @override
   State<GarageReportsScreen> createState() => _GarageReportsScreenState();
@@ -31,7 +37,6 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   bool _isSubmitting = false;
 
   String? _selectedLocationId;
-  String? _selectedLocationName;
 
   @override
   void initState() {
@@ -69,12 +74,43 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         _submissions.addAll(submissions);
         _isLoading = false;
       });
+
+      // If we're editing, pre-fill the form with existing data
+      if (widget.editingSubmission != null) {
+        _preFillFormForEditing();
+      }
     } catch (e) {
       setState(() {
         _error = 'Error loading report data: ${e.toString()}';
         _isLoading = false;
       });
     }
+  }
+
+  void _preFillFormForEditing() {
+    final submission = widget.editingSubmission!;
+    final data = submission['data'] as Map<String, dynamic>? ?? {};
+
+    print('🔍 Garage pre-fill data: $data');
+
+    // Pre-fill text controllers
+    data.forEach((key, value) {
+      if (key == 'serviceDate' && value != null) {
+        try {
+          _selectedDate = DateTime.parse(value.toString());
+          print('✅ Pre-filled service date: $_selectedDate');
+        } catch (e) {
+          print('⚠️ Invalid date format: $value');
+        }
+      } else if (value != null && value.toString().isNotEmpty) {
+        // Create controller if doesn't exist and pre-fill
+        if (!_controllers.containsKey(key)) {
+          _controllers[key] = TextEditingController();
+        }
+        _controllers[key]!.text = value.toString();
+        print('✅ Pre-filled garage field $key with: ${value.toString()}');
+      }
+    });
   }
 
   @override
@@ -90,9 +126,11 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () => Navigator.pop(context),
             ),
-            title: const Text(
-              'Garage Reports',
-              style: TextStyle(
+            title: Text(
+              widget.editingSubmission != null
+                  ? 'Edit Garage Report'
+                  : 'Garage Reports',
+              style: const TextStyle(
                 color: Colors.black,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -162,10 +200,6 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
           // Report Fields with Form
           _buildReportFieldsWithForm(authProvider),
-          const SizedBox(height: 24),
-
-          // Submissions Section
-          _buildSubmissionsSection(),
           const SizedBox(height: 24),
         ],
       ),
@@ -574,13 +608,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
           }).toList(),
           onChanged: (value) {
             if (value != null) {
-              final selectedMc = availableLocations.firstWhere(
-                (mc) => mc['id']?.toString() == value,
-              );
               if (mounted) {
                 setState(() {
                   _selectedLocationId = value;
-                  _selectedLocationName = selectedMc['name'] ?? 'Unknown MC';
                 });
               }
             }
@@ -649,6 +679,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
             backgroundColor: Colors.green,
           ),
         );
+
+        // Navigate back to reports screen
+        Navigator.pop(context);
 
         // Clear form
         for (var controller in _controllers.values) {

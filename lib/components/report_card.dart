@@ -60,10 +60,12 @@ class ReportCard extends StatelessWidget {
               Flexible(
                 child: Text(
                   reportTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: backgroundColor == Colors.grey.shade100
+                        ? Colors.grey.shade600
+                        : Colors.black87,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 2,
