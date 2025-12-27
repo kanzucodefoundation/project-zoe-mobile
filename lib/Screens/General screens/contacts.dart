@@ -100,15 +100,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                                     builder: (context) =>
                                         const AddPeopleScreen(),
                                   ),
-                                ).then((_) {
-                                  // Refresh contacts after returning
-                                  final churchName =
-                                      authProvider.user?.churchName ??
-                                      'fellowship';
-                                  provider.refreshContacts(
-                                    churchName: churchName,
-                                  );
-                                });
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.black,

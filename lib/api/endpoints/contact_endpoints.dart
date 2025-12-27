@@ -1,5 +1,6 @@
 import '../api_client.dart';
 import '../../models/contacts.dart';
+import '../../Screens/General screens/add_contact_screen.dart';
 
 class ContactEndpoints {
   static final ApiClient _apiClient = ApiClient();
@@ -97,5 +98,185 @@ class ContactEndpoints {
       // print('📞 API: Error fetching contact details: $e');
       rethrow;
     }
+  }
+
+  /// Create a new contact
+  /// Endpoint: POST /api/crm/contacts
+  static Future<Contact> createContact(
+    Map<String, dynamic> contactData, {
+    String? churchName,
+  }) async {
+    try {
+      // Comment out debug prints for production
+      // print('📞 API: Creating new contact');
+      // print('📞 API: Data: $contactData');
+      // print('📞 API: Church: ${churchName ?? 'fellowship'}');
+
+      final response = await _apiClient.dio.post(
+        '/crm/contacts',
+        data: contactData,
+        // options: Options(
+        //   headers: {'X-Church-Name': churchName ?? 'fellowship'},
+        // ),
+      );
+
+      // Comment out debug print for production
+      // print('📞 API: Create contact response status: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = response.data;
+        // Comment out debug print for production
+        // print('📞 API: Created contact data: $responseData');
+        return Contact.fromJson(responseData);
+      } else {
+        throw Exception('Failed to create contact: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Comment out debug print for production
+      // print('📞 API: Error creating contact: $e');
+      rethrow;
+    }
+  }
+
+  /// Get contact form fields configuration
+  /// Endpoint: GET /api/crm/contacts/form-fields
+  static Future<List<ContactFormField>> getContactFormFields({
+    String? churchName,
+  }) async {
+    try {
+      // Comment out debug prints for production
+      // print('📋 API: Fetching contact form fields');
+      // print('📋 API: Church: ${churchName ?? 'fellowship'}');
+
+      final response = await _apiClient.dio.get(
+        '/crm/contacts/form-fields',
+        // options: Options(
+        //   headers: {'X-Church-Name': churchName ?? 'fellowship'},
+        // ),
+      );
+
+      // Comment out debug print for production
+      // print('📋 API: Form fields response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+
+        // Handle different response formats
+        List<dynamic> fieldsJson;
+        if (responseData is Map<String, dynamic> &&
+            responseData.containsKey('fields')) {
+          fieldsJson = responseData['fields'] as List<dynamic>;
+        } else if (responseData is List<dynamic>) {
+          fieldsJson = responseData;
+        } else {
+          // Fallback to default fields if server doesn't provide them
+          fieldsJson = _getDefaultContactFields();
+        }
+
+        // Comment out debug print for production
+        // print('📋 API: Found ${fieldsJson.length} form fields');
+
+        return fieldsJson
+            .map((json) => ContactFormField.fromJson(json))
+            .toList();
+      } else {
+        throw Exception('Failed to load form fields: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Comment out debug print for production
+      // print('📋 API: Error fetching form fields, using defaults: $e');
+
+      // Return default fields on error
+      return _getDefaultContactFields()
+          .map((json) => ContactFormField.fromJson(json))
+          .toList();
+    }
+  }
+
+  /// Update an existing contact
+  /// Endpoint: PUT /api/crm/contacts/{id}
+  static Future<Contact> updateContact(
+    int contactId,
+    Map<String, dynamic> contactData, {
+    String? churchName,
+  }) async {
+    try {
+      // Comment out debug prints for production
+      // print('📞 API: Updating contact $contactId');
+      // print('📞 API: Data: $contactData');
+      // print('📞 API: Church: ${churchName ?? 'fellowship'}');
+
+      final response = await _apiClient.dio.put(
+        '/crm/contacts/$contactId',
+        data: contactData,
+        // options: Options(
+        //   headers: {'X-Church-Name': churchName ?? 'fellowship'},
+        // ),
+      );
+
+      // Comment out debug print for production
+      // print('📞 API: Update contact response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        // Comment out debug print for production
+        // print('📞 API: Updated contact data: $responseData');
+        return Contact.fromJson(responseData);
+      } else {
+        throw Exception('Failed to update contact: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Comment out debug print for production
+      // print('📞 API: Error updating contact: $e');
+      rethrow;
+    }
+  }
+
+  /// Default contact form fields (fallback)
+  static List<Map<String, dynamic>> _getDefaultContactFields() {
+    return [
+      {
+        'name': 'firstName',
+        'label': 'First Name',
+        'type': 'text',
+        'required': true,
+        'placeholder': 'Enter first name',
+      },
+      {
+        'name': 'lastName',
+        'label': 'Last Name',
+        'type': 'text',
+        'required': true,
+        'placeholder': 'Enter last name',
+      },
+      {
+        'name': 'email',
+        'label': 'Email Address',
+        'type': 'email',
+        'required': false,
+        'placeholder': 'Enter email address',
+      },
+      {
+        'name': 'phone',
+        'label': 'Phone Number',
+        'type': 'phone',
+        'required': false,
+        'placeholder': 'Enter phone number',
+      },
+      {
+        'name': 'gender',
+        'label': 'Gender',
+        'type': 'dropdown',
+        'required': false,
+        'options': ['Male', 'Female', 'Other'],
+      },
+      {
+        'name': 'ageGroup',
+        'label': 'Age Group',
+        'type': 'dropdown',
+        'required': false,
+        'options': ['Child', 'Youth', 'Young Adult', 'Adult', 'Senior'],
+      },
+    ];
   }
 }
