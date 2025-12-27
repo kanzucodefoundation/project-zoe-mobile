@@ -5,6 +5,10 @@ import 'package:provider/provider.dart';
 import 'dart:convert';
 import '../../providers/auth_provider.dart';
 import '../../api/api_client.dart';
+import '../../components/apply_filter_button.dart';
+import '../../components/clear_filter_button.dart';
+import '../../components/edit_report_button.dart';
+import '../Reports screens/mc_reports_display_screen.dart';
 
 class McReportsListScreen extends StatefulWidget {
   const McReportsListScreen({super.key});
@@ -66,27 +70,10 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       final localSubmissions = await _loadLocalSubmissions();
       debugPrint('💾 Local submissions: ${localSubmissions.length}');
 
-      // Combine all sources (server data takes priority)
-      final allSubmissions = [
-        ...serverSubmissions.submissions,
-        ...submittedReports,
-        ...localSubmissions,
-      ];
-
-      // Remove duplicates based on ID if any
-      // final uniqueSubmissions = <String, Map<String, dynamic>>{};
-      // for (final submission in allSubmissions) {
-      //   final id =
-      //       submission['id']?.toString() ??
-      //       submission['reportId']?.toString() ??
-      //       DateTime.now().millisecondsSinceEpoch.toString();
-      //   uniqueSubmissions[id] = submission;
-      // }
-
-      // final finalSubmissions = uniqueSubmissions.values.toList();
+      // Use only server submissions for now
       final finalSubmissions = serverSubmissions.submissions
           .map((s) => s.toJson())
-          .toList(); // Use only server submissions for now
+          .toList();
 
       if (mounted) {
         setState(() {
@@ -144,10 +131,6 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
             tooltip: 'Filter by date range',
             onPressed: _openFilterSheet,
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
-            onPressed: _loadReportSubmissions,
-          ),
         ],
       ),
       body: _isLoading
@@ -184,10 +167,9 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
+            ElevatedButton(
               onPressed: _loadReportSubmissions,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              child: const Text('Try Again'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 foregroundColor: Colors.white,
@@ -226,10 +208,9 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton.icon(
+                ElevatedButton(
                   onPressed: _loadReportSubmissions,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh'),
+                  child: const Text('Refresh'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
@@ -302,95 +283,113 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
+      elevation: 0, // Remove default elevation
+      color: Colors.white, // White background like garage reports
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () {
-          _showReportDetails(submission);
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.church,
-                      color: Colors.blue,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          mcName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        // Debug: Show what we're actually displaying
-                        if (mcName == 'Unknown MC')
-                          Text(
-                            'DEBUG: No MC name found in data',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.red.shade600,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        const SizedBox(height: 2),
-                        Text(
-                          date,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        // Debug: Show what date source we're using
-                        if (date == 'No Date')
-                          Text(
-                            'DEBUG: No date found',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.red.shade600,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: Colors.grey.shade400,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  _buildInfoChip('Host: $host', Colors.green),
-                  const SizedBox(width: 8),
-                  _buildInfoChip('Submitted', Colors.blue),
-                ],
-              ),
-            ],
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          border: Border.all(
+            color: Colors.grey.withValues(alpha: 0.2),
+            width: 1,
           ),
         ),
-      ),
+        child: InkWell(
+          onTap: () {
+            _showReportDetails(submission);
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.church,
+                        color: Colors.blue,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            mcName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          // Debug: Show what we're actually displaying
+                          if (mcName == 'Unknown MC')
+                            Text(
+                              'DEBUG: No MC name found in data',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.red.shade600,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          const SizedBox(height: 2),
+                          Text(
+                            date,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          // Debug: Show what date source we're using
+                          if (date == 'No Date')
+                            Text(
+                              'DEBUG: No date found',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.red.shade600,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Colors.grey.shade400,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    _buildInfoChip('Host: $host', Colors.green),
+                    const SizedBox(width: 8),
+                    _buildInfoChip('Submitted', Colors.blue),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ), // Close Container
+      ), // Close Card
     );
   }
 
@@ -417,62 +416,179 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: MediaQuery.of(context).viewInsets,
-        child: Container(
-          padding: const EdgeInsets.all(16),
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 10,
+              offset: Offset(0, -5),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Filter reports by date range',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
+              const Text(
+                'Filter Reports',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Select date range to filter MC reports',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => _selectFilterDate(context, true),
-                      child: Text(
-                        _filterStart == null
-                            ? 'Start date'
-                            : '${_filterStart!.day}/${_filterStart!.month}/${_filterStart!.year}',
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _selectFilterDate(context, true),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 16,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'FROM',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey.shade600,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _filterStart == null
+                                      ? 'Start date'
+                                      : '${_filterStart!.day}/${_filterStart!.month}/${_filterStart!.year}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: _filterStart == null
+                                        ? Colors.grey.shade500
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => _selectFilterDate(context, false),
-                      child: Text(
-                        _filterEnd == null
-                            ? 'End date'
-                            : '${_filterEnd!.day}/${_filterEnd!.month}/${_filterEnd!.year}',
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _selectFilterDate(context, false),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 16,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'TO',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey.shade600,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _filterEnd == null
+                                      ? 'End date'
+                                      : '${_filterEnd!.day}/${_filterEnd!.month}/${_filterEnd!.year}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: _filterEnd == null
+                                        ? Colors.grey.shade500
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _clearDateFilter();
-                    },
-                    child: const Text('Clear'),
+                  Expanded(
+                    child: ClearFilterButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _clearDateFilter();
+                      },
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _applyDateFilter();
-                    },
-                    child: const Text('Apply'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ApplyFilterButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _applyDateFilter();
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -589,6 +705,12 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
   }
 
   void _showReportDetails(Map<String, dynamic> submission) {
+    // Check if user can edit this submission AND has MC shepherd permissions
+    final canEdit = submission['canEdit'] ?? false;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final canSubmit = authProvider.isMcShepherdPermissions;
+    final canEditAndSubmit = canEdit && canSubmit;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -615,13 +737,57 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.all(20),
-                child: Text(
-                  'Report Details',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'MC Report Details',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ),
+                    if (canEditAndSubmit)
+                      EditReportButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _editReport(submission);
+                        },
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.visibility,
+                              size: 16,
+                              color: Colors.grey.shade600,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'View Only',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
               ),
               Expanded(
@@ -739,5 +905,21 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       debugPrint('❌ Error loading local submissions: $e');
       return [];
     }
+  }
+
+  void _editReport(Map<String, dynamic> submission) {
+    // Navigate to the MC report display screen in edit mode
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => McReportsScreen(
+          reportId: submission['reportId'] ?? 1, // MC report ID
+          editingSubmission: submission, // Pass submission for editing
+        ),
+      ),
+    ).then((_) {
+      // Refresh the list when returning from edit
+      _loadReportSubmissions();
+    });
   }
 }

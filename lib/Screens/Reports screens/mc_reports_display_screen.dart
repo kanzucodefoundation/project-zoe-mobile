@@ -9,7 +9,13 @@ import '../../components/long_button.dart';
 /// MC Reports Display Screen - Shows MC report template and submissions
 class McReportsScreen extends StatefulWidget {
   final int reportId;
-  const McReportsScreen({super.key, required this.reportId});
+  final Map<String, dynamic>? editingSubmission;
+
+  const McReportsScreen({
+    super.key,
+    required this.reportId,
+    this.editingSubmission,
+  });
 
   @override
   State<McReportsScreen> createState() => _McReportsScreenState();
@@ -99,6 +105,11 @@ class _McReportsScreenState extends State<McReportsScreen> {
           _report = template;
           _isLoading = false;
         });
+
+        // If we're editing, pre-fill the form with existing data
+        if (widget.editingSubmission != null) {
+          _preFillFormForEditing();
+        }
       }
     } catch (e) {
       setState(() {
@@ -106,6 +117,53 @@ class _McReportsScreenState extends State<McReportsScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  void _preFillFormForEditing() {
+    final submission = widget.editingSubmission!;
+    final data = submission['data'] as Map<String, dynamic>? ?? {};
+
+    print('🔍 MC pre-fill data: $data');
+
+    // Pre-fill text controllers
+    data.forEach((key, value) {
+      if (key == 'date' && value != null) {
+        try {
+          _selectedDate = DateTime.parse(value.toString());
+          print('✅ Pre-filled MC date: $_selectedDate');
+        } catch (e) {
+          print('⚠️ Invalid date format: $value');
+        }
+      } else if (key == 'smallGroupId') {
+        _selectedMcId = value?.toString();
+        print('✅ Pre-filled MC ID: $_selectedMcId');
+      } else if (key == 'smallGroupName') {
+        _selectedMcName = value?.toString();
+        print('✅ Pre-filled MC name: $_selectedMcName');
+      } else if (value != null && value.toString().isNotEmpty) {
+        // For MC reports, we need to map to field IDs
+        // Try to find the field by name first, then use a fallback
+        if (_report?.fields != null) {
+          final field = _report!.fields!.firstWhere(
+            (field) => field.name == key,
+            orElse: () {
+              throw StateError('Field not found');
+            },
+          );
+          if (field != null) {
+            if (!_controllers.containsKey(field.id)) {
+              _controllers[field.id] = TextEditingController();
+            }
+            _controllers[field.id]!.text = value.toString();
+            print(
+              '✅ Pre-filled MC field ${field.name} (ID: ${field.id}) with: ${value.toString()}',
+            );
+          } else {
+            print('⚠️ No MC field found for key: $key');
+          }
+        }
+      }
+    });
   }
 
   @override
@@ -119,9 +177,9 @@ class _McReportsScreenState extends State<McReportsScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'MC Reports',
-          style: TextStyle(
+        title: Text(
+          widget.editingSubmission != null ? 'Edit MC Report' : 'MC Reports',
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -622,7 +680,9 @@ class _McReportsScreenState extends State<McReportsScreen> {
     return Column(
       children: [
         LongButton(
-          text: 'Submit MC Report',
+          text: widget.editingSubmission != null
+              ? 'Update Report'
+              : 'Submit MC Report',
           onPressed: _submitReport,
           isLoading: _isSubmitting,
           backgroundColor: Colors.black,
@@ -795,6 +855,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
         ),
       );
 
+      // Navigate back to reports screen
       Navigator.pop(context);
     } catch (e) {
       if (mounted) {

@@ -9,7 +9,13 @@ import '../../tiles/report_submission_tile.dart';
 /// Salvation Reports Display Screen - Shows Salvation report template and submissions
 class SalvationReportsScreen extends StatefulWidget {
   final int reportId;
-  const SalvationReportsScreen({super.key, required this.reportId});
+  final Map<String, dynamic>? editingSubmission;
+
+  const SalvationReportsScreen({
+    super.key,
+    required this.reportId,
+    this.editingSubmission,
+  });
 
   @override
   State<SalvationReportsScreen> createState() => _SalvationReportsScreenState();
@@ -25,7 +31,39 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SalvationReportsProvider>().loadReportData(widget.reportId);
+      final provider = context.read<SalvationReportsProvider>();
+      provider.loadReportData(widget.reportId);
+
+      // If we're editing, pre-fill the form with existing data
+      if (widget.editingSubmission != null) {
+        _preFillFormForEditing();
+      }
+    });
+  }
+
+  void _preFillFormForEditing() {
+    final submission = widget.editingSubmission!;
+    final data = submission['data'] as Map<String, dynamic>? ?? {};
+
+    print('🔍 Salvation pre-fill data: $data');
+
+    // Pre-fill text controllers
+    data.forEach((key, value) {
+      if (key == 'date' && value != null) {
+        try {
+          _selectedDate = DateTime.parse(value.toString());
+          print('✅ Pre-filled salvation date: $_selectedDate');
+        } catch (e) {
+          print('⚠️ Invalid date format: $value');
+        }
+      } else if (value != null && value.toString().isNotEmpty) {
+        // Create controller if doesn't exist and pre-fill
+        if (!_controllers.containsKey(key)) {
+          _controllers[key] = TextEditingController();
+        }
+        _controllers[key]!.text = value.toString();
+        print('✅ Pre-filled salvation field $key with: ${value.toString()}');
+      }
     });
   }
 
@@ -50,8 +88,10 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () => Navigator.pop(context),
             ),
-            title: const Text(
-              'Salvation Reports',
+            title: Text(
+              widget.editingSubmission != null
+                  ? 'Edit Salvation Report'
+                  : 'Salvation Reports',
               style: TextStyle(
                 color: Colors.black,
                 fontSize: 20,
@@ -119,8 +159,6 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
           _buildReportHeader(provider),
           const SizedBox(height: 24),
           _buildReportFieldsWithForm(provider),
-          const SizedBox(height: 24),
-          _buildSubmissionsSection(provider),
           const SizedBox(height: 24),
         ],
       ),
@@ -418,6 +456,8 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Report submitted successfully')),
         );
+        // Navigate back to reports screen
+        Navigator.pop(context);
       }
       // Clear form after successful submission
       _formKey.currentState!.reset();

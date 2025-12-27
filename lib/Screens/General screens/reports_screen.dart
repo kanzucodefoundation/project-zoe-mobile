@@ -223,264 +223,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  /* Widget _buildSubmittedReportsSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Report List',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Submitted reports from server',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const McReportFormScreen(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                ),
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('Submit'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Consumer<ReportProvider>(
-            builder: (context, reportProvider, _) {
-              final reports = reportProvider.reports;
-
-              // Filter reports by selected category if any
-              final filteredReports = _selectedCategory == null
-                  ? reports
-                  : reports.where((report) {
-                      // Assuming reports have a categoryId field
-                      return report.data['categoryId'].toString() ==
-                          _selectedCategory;
-                    }).toList();
-
-              if (reportProvider.isLoading) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-
-              if (filteredReports.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.description_outlined,
-                          size: 48,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _selectedCategory == null
-                              ? 'No reports submitted yet'
-                              : 'No reports found for this category',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Submit your first report!',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-
-              return Column(
-                children: filteredReports.map((report) {
-                  final status = report.status.toString().split('.').last;
-                  final statusColor = _getStatusColor(status);
-                  final categoryName = _getCategoryName(
-                    report.data['categoryId'],
-                  );
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                report.title,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: statusColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                status.toUpperCase(),
-                                style: TextStyle(
-                                  color: statusColor,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        if (categoryName != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              categoryName,
-                              style: const TextStyle(
-                                color: Colors.blue,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.person,
-                              size: 16,
-                              color: Colors.grey.shade600,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'By: ${report.createdBy}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            const Spacer(),
-                            Icon(
-                              Icons.calendar_today,
-                              size: 16,
-                              color: Colors.grey.shade600,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${report.createdAt.day}/${report.createdAt.month}/${report.createdAt.year}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (report.data['attendance'] != null) ...[
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.group,
-                                size: 16,
-                                color: Colors.grey.shade600,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Attendance: ${report.data['attendance']}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
-                    ),
-                  );
-                }).toList(),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  } */
-
-  /* String? _getCategoryName(dynamic categoryId) {
-    if (categoryId == null) return null;
-    final category = _reportCategories.firstWhere(
-      (cat) => cat['id'].toString() == categoryId.toString(),
-      orElse: () => <String, dynamic>{},
-    );
-    return category['name'];
-  } */
-
   Widget _buildSmallGroupsSection() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -956,48 +698,73 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
       IconData icon = Icons.description;
       Widget? targetScreen;
+      bool hasPermission = false;
 
       final lowerTitle = title.toLowerCase();
 
-      // Set icons and navigation based on report type
-      if (lowerTitle.contains(mcAttendanceReportTitle) &&
-          authProvider.isMcShepherdPermissions) {
-        icon = Icons.church;
-        targetScreen = McAttendanceReportScreen(reportId: id);
+      // Set icons and navigation based on report type and check permissions
+      if (lowerTitle.contains(mcAttendanceReportTitle)) {
+        icon = Icons.assignment;
+        hasPermission = authProvider.isMcShepherdPermissions;
+        if (hasPermission) {
+          targetScreen = McAttendanceReportScreen(reportId: id);
+        }
       } else if (lowerTitle.contains(sundayReportTitle)) {
         icon = Icons.church_outlined;
-        targetScreen = GarageReportsScreen(reportId: id);
+        hasPermission = authProvider.user?.canSubmitReports ?? false;
+        if (hasPermission) {
+          targetScreen = GarageReportsScreen(reportId: id);
+        }
       } else if (lowerTitle.contains(baptismReportTitle)) {
         icon = Icons.water_drop;
-        targetScreen = BaptismReportsScreen(reportId: id);
+        hasPermission = authProvider.user?.canSubmitReports ?? false;
+        if (hasPermission) {
+          targetScreen = BaptismReportsScreen(reportId: id);
+        }
       } else if (lowerTitle.contains(salvationReportTitle)) {
         icon = Icons.favorite;
-        targetScreen = SalvationReportsScreen(reportId: id);
+        hasPermission = authProvider.user?.canSubmitReports ?? false;
+        if (hasPermission) {
+          targetScreen = SalvationReportsScreen(reportId: id);
+        }
       } else if (lowerTitle.contains('prayer') ||
           lowerTitle.contains('follow')) {
         icon = Icons.pending_actions;
+        hasPermission = authProvider.user?.canSubmitReports ?? false;
       }
 
       cards.add(
         ReportCard(
           reportTitle: title,
           reportIcon: icon,
-          iconColor: Colors.black,
-          onTap: () {
-            if (targetScreen != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => targetScreen!),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('$title coming soon'),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            }
-          },
+          iconColor: hasPermission ? Colors.black : Colors.grey,
+          backgroundColor: hasPermission ? Colors.white : Colors.grey.shade100,
+          onTap: hasPermission
+              ? (targetScreen != null
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => targetScreen!),
+                        );
+                      }
+                    : () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('$title coming soon'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      })
+              : () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'You do not have permission to access this report',
+                      ),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
         ),
       );
     }
@@ -1008,12 +775,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       itemCount: cards.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 1,
+        mainAxisSpacing: 6,
+        crossAxisSpacing: 6,
+        childAspectRatio: 0.85, // Taller cards to accommodate text
       ),
       itemBuilder: (_, index) =>
-          Padding(padding: const EdgeInsets.all(8), child: cards[index]),
+          Padding(padding: const EdgeInsets.all(4), child: cards[index]),
     );
   }
 }

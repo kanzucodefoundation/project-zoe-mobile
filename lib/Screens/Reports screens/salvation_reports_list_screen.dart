@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../api/api_client.dart';
+import '../../components/apply_filter_button.dart';
+import '../../components/clear_filter_button.dart';
+import '../../components/edit_report_button.dart';
+import '../Reports screens/salvation_reports_display_screen.dart';
 
 class SalvationReportsListScreen extends StatefulWidget {
   const SalvationReportsListScreen({super.key});
@@ -102,65 +106,183 @@ class _SalvationReportsListScreenState
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: MediaQuery.of(context).viewInsets,
-        child: Container(
-          padding: const EdgeInsets.all(16),
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 10,
+              offset: Offset(0, -5),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Filter reports by date range',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
+              const Text(
+                'Filter Reports',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Select date range to filter salvation reports',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => _selectFilterDate(context, true),
-                      child: Text(
-                        _filterStart == null
-                            ? 'Start date'
-                            : '${_filterStart!.day}/${_filterStart!.month}/${_filterStart!.year}',
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _selectFilterDate(context, true),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 16,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'FROM',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey.shade600,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _filterStart == null
+                                      ? 'Start date'
+                                      : '${_filterStart!.day}/${_filterStart!.month}/${_filterStart!.year}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: _filterStart == null
+                                        ? Colors.grey.shade500
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => _selectFilterDate(context, false),
-                      child: Text(
-                        _filterEnd == null
-                            ? 'End date'
-                            : '${_filterEnd!.day}/${_filterEnd!.month}/${_filterEnd!.year}',
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _selectFilterDate(context, false),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 16,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'TO',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey.shade600,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _filterEnd == null
+                                      ? 'End date'
+                                      : '${_filterEnd!.day}/${_filterEnd!.month}/${_filterEnd!.year}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: _filterEnd == null
+                                        ? Colors.grey.shade500
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _filterStart = null;
-                        _filterEnd = null;
-                      });
-                      _applyDateFilter();
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Clear'),
+                  Expanded(
+                    child: ClearFilterButton(
+                      onPressed: () {
+                        setState(() {
+                          _filterStart = null;
+                          _filterEnd = null;
+                        });
+                        _applyDateFilter();
+                        Navigator.pop(context);
+                      },
+                    ),
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      _applyDateFilter();
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Apply'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ApplyFilterButton(
+                      onPressed: () {
+                        _applyDateFilter();
+                        Navigator.pop(context);
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -248,10 +370,9 @@ class _SalvationReportsListScreenState
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
+            ElevatedButton(
               onPressed: _loadReportSubmissions,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              child: const Text('Retry'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
@@ -346,58 +467,296 @@ class _SalvationReportsListScreenState
     final reportDate =
         report['submittedAt']?.toString().split('T')[0] ?? 'No Date';
     final reportData = report['data'] ?? {};
-
     final salvationCount = reportData['numberOfSalvations']?.toString() ?? '0';
     final groupName = report['groupName'] ?? 'Salvation Report';
-    final groupId = report['groupId'] ?? '';
+    final location = reportData['location'] ?? 'Unknown Location';
 
-    return Container(
+    return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          border: Border.all(
+            color: Colors.grey.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        child: InkWell(
+          onTap: () {
+            _showReportDetails(report);
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.favorite,
+                        color: Colors.green,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            groupName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            reportDate,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Location: $location',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    Text(
+                      'Salvations: $salvationCount',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.green.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showReportDetails(Map<String, dynamic> submission) {
+    // Check if user can edit this submission AND has submit permissions
+    final canEdit = submission['canEdit'] ?? false;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final canSubmit = authProvider.user?.canSubmitReports ?? false;
+    final canEditAndSubmit = canEdit && canSubmit;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Salvation Report Details',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ),
+                    if (canEditAndSubmit)
+                      EditReportButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _editReport(submission);
+                        },
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.visibility,
+                              size: 16,
+                              color: Colors.grey.shade600,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'View Only',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  children: [
+                    () {
+                      final data = submission['data'];
+                      Map<String, dynamic> reportData = {};
+
+                      if (data is Map) {
+                        reportData = Map<String, dynamic>.from(data);
+                      }
+
+                      return Column(
+                        children: [
+                          ...reportData.entries.map((entry) {
+                            if (['smallGroupId'].contains(entry.key)) {
+                              return const SizedBox();
+                            }
+
+                            String fieldLabel = entry.key;
+                            final template = submission['template'];
+                            if (template != null &&
+                                template['fields'] != null) {
+                              final fields = template['fields'] as List;
+                              final fieldInfo = fields.firstWhere(
+                                (field) => field['name'] == entry.key,
+                                orElse: () => null,
+                              );
+                              if (fieldInfo != null &&
+                                  fieldInfo['label'] != null) {
+                                fieldLabel = fieldInfo['label'];
+                              }
+                            }
+
+                            return _buildDetailRow(
+                              fieldLabel,
+                              entry.value?.toString() ?? 'N/A',
+                            );
+                          }),
+                        ],
+                      );
+                    }(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+            ),
           ),
         ],
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.green.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(Icons.favorite, color: Colors.green, size: 24),
-        ),
-        title: Text(
-          groupName,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(
-              'Date of Submission: $reportDate',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            ),
-            Text(
-              'Number of Salvations: $salvationCount',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            ),
-          ],
-        ),
-        trailing: Icon(Icons.chevron_right, color: Colors.grey.shade400),
-        onTap: () {
-          // TODO: Navigate to detailed view
-        },
-      ),
     );
+  }
+
+  void _editReport(Map<String, dynamic> submission) {
+    // Navigate to the salvation report display screen in edit mode
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SalvationReportsScreen(
+          reportId: submission['reportId'] ?? 4, // Salvation report ID
+          editingSubmission: submission, // Pass submission for editing
+        ),
+      ),
+    ).then((_) {
+      // Refresh the list when returning from edit
+      _loadReportSubmissions();
+    });
   }
 }

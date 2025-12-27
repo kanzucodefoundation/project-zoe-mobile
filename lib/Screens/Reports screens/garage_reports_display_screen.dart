@@ -7,11 +7,18 @@ import 'package:provider/provider.dart';
 import '../../components/text_field.dart';
 import '../../components/submit_button.dart';
 import '../../components/custom_date_picker.dart';
+import '../../tiles/report_submission_card_tile.dart';
 
 /// Garage Reports Display Screen - Shows Garage report template and submissions
 class GarageReportsScreen extends StatefulWidget {
   final int reportId;
-  const GarageReportsScreen({super.key, required this.reportId});
+  final Map<String, dynamic>? editingSubmission;
+
+  const GarageReportsScreen({
+    super.key,
+    required this.reportId,
+    this.editingSubmission,
+  });
 
   @override
   State<GarageReportsScreen> createState() => _GarageReportsScreenState();
@@ -30,7 +37,6 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   bool _isSubmitting = false;
 
   String? _selectedLocationId;
-  String? _selectedLocationName;
 
   @override
   void initState() {
@@ -68,12 +74,43 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         _submissions.addAll(submissions);
         _isLoading = false;
       });
+
+      // If we're editing, pre-fill the form with existing data
+      if (widget.editingSubmission != null) {
+        _preFillFormForEditing();
+      }
     } catch (e) {
       setState(() {
         _error = 'Error loading report data: ${e.toString()}';
         _isLoading = false;
       });
     }
+  }
+
+  void _preFillFormForEditing() {
+    final submission = widget.editingSubmission!;
+    final data = submission['data'] as Map<String, dynamic>? ?? {};
+
+    print('🔍 Garage pre-fill data: $data');
+
+    // Pre-fill text controllers
+    data.forEach((key, value) {
+      if (key == 'serviceDate' && value != null) {
+        try {
+          _selectedDate = DateTime.parse(value.toString());
+          print('✅ Pre-filled service date: $_selectedDate');
+        } catch (e) {
+          print('⚠️ Invalid date format: $value');
+        }
+      } else if (value != null && value.toString().isNotEmpty) {
+        // Create controller if doesn't exist and pre-fill
+        if (!_controllers.containsKey(key)) {
+          _controllers[key] = TextEditingController();
+        }
+        _controllers[key]!.text = value.toString();
+        print('✅ Pre-filled garage field $key with: ${value.toString()}');
+      }
+    });
   }
 
   @override
@@ -89,9 +126,11 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () => Navigator.pop(context),
             ),
-            title: const Text(
-              'Garage Reports',
-              style: TextStyle(
+            title: Text(
+              widget.editingSubmission != null
+                  ? 'Edit Garage Report'
+                  : 'Garage Reports',
+              style: const TextStyle(
                 color: Colors.black,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -161,10 +200,6 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
           // Report Fields with Form
           _buildReportFieldsWithForm(authProvider),
-          const SizedBox(height: 24),
-
-          // Submissions Section
-          _buildSubmissionsSection(),
           const SizedBox(height: 24),
         ],
       ),
@@ -573,13 +608,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
           }).toList(),
           onChanged: (value) {
             if (value != null) {
-              final selectedMc = availableLocations.firstWhere(
-                (mc) => mc['id']?.toString() == value,
-              );
               if (mounted) {
                 setState(() {
                   _selectedLocationId = value;
-                  _selectedLocationName = selectedMc['name'] ?? 'Unknown MC';
                 });
               }
             }
@@ -649,6 +680,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
           ),
         );
 
+        // Navigate back to reports screen
+        Navigator.pop(context);
+
         // Clear form
         for (var controller in _controllers.values) {
           controller.clear();
@@ -675,144 +709,4 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     }
   }
 
-  Widget _buildSubmissionsSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Recent Submissions',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${_submissions.length} submissions found',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
-              IconButton(
-                onPressed: _loadReportData,
-                icon: const Icon(Icons.refresh),
-                tooltip: 'Refresh submissions',
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (_submissions.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.inbox_outlined,
-                      size: 48,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No submissions yet',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Submit your first Garage report to see it here',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            Column(
-              children: _submissions
-                  .take(5)
-                  .map((submission) => _buildSubmissionItem(submission))
-                  .toList(),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubmissionItem(Map<String, dynamic> submission) {
-    final submissionDate =
-        submission['date'] ?? submission['submittedAt'] ?? 'Unknown date';
-    final serviceName = submission['serviceName'] ?? 'Sunday Service';
-    final attendance = submission['totalAttendance']?.toString() ?? '0';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Icon(Icons.assignment, size: 16, color: Colors.orange),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  serviceName,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '$submissionDate • $attendance attended',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 16),
-        ],
-      ),
-    );
-  }
 }

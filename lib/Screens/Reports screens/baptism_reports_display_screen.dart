@@ -8,7 +8,13 @@ import '../../components/custom_date_picker.dart';
 /// Baptism Reports Display Screen - Shows Baptism report template and submissions
 class BaptismReportsScreen extends StatefulWidget {
   final int reportId;
-  const BaptismReportsScreen({super.key, required this.reportId});
+  final Map<String, dynamic>? editingSubmission;
+
+  const BaptismReportsScreen({
+    super.key,
+    required this.reportId,
+    this.editingSubmission,
+  });
 
   @override
   State<BaptismReportsScreen> createState() => _BaptismReportsScreenState();
@@ -59,12 +65,43 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
         _submissions.addAll(submissions);
         _isLoading = false;
       });
+
+      // If we're editing, pre-fill the form with existing data
+      if (widget.editingSubmission != null) {
+        _preFillFormForEditing();
+      }
     } catch (e) {
       setState(() {
         _error = 'Error loading report data: ${e.toString()}';
         _isLoading = false;
       });
     }
+  }
+
+  void _preFillFormForEditing() {
+    final submission = widget.editingSubmission!;
+    final data = submission['data'] as Map<String, dynamic>? ?? {};
+
+    print('🔍 Pre-fill data: $data');
+
+    // Pre-fill text controllers
+    data.forEach((key, value) {
+      if (key == 'date' && value != null) {
+        try {
+          _selectedDate = DateTime.parse(value.toString());
+          print('✅ Pre-filled date: $_selectedDate');
+        } catch (e) {
+          print('⚠️ Invalid date format: $value');
+        }
+      } else if (value != null && value.toString().isNotEmpty) {
+        // Create controller if doesn't exist and pre-fill
+        if (!_controllers.containsKey(key)) {
+          _controllers[key] = TextEditingController();
+        }
+        _controllers[key]!.text = value.toString();
+        print('✅ Pre-filled field $key with: ${value.toString()}');
+      }
+    });
   }
 
   @override
@@ -78,9 +115,11 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Baptism Reports',
-          style: TextStyle(
+        title: Text(
+          widget.editingSubmission != null
+              ? 'Edit Baptism Report'
+              : 'Baptism Reports',
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -145,8 +184,6 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
           _buildReportHeader(),
           const SizedBox(height: 24),
           _buildReportFieldsWithForm(),
-          const SizedBox(height: 24),
-          _buildSubmissionsSection(),
           const SizedBox(height: 24),
         ],
       ),
@@ -284,7 +321,13 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
             ),
             const SizedBox(height: 24),
             SubmitButton(
-              text: _isSubmitting ? 'Submitting...' : 'Submit Report',
+              text: _isSubmitting
+                  ? (widget.editingSubmission != null
+                        ? 'Updating...'
+                        : 'Submitting...')
+                  : (widget.editingSubmission != null
+                        ? 'Update Report'
+                        : 'Submit Report'),
               onPressed: _isSubmitting ? () {} : _submitReport,
               backgroundColor: Colors.black,
               textColor: Colors.white,
@@ -446,6 +489,9 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Report submitted successfully')),
       );
+
+      // Navigate back to reports screen
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(
         context,

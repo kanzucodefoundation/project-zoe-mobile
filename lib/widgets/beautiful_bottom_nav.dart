@@ -40,7 +40,7 @@ class BeautifulBottomNavBar extends StatelessWidget {
     tabs.add(
       const GButton(
         icon: Icons.groups_outlined,
-        text: 'Shepherds',
+        text: 'Contacts',
         textStyle: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
