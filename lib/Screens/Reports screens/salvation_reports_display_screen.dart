@@ -47,24 +47,29 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     final submission = widget.editingSubmission!;
     final data = submission['data'] as Map<String, dynamic>? ?? {};
 
-    print('🔍 Salvation pre-fill data: $data');
+    debugPrint('🔍 Salvation pre-fill data: $data');
 
     // Pre-fill text controllers
     data.forEach((key, value) {
-      if (key == 'date' && value != null) {
+      if (key == 'salvationDate' && value != null) {
         try {
           _selectedDate = DateTime.parse(value.toString());
-          print('✅ Pre-filled salvation date: $_selectedDate');
+          debugPrint('✅ Pre-filled salvation date: $_selectedDate');
         } catch (e) {
-          print('⚠️ Invalid date format: $value');
+          debugPrint('⚠️ Invalid date format: $value');
         }
+      } else if (key == 'groupId' && value != null) {
+        _selectedLocationId = value.toString();
+        debugPrint('✅ Pre-filled salvation locationId: $_selectedLocationId');
       } else if (value != null && value.toString().isNotEmpty) {
         // Create controller if doesn't exist and pre-fill
         if (!_controllers.containsKey(key)) {
           _controllers[key] = TextEditingController();
         }
         _controllers[key]!.text = value.toString();
-        print('✅ Pre-filled salvation field $key with: ${value.toString()}');
+        debugPrint(
+          '✅ Pre-filled salvation field $key with: ${value.toString()}',
+        );
       }
     });
   }
@@ -415,9 +420,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     final fieldName = field.name.toLowerCase();
     final fieldLabel = field.label.toLowerCase();
 
-    if ((fieldName.contains('date') || fieldLabel.contains('date')) &&
-        !fieldName.contains('type') &&
-        !fieldLabel.contains('type')) {
+    if (field.type == 'date') {
       return CustomDatePicker(
         hintText: 'Select ${field.label.toLowerCase()}',
         prefixIcon: Icons.calendar_today,
@@ -525,7 +528,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     }
 
     if (_selectedDate != null) {
-      data['date'] = _selectedDate!.toIso8601String();
+      data['salvationDate'] = _selectedDate!.toIso8601String();
     }
 
     final provider = Provider.of<SalvationReportsProvider>(
@@ -541,7 +544,10 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     if (success) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Report submitted successfully')),
+          const SnackBar(
+            content: Text('Report submitted successfully'),
+            backgroundColor: Colors.green,
+          ),
         );
         // Navigate back to reports screen
         Navigator.pop(context);
@@ -561,6 +567,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
             content: Text(
               'Failed to submit report: ${provider.error ?? 'Unknown error'}',
             ),
+            backgroundColor: Colors.red,
           ),
         );
       }

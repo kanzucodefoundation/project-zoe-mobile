@@ -210,6 +210,7 @@ class AuthProvider extends ChangeNotifier {
         .where((group) => group.type == type && canManageIds.contains(group.id))
         .map((group) => {'id': group.id, 'name': group.name})
         .toList();
+    notifyListeners();
     return groups;
   }
 

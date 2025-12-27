@@ -69,11 +69,11 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                         ),
                       ),
                     ),
-                    Icon(
-                      Icons.calendar_today,
-                      color: Colors.grey[500],
-                      size: 20,
-                    ),
+                    // Icon(
+                    //   Icons.calendar_today,
+                    //   color: Colors.grey[500],
+                    //   size: 20,
+                    // ),
                   ],
                 ),
               ),
