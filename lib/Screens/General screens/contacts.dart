@@ -207,10 +207,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                             index,
                           ) {
                             final contact = provider.contacts[index];
-                            // Comment out debug print for production
-                            // print(
-                            //   '🏠 ContactsScreen: Rendering ${contact.name} with avatar: ${contact.avatar}',
-                            // );
+                            
 
                             return ContactTile(
                               shepherdName: contact.name,
@@ -218,10 +215,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                               shepherdAvatar: contact.avatar ?? '',
                               buttonText: 'View',
                               onButtonPressed: () {
-                                // Comment out debug print for production
-                                // print(
-                                //   '🏠 ContactsScreen: Navigating to details for contact ${contact.id}',
-                                // );
+                                
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

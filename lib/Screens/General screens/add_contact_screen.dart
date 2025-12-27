@@ -5,6 +5,7 @@ import '../../components/submit_button.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/contacts_provider.dart';
 import '../../models/contacts.dart';
+import '../../models/contact_form_field.dart';
 
 /// Contact Form Screen - Allows users to add new contacts
 class AddPeopleScreen extends StatefulWidget {
@@ -211,7 +212,7 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           widget.editingContact != null ? 'Edit Contact' : 'Add Contact',
@@ -600,37 +601,5 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
           },
         );
     }
-  }
-}
-
-/// Contact Form Field Model
-class ContactFormField {
-  final String name;
-  final String label;
-  final String type;
-  final bool required;
-  final String? placeholder;
-  final List<String>? options;
-
-  ContactFormField({
-    required this.name,
-    required this.label,
-    required this.type,
-    this.required = false,
-    this.placeholder,
-    this.options,
-  });
-
-  factory ContactFormField.fromJson(Map<String, dynamic> json) {
-    return ContactFormField(
-      name: json['name'] ?? '',
-      label: json['label'] ?? '',
-      type: json['type'] ?? 'text',
-      required: json['required'] ?? false,
-      placeholder: json['placeholder'],
-      options: json['options'] != null
-          ? List<String>.from(json['options'])
-          : null,
-    );
   }
 }
