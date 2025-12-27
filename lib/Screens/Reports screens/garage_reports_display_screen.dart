@@ -3,6 +3,7 @@ import 'package:project_zoe/models/report.dart';
 import 'package:project_zoe/models/reports_model.dart';
 import 'package:project_zoe/providers/auth_provider.dart';
 import 'package:project_zoe/services/reports_service.dart';
+import 'package:provider/provider.dart';
 import '../../components/text_field.dart';
 import '../../components/submit_button.dart';
 import '../../components/custom_date_picker.dart';
@@ -78,31 +79,35 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Garage Reports',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, _) {
+        return Scaffold(
+          backgroundColor: Colors.grey.shade50,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text(
+              'Garage Reports',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? _buildErrorView()
-          : _reportTemplate != null
-          ? _buildReportView()
-          : const Center(child: Text('No report data found')),
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+              ? _buildErrorView()
+              : _reportTemplate != null
+              ? _buildReportView(authProvider)
+              : const Center(child: Text('No report data found')),
+        );
+      },
     );
   }
 
@@ -145,7 +150,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     );
   }
 
-  Widget _buildReportView() {
+  Widget _buildReportView(AuthProvider authProvider) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -156,7 +161,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
           const SizedBox(height: 24),
 
           // Report Fields with Form
-          _buildReportFieldsWithForm(),
+          _buildReportFieldsWithForm(authProvider),
           const SizedBox(height: 24),
 
           // Submissions Section
@@ -252,7 +257,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     );
   }
 
-  Widget _buildReportFieldsWithForm() {
+  Widget _buildReportFieldsWithForm(AuthProvider authProvider) {
     final visibleFields = _reportTemplate!.fields!
         .where((field) => !field.hidden)
         .toList();
@@ -290,7 +295,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
             ),
             const SizedBox(height: 20),
 
-            _buildLocationPicker(context),
+            _buildLocationPicker(authProvider),
             const SizedBox(height: 20),
 
             // Generate form fields
@@ -435,110 +440,112 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     );
   }
 
-  Widget _buildSubmitForm() {
-    if (_reportTemplate?.fields == null) return const SizedBox();
+  // Widget _buildSubmitForm() {
+  //   if (_reportTemplate?.fields == null) return const SizedBox();
 
-    final visibleFields = _reportTemplate!.fields!
-        .where((field) => !field.hidden)
-        .toList();
+  //   final visibleFields = _reportTemplate!.fields!
+  //       .where((field) => !field.hidden)
+  //       .toList();
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Submit Report',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Fill out the report fields below',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 20),
+  //   return Container(
+  //     padding: const EdgeInsets.all(20),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(12),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.grey.withValues(alpha: 0.1),
+  //           blurRadius: 10,
+  //           offset: const Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Form(
+  //       key: _formKey,
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           const Text(
+  //             'Submit Report',
+  //             style: TextStyle(
+  //               fontSize: 18,
+  //               fontWeight: FontWeight.bold,
+  //               color: Colors.black,
+  //             ),
+  //           ),
+  //           const SizedBox(height: 4),
+  //           Text(
+  //             'Fill out the report fields below',
+  //             style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+  //           ),
+  //           const SizedBox(height: 20),
 
-            // Generate form fields
-            ...visibleFields.map((field) => _buildFormField(field)),
+  //           // Generate form fields
+  //           ...visibleFields.map((field) => _buildFormField(field)),
 
-            const SizedBox(height: 20),
+  //           const SizedBox(height: 20),
 
-            // Submit button
-            SubmitButton(
-              text: _isSubmitting ? 'Submitting...' : 'Submit Report',
-              onPressed: _isSubmitting ? () {} : _submitReport,
-              backgroundColor: Colors.orange,
-              textColor: Colors.white,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  //           // Submit button
+  //           SubmitButton(
+  //             text: _isSubmitting ? 'Submitting...' : 'Submit Report',
+  //             onPressed: _isSubmitting ? () {} : _submitReport,
+  //             backgroundColor: Colors.orange,
+  //             textColor: Colors.white,
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildFormField(ReportField field) {
-    // Initialize controller if not exists
-    if (!_controllers.containsKey(field.name)) {
-      _controllers[field.name] = TextEditingController();
-    }
+  // Widget _buildFormField(ReportField field) {
+  //   // Initialize controller if not exists
+  //   if (!_controllers.containsKey(field.name)) {
+  //     _controllers[field.name] = TextEditingController();
+  //   }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            field.label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          CustomTextField(
-            hintText: 'Enter ${field.label.toLowerCase()}',
-            controller: _controllers[field.name],
-            keyboardType: _getKeyboardType(field.type),
-            validator: field.required
-                ? (value) {
-                    if (value == null || value.isEmpty) {
-                      return '${field.label} is required';
-                    }
-                    return null;
-                  }
-                : null,
-          ),
-        ],
-      ),
-    );
-  }
+  //   return Padding(
+  //     padding: const EdgeInsets.only(bottom: 16),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text(
+  //           field.label,
+  //           style: const TextStyle(
+  //             fontSize: 14,
+  //             fontWeight: FontWeight.w500,
+  //             color: Colors.black87,
+  //           ),
+  //         ),
+  //         const SizedBox(height: 8),
+  //         CustomTextField(
+  //           hintText: 'Enter ${field.label.toLowerCase()}',
+  //           controller: _controllers[field.name],
+  //           keyboardType: _getKeyboardType(field.type),
+  //           validator: field.required
+  //               ? (value) {
+  //                   if (value == null || value.isEmpty) {
+  //                     return '${field.label} is required';
+  //                   }
+  //                   return null;
+  //                 }
+  //               : null,
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  Widget _buildLocationPicker(context) {
-    // final availableMcs = context.read<AuthProvider>().getGroupsFromHierarchy(
-    //   'location',
-    // );
-    //TODO: Fix AuthProvider usage
-    final List<Map<String, dynamic>> availableMcs = AuthProvider()
+  Widget _buildLocationPicker(AuthProvider authProvider) {
+    final List<Map<String, dynamic>> availableLocations = authProvider
         .getGroupsFromHierarchy('location');
 
+    if (availableLocations.isEmpty) {
+      return const Text(
+        'No locations available',
+        style: TextStyle(color: Colors.red),
+      );
+    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -553,7 +560,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
             'Select Location',
             style: TextStyle(color: Colors.grey.shade600),
           ),
-          items: availableMcs.map((mc) {
+          items: availableLocations.map((mc) {
             return DropdownMenuItem<String>(
               value: mc['id']?.toString(),
               child: Text(
@@ -567,7 +574,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
           }).toList(),
           onChanged: (value) {
             if (value != null) {
-              final selectedMc = availableMcs.firstWhere(
+              final selectedMc = availableLocations.firstWhere(
                 (mc) => mc['id']?.toString() == value,
               );
               if (mounted) {
