@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/contacts.dart';
 import '../api/endpoints/contact_endpoints.dart';
+import '../Screens/General screens/add_contact_screen.dart';
 
 class ContactsProvider with ChangeNotifier {
   List<Contact> _contacts = [];
@@ -86,6 +87,39 @@ class ContactsProvider with ChangeNotifier {
     await loadContacts(churchName: churchName);
   }
 
+  /// Create a new contact
+  Future<Contact?> createContact(
+    Map<String, dynamic> contactData, {
+    String? churchName,
+  }) async {
+    // Comment out debug print for production
+    // print('👥 ContactsProvider: Creating new contact...');
+    _setLoading(true);
+    _error = null;
+
+    try {
+      final newContact = await ContactEndpoints.createContact(
+        contactData,
+        churchName: churchName ?? 'fellowship',
+      );
+
+      // Add the new contact to the list
+      _contacts.add(newContact);
+      // Comment out debug print for production
+      // print('👥 ContactsProvider: Successfully created contact ${newContact.firstName} ${newContact.lastName}');
+
+      notifyListeners();
+      return newContact;
+    } catch (e) {
+      // Comment out debug print for production
+      // print('👥 ContactsProvider: Error creating contact: $e');
+      _error = 'Failed to create contact: $e';
+      return null;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   /// Private helper to set loading state
   void _setLoading(bool loading) {
     _isLoading = loading;
@@ -96,5 +130,67 @@ class ContactsProvider with ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  /// Get contact form fields from server
+  Future<List<ContactFormField>> getContactFormFields({
+    String? churchName,
+  }) async {
+    // Comment out debug print for production
+    // print('👥 ContactsProvider: Loading contact form fields...');
+
+    try {
+      final fields = await ContactEndpoints.getContactFormFields(
+        churchName: churchName ?? 'fellowship',
+      );
+
+      // Comment out debug print for production
+      // print('👥 ContactsProvider: Loaded ${fields.length} form fields');
+      return fields;
+    } catch (e) {
+      // Comment out debug print for production
+      // print('👥 ContactsProvider: Error loading form fields: $e');
+      _error = 'Failed to load form fields: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  /// Update an existing contact
+  Future<Contact?> updateContact(
+    int contactId,
+    Map<String, dynamic> contactData, {
+    String? churchName,
+  }) async {
+    // Comment out debug print for production
+    // print('👥 ContactsProvider: Updating contact $contactId...');
+    _setLoading(true);
+    _error = null;
+
+    try {
+      final updatedContact = await ContactEndpoints.updateContact(
+        contactId,
+        contactData,
+        churchName: churchName ?? 'fellowship',
+      );
+
+      // Update local list
+      final index = _contacts.indexWhere((c) => c.id == contactId);
+      if (index != -1) {
+        _contacts[index] = updatedContact;
+      }
+
+      // Comment out debug print for production
+      // print('👥 ContactsProvider: Contact updated successfully: ${updatedContact.firstName} ${updatedContact.lastName}');
+
+      _setLoading(false);
+      return updatedContact;
+    } catch (e) {
+      // Comment out debug print for production
+      // print('👥 ContactsProvider: Error updating contact: $e');
+      _error = 'Failed to update contact: $e';
+      _setLoading(false);
+      return null;
+    }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/group.dart';
+import '../../widgets/group_tree_widget.dart';
 
 class GroupsScreen extends StatefulWidget {
   const GroupsScreen({super.key});
@@ -254,10 +255,33 @@ class _GroupsScreenState extends State<GroupsScreen> {
   }
 
   void showGroupDetails(BuildContext context, Group group) {
+    // Get children groups
+    final children = groups.where((g) => g.parentId == group.id).toList();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(group.name),
+        title: Row(
+          children: [
+            Expanded(child: Text(group.name)),
+            if (children.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${children.length} sub',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.blue.shade700,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
+        ),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,6 +294,48 @@ class _GroupsScreenState extends State<GroupsScreen> {
                 const Divider(),
                 _DetailRow('Members', '${group.memberCount}'),
                 _DetailRow('Active Members', '${group.activeMembers}'),
+              ],
+              if (children.isNotEmpty) ...[
+                const Divider(),
+                Text(
+                  'Sub-Groups:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                ...children
+                    .map(
+                      (child) => Card(
+                        margin: const EdgeInsets.only(bottom: 4),
+                        child: ListTile(
+                          dense: true,
+                          leading: Icon(
+                            Icons.folder,
+                            color: Colors.blue.shade600,
+                            size: 20,
+                          ),
+                          title: Text(
+                            child.name,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(
+                            '${child.type.toUpperCase()} • ${child.memberCount} members',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 14,
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            showGroupDetails(context, child);
+                          },
+                        ),
+                      ),
+                    )
+                    .toList(),
               ],
               if (group.address != null) ...[
                 const Divider(),
@@ -373,14 +439,95 @@ class _GroupsScreenState extends State<GroupsScreen> {
     }
   }
 
+  bool _useSimpleView = false;
+
   @override
   Widget build(BuildContext context) {
-    final rootGroups = getRootGroups();
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Church Groups'), elevation: 2),
-      body: ListView(
-        children: rootGroups.map((group) => buildGroupTile(group)).toList(),
+      appBar: AppBar(
+        title: const Text('Church Groups'),
+        elevation: 2,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              setState(() {
+                if (value == 'simple') {
+                  _useSimpleView = true;
+                } else if (value == 'tree') {
+                  _useSimpleView = false;
+                }
+              });
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'simple', child: Text('Simple List')),
+              const PopupMenuItem(value: 'tree', child: Text('Tree View')),
+            ],
+          ),
+        ],
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_useSimpleView) {
+      return _buildSimpleListView();
+    }
+
+    try {
+      return GroupTreeWidget(
+        groups: groups,
+        onGroupTap: (group) => showGroupDetails(context, group),
+        onGroupLongPress: (group) => _showGroupOptions(context, group),
+      );
+    } catch (e) {
+      // Fallback to simple list if tree rendering fails
+      return _buildSimpleListView();
+    }
+  }
+
+  Widget _buildSimpleListView() {
+    final rootGroups = getRootGroups();
+    return ListView(
+      padding: const EdgeInsets.all(8),
+      children: rootGroups.map((group) => buildGroupTile(group)).toList(),
+    );
+  }
+
+  void _showGroupOptions(BuildContext context, Group group) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text('View Details'),
+              onTap: () {
+                Navigator.pop(context);
+                showGroupDetails(context, group);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.people),
+              title: const Text('View Members'),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Navigate to members screen
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.assignment),
+              title: const Text('View Reports'),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Navigate to group reports
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

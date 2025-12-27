@@ -724,8 +724,4 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       }
     }
   }
-<<<<<<< HEAD
-
-=======
->>>>>>> 220deba2389d959530374cb7d5d1370e66558877
 }
