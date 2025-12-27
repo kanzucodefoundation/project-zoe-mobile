@@ -66,13 +66,32 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       final submittedReports = await ReportsService.getAllSubmittedReports();
       debugPrint('📊 Submitted reports: ${submittedReports.length}');
 
+      // Load template for field label mapping
+      final templateData = await ReportsService.getReportById(1);
+      final template = {
+        'id': templateData.id,
+        'name': templateData.name,
+        'fields':
+            templateData.fields
+                ?.map(
+                  (field) => {
+                    'id': field.id,
+                    'name': field.name,
+                    'label': field.label,
+                    'type': field.type,
+                  },
+                )
+                .toList() ??
+            [],
+      };
+
       // Load from local storage as fallback/supplement
       final localSubmissions = await _loadLocalSubmissions();
       debugPrint('💾 Local submissions: ${localSubmissions.length}');
 
-      // Use only server submissions for now
+      // Use only server submissions with template data
       final finalSubmissions = serverSubmissions.submissions
-          .map((s) => s.toJson())
+          .map((s) => {...s.toJson(), 'template': template})
           .toList();
 
       if (mounted) {
@@ -821,13 +840,15 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
                             if (template != null &&
                                 template['fields'] != null) {
                               final fields = template['fields'] as List;
-                              final fieldInfo = fields.firstWhere(
-                                (field) => field['name'] == entry.key,
-                                orElse: () => null,
-                              );
-                              if (fieldInfo != null &&
-                                  fieldInfo['label'] != null) {
-                                fieldLabel = fieldInfo['label'];
+                              try {
+                                final fieldInfo = fields.firstWhere(
+                                  (field) => field['name'] == entry.key,
+                                );
+                                if (fieldInfo['label'] != null) {
+                                  fieldLabel = fieldInfo['label'];
+                                }
+                              } catch (e) {
+                                // Field not found, use original key
                               }
                             }
 
