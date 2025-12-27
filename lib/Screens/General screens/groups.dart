@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project_zoe/models/group.dart';
+import '../../models/group.dart';
 
 class GroupsScreen extends StatefulWidget {
   const GroupsScreen({super.key});

@@ -5,8 +5,8 @@ class BaseUrl {
       // 'https://staging-projectzoe.kanzucodefoundation.org/server';
       // Alternative URLs for development:
       // 'http://localhost:3001';
-      // 'http://10.254.115.203:3001';
-      'http://192.168.100.84:3001';
+      'http://10.254.115.203:3001';
+  // 'http://192.168.100.84:3001';
 
   /// Get base URL for API endpoints
   static String get apiUrl => '$baseUrl/api';
