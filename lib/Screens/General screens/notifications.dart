@@ -25,7 +25,7 @@ class _NotificationsState extends State<Notifications> {
           ),
         ],
       ),
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -54,10 +54,7 @@ class _NotificationsState extends State<Notifications> {
                     Text(
                       'Manage your notification preferences and view notification history here.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 20),
                     SizedBox(
@@ -79,9 +76,9 @@ class _NotificationsState extends State<Notifications> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Recent notifications section (placeholder)
             Expanded(
               child: Card(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/contacts.dart';
+import '../models/contact_form_field.dart';
 import '../api/endpoints/contact_endpoints.dart';
-import '../Screens/General screens/add_contact_screen.dart';
 
 class ContactsProvider with ChangeNotifier {
   List<Contact> _contacts = [];
