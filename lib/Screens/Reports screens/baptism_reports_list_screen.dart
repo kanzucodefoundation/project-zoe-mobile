@@ -429,7 +429,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
     final reportData = report['data'] ?? {};
     final baptismCount = reportData['numberOfBaptisms']?.toString() ?? '0';
     final groupName = report['groupName'] ?? 'Baptism Report';
-    final location = reportData['location'] ?? 'Unknown Location';
+    final submittedBy = report['submittedBy']['name'] ?? 'Unknown Person';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -508,7 +508,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Location: $location',
+                      'Submitted By: $submittedBy',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade600,

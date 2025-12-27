@@ -638,6 +638,22 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all required fields'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedLocationId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select the location'),
+          backgroundColor: Colors.orange,
+        ),
+      );
       return;
     }
 
@@ -708,5 +724,4 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       }
     }
   }
-
 }

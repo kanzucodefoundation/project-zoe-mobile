@@ -372,11 +372,11 @@ class _SalvationReportsListScreenState
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _loadReportSubmissions,
-              child: const Text('Retry'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
               ),
+              child: const Text('Retry'),
             ),
           ],
         ),
@@ -469,7 +469,7 @@ class _SalvationReportsListScreenState
     final reportData = report['data'] ?? {};
     final salvationCount = reportData['numberOfSalvations']?.toString() ?? '0';
     final groupName = report['groupName'] ?? 'Salvation Report';
-    final location = reportData['location'] ?? 'Unknown Location';
+    final submittedBy = report['submittedBy']['name'] ?? 'Unknown Person';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -548,7 +548,7 @@ class _SalvationReportsListScreenState
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Location: $location',
+                      'Submitted by: $submittedBy',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade600,
