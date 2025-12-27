@@ -53,13 +53,32 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
         reportId: 3,
       );
 
+      // Also get the template to include field labels
+      final templateData = await ReportsService.getReportById(3);
+      final template = {
+        'id': templateData.id,
+        'name': templateData.name,
+        'fields':
+            templateData.fields
+                ?.map(
+                  (field) => {
+                    'id': field.id,
+                    'name': field.name,
+                    'label': field.label,
+                    'type': field.type,
+                  },
+                )
+                .toList() ??
+            [],
+      };
+
       if (mounted) {
         setState(() {
           _allSubmissions = submissions.submissions
-              .map((e) => e.toJson())
+              .map((e) => {...e.toJson(), 'template': template})
               .toList();
           _reportSubmissions = submissions.submissions
-              .map((e) => e.toJson())
+              .map((e) => {...e.toJson(), 'template': template})
               .toList();
           _isLoading = false;
         });
@@ -644,24 +663,16 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
 
                             if (template != null &&
                                 template['fields'] != null) {
-                              final fields = List.from(
-                                template['fields'] as List,
-                              );
-                              fields.sort(
-                                (a, b) => (a['order'] as int).compareTo(
-                                  b['order'] as int,
-                                ),
-                              );
-
-                              final fieldInfo = fields.firstWhere(
-                                (field) => field['label'] == entry.key,
-                                orElse: () => null,
-                              );
-                              debugPrint('Field Info: $fieldInfo');
-
-                              if (fieldInfo != null &&
-                                  fieldInfo['label'] != null) {
-                                fieldLabel = fieldInfo['label'];
+                              final fields = template['fields'] as List;
+                              try {
+                                final fieldInfo = fields.firstWhere(
+                                  (field) => field['name'] == entry.key,
+                                );
+                                if (fieldInfo['label'] != null) {
+                                  fieldLabel = fieldInfo['label'];
+                                }
+                              } catch (e) {
+                                // Field not found, use original key
                               }
                             }
 

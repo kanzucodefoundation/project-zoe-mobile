@@ -245,9 +245,11 @@ class ReportSubmissionCardTile extends StatelessWidget {
       items.add(const SizedBox(height: 8));
 
       final data = submission['data'] as Map<String, dynamic>;
+      final template = submission['template'];
       data.forEach((key, value) {
         if (value != null) {
-          items.add(_buildDetailItem(key, value.toString()));
+          final fieldLabel = _getFieldLabel(key, template);
+          items.add(_buildDetailItem(fieldLabel, value.toString()));
         }
       });
     }
@@ -255,22 +257,14 @@ class ReportSubmissionCardTile extends StatelessWidget {
     return items;
   }
 
-  Widget _buildDetailItem(String key, String value) {
+  Widget _buildDetailItem(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            key
-                .replaceAll('_', ' ')
-                .split(' ')
-                .map(
-                  (word) => word.isEmpty
-                      ? ''
-                      : word[0].toUpperCase() + word.substring(1),
-                )
-                .join(' '),
+            label,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -282,5 +276,29 @@ class ReportSubmissionCardTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getFieldLabel(String key, dynamic template) {
+    // Try to get label from template fields
+    if (template != null && template['fields'] != null) {
+      final fields = template['fields'] as List;
+      final fieldInfo = fields.firstWhere(
+        (field) => field['name'] == key,
+        orElse: () => null,
+      );
+      if (fieldInfo != null && fieldInfo['label'] != null) {
+        return fieldInfo['label'];
+      }
+    }
+
+    // Fallback to formatted field name if template not available
+    return key
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map(
+          (word) =>
+              word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1),
+        )
+        .join(' ');
   }
 }

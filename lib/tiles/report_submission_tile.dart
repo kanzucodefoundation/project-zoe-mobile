@@ -184,9 +184,53 @@ class ReportSubmissionTile extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: submission.entries
-                        .map((entry) => _buildDetailRow(entry.key, entry.value))
-                        .toList(),
+                    children: () {
+                      // Get the data from submission
+                      final data = submission['data'] ?? submission;
+                      final template = submission['template'];
+
+                      if (data is Map<String, dynamic>) {
+                        return data.entries
+                            .where(
+                              (entry) => ![
+                                'smallGroupId',
+                                'template',
+                                'id',
+                                'reportId',
+                                'createdAt',
+                              ].contains(entry.key),
+                            )
+                            .map((entry) {
+                              final fieldLabel = _getFieldLabel(
+                                entry.key,
+                                template,
+                              );
+                              return _buildDetailRow(fieldLabel, entry.value);
+                            })
+                            .toList();
+                      }
+
+                      // Fallback to submission entries
+                      return submission.entries
+                          .where(
+                            (entry) => ![
+                              'smallGroupId',
+                              'template',
+                              'data',
+                              'id',
+                              'reportId',
+                              'createdAt',
+                            ].contains(entry.key),
+                          )
+                          .map((entry) {
+                            final fieldLabel = _getFieldLabel(
+                              entry.key,
+                              template,
+                            );
+                            return _buildDetailRow(fieldLabel, entry.value);
+                          })
+                          .toList();
+                    }(),
                   ),
                 ),
               ),
@@ -197,7 +241,7 @@ class ReportSubmissionTile extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String key, dynamic value) {
+  Widget _buildDetailRow(String label, dynamic value) {
     if (value == null || value.toString().isEmpty) {
       return const SizedBox.shrink();
     }
@@ -210,7 +254,7 @@ class ReportSubmissionTile extends StatelessWidget {
           SizedBox(
             width: 120,
             child: Text(
-              _formatLabel(key),
+              label,
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: Colors.grey.shade700,
@@ -224,6 +268,22 @@ class ReportSubmissionTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getFieldLabel(String key, dynamic template) {
+    // Try to get label from template fields
+    if (template != null && template['fields'] != null) {
+      final fields = template['fields'] as List;
+
+      for (var field in fields) {
+        if (field['name'] == key && field['label'] != null) {
+          return field['label'];
+        }
+      }
+    }
+
+    // Fallback to formatted field name if template not available
+    return _formatLabel(key);
   }
 
   String _formatLabel(String key) {
