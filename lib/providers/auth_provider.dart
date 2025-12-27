@@ -104,13 +104,20 @@ class AuthProvider extends ChangeNotifier {
       );
 
       // Store the user from the new structure
-      _user = authResult.user;
+      // _user = authResult.user;
+      _user ??= User.fromJson(
+        authResult.user.toJson(),
+        authResult.user.hierarchy,
+      );
 
+      debugPrint(
+        'AuthProvider: User loaded: ${_user?.email} (Hierarchy: ${_user?.hierarchy.toString()})',
+      );
       // Use the token from the authentication result
       final token = authResult.token;
-      debugPrint(
-        'AuthProvider: Setting auth token: ${token.substring(0, 20)}...',
-      );
+      // debugPrint(
+      //   'AuthProvider: Setting auth token: ${token.substring(0, 20)}...',
+      // );
 
       // Set auth token for API calls
       ApiClient().setAuthToken(token);
@@ -199,10 +206,11 @@ class AuthProvider extends ChangeNotifier {
 
     final canManageIds = _user!.hierarchy.canManageGroupIds;
 
-    return _user!.hierarchy.myGroups
+    final groups = _user!.hierarchy.myGroups
         .where((group) => group.type == type && canManageIds.contains(group.id))
         .map((group) => {'id': group.id, 'name': group.name})
         .toList();
+    return groups;
   }
 
   Future<void> signup({
