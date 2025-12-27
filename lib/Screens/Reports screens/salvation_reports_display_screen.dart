@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_zoe/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../components/submit_button.dart';
@@ -26,6 +27,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, TextEditingController> _controllers = {};
   DateTime? _selectedDate;
+  String? _selectedLocationId;
 
   @override
   void initState() {
@@ -77,8 +79,8 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SalvationReportsProvider>(
-      builder: (context, provider, child) {
+    return Consumer2<SalvationReportsProvider, AuthProvider>(
+      builder: (context, provider, authProvider, child) {
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
@@ -104,7 +106,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
               : provider.error != null
               ? _buildErrorView(provider)
               : provider.reportTemplate != null
-              ? _buildReportView(provider)
+              ? _buildReportView(provider, authProvider)
               : const Center(child: Text('No report data found')),
         );
       },
@@ -150,7 +152,10 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     );
   }
 
-  Widget _buildReportView(SalvationReportsProvider provider) {
+  Widget _buildReportView(
+    SalvationReportsProvider provider,
+    AuthProvider authProvider,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -158,7 +163,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
         children: [
           _buildReportHeader(provider),
           const SizedBox(height: 24),
-          _buildReportFieldsWithForm(provider),
+          _buildReportFieldsWithForm(provider, authProvider),
           const SizedBox(height: 24),
         ],
       ),
@@ -257,7 +262,10 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     );
   }
 
-  Widget _buildReportFieldsWithForm(SalvationReportsProvider provider) {
+  Widget _buildReportFieldsWithForm(
+    SalvationReportsProvider provider,
+    AuthProvider authProvider,
+  ) {
     final visibleFields = provider.reportTemplate!.fields!
         .where((field) => !field.hidden)
         .toList();
@@ -294,6 +302,8 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 20),
+            _buildLocationPicker(authProvider),
+            const SizedBox(height: 20),
             ...visibleFields.map(
               (field) => _buildTemplateFieldWithInput(field),
             ),
@@ -305,6 +315,61 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
               textColor: Colors.white,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationPicker(AuthProvider authProvider) {
+    final List<Map<String, dynamic>> availableLocations = authProvider
+        .getGroupsFromHierarchy('fellowship');
+
+    // if (availableLocations.isEmpty) {
+    //   return const Text(
+    //     'No Missional Community available',
+    //     style: TextStyle(color: Colors.red),
+    //   );
+    // }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isExpanded: true,
+          value: _selectedLocationId,
+          hint: availableLocations.isEmpty
+              ? Text(
+                  'No Missional Community available',
+                  style: TextStyle(color: Colors.red),
+                )
+              : Text(
+                  'Select Location',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
+          items: availableLocations.map((mc) {
+            return DropdownMenuItem<String>(
+              value: mc['id']?.toString(),
+              child: Text(
+                mc['name'] ?? 'Unknown MC',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              if (mounted) {
+                setState(() {
+                  _selectedLocationId = value;
+                });
+              }
+            }
+          },
         ),
       ),
     );
@@ -434,7 +499,25 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
   }
 
   void _submitReport() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all required fields'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedLocationId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select the Missonal Community'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
 
     final data = <String, dynamic>{};
     for (var entry in _controllers.entries) {
@@ -449,7 +532,11 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
       context,
       listen: false,
     );
-    final success = await provider.submitReport(widget.reportId, data);
+    final success = await provider.submitReport(
+      groupId: int.parse(_selectedLocationId!),
+      reportId: widget.reportId,
+      data: data,
+    );
 
     if (success) {
       if (mounted) {

@@ -39,10 +39,10 @@ class SalvationReportsProvider extends ChangeNotifier {
   }
 
   /// Submit a salvation report
-  Future<bool> submitReport(
-    int reportId,
-    Map<String, dynamic> formData, {
-    int groupId = 0,
+  Future<bool> submitReport({
+    required int groupId,
+    required int reportId,
+    required Map<String, dynamic> data,
   }) async {
     _setSubmitting(true);
     _clearError();
@@ -51,7 +51,7 @@ class SalvationReportsProvider extends ChangeNotifier {
       await ReportsService.submitReport(
         groupId: groupId,
         reportId: reportId,
-        data: formData,
+        data: data,
       );
 
       // Reload data to show the new submission
