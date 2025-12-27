@@ -118,7 +118,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
         return Scaffold(
-          backgroundColor: Colors.grey.shade50,
+          backgroundColor: Colors.white,
           appBar: AppBar(
             backgroundColor: Colors.white,
             elevation: 0,

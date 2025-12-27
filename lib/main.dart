@@ -51,9 +51,19 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Project Zoe',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepPurple,
+            surface: const Color(0xFFFFFFFF), // Pure white
+            // ignore: deprecated_member_use
+            background: const Color(0xFFFFFFFF), // Pure white
+          ),
           useMaterial3: true,
-          scaffoldBackgroundColor: Colors.white,
+          scaffoldBackgroundColor: const Color(0xFFFFFFFF), // Pure white
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFFFFFFFF), // Pure white
+            surfaceTintColor: Colors.transparent, // Remove Material 3 tint
+            elevation: 0,
+          ),
         ),
         home: const AppWrapper(),
         routes: {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:project_zoe/widgets/group_tree_widget.dart';
 import '../../models/group.dart';
-import '../../widgets/group_tree_widget.dart';
 
 class GroupsScreen extends StatefulWidget {
   const GroupsScreen({super.key});
@@ -447,6 +447,8 @@ class _GroupsScreenState extends State<GroupsScreen> {
       appBar: AppBar(
         title: const Text('Church Groups'),
         elevation: 2,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {

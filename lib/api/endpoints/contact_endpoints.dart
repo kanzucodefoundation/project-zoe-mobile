@@ -1,6 +1,6 @@
 import '../api_client.dart';
 import '../../models/contacts.dart';
-import '../../Screens/General screens/add_contact_screen.dart';
+import '../../models/contact_form_field.dart';
 
 class ContactEndpoints {
   static final ApiClient _apiClient = ApiClient();

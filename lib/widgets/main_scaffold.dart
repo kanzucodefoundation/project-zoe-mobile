@@ -19,7 +19,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Colors.white,
       appBar: _currentIndex == 1 ? CustomAppBar(title: _getTitle()) : null,
       drawer: _currentIndex == 1 ? const CustomDrawer() : null,
       body: _getBody(),
