@@ -6,6 +6,7 @@ import 'package:project_zoe/services/reports_service.dart';
 import '../../components/text_field.dart';
 import '../../components/submit_button.dart';
 import '../../components/custom_date_picker.dart';
+import '../../tiles/report_submission_card_tile.dart';
 
 /// Garage Reports Display Screen - Shows Garage report template and submissions
 class GarageReportsScreen extends StatefulWidget {
@@ -747,63 +748,43 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
               ),
             )
           else
-            Column(
-              children: _submissions
-                  .take(5)
-                  .map((submission) => _buildSubmissionItem(submission))
-                  .toList(),
-            ),
-        ],
-      ),
-    );
-  }
+            // Responsive grid layout to prevent flex render errors
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Calculate number of columns based on screen width
+                  final screenWidth = constraints.maxWidth;
+                  int crossAxisCount = 2; // Default for phones
 
-  Widget _buildSubmissionItem(Map<String, dynamic> submission) {
-    final submissionDate =
-        submission['date'] ?? submission['submittedAt'] ?? 'Unknown date';
-    final serviceName = submission['serviceName'] ?? 'Sunday Service';
-    final attendance = submission['totalAttendance']?.toString() ?? '0';
+                  if (screenWidth > 600) {
+                    crossAxisCount = 3; // Tablets
+                  }
+                  if (screenWidth > 900) {
+                    crossAxisCount = 4; // Large screens
+                  }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(6),
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      childAspectRatio: 0.85, // Adjust card height ratio
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemCount: _submissions.take(6).length, // Show max 6 cards
+                    itemBuilder: (context, index) {
+                      final submission = _submissions[index];
+                      return ReportSubmissionCardTile(
+                        submission: submission,
+                        themeColor: Colors.orange,
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-            child: const Icon(Icons.assignment, size: 16, color: Colors.orange),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  serviceName,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '$submissionDate • $attendance attended',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 16),
         ],
       ),
     );

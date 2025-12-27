@@ -265,7 +265,10 @@ class _HomeScreenState extends State<HomeScreen> {
             (card) => Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(right: 8),
-                child: card,
+                child: SizedBox(
+                  height: 120, // Fixed height for home screen cards
+                  child: card,
+                ),
               ),
             ),
           )
