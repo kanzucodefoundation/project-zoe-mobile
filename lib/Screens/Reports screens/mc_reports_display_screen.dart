@@ -35,6 +35,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
   String? _selectedMcName;
   bool _isLoadingMcs = true;
   DateTime? _selectedDate;
+  String? _selectedOption;
 
   @override
   void initState() {
@@ -570,6 +571,47 @@ class _McReportsScreenState extends State<McReportsScreen> {
                 ),
               ),
       );
+    } else if (fieldType == 'select') {
+      final availableOptions = field.options as List<dynamic>? ?? [];
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            value: _selectedOption,
+            hint: Text(
+              field.label,
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+            items: availableOptions.map((option) {
+              return DropdownMenuItem<String>(
+                value: option.toString(),
+                child: Text(
+                  option.toString(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                if (mounted) {
+                  setState(() {
+                    _selectedOption = value;
+                  });
+                }
+              }
+            },
+          ),
+        ),
+      );
     } else {
       // Default text input
       input = TextFormField(
@@ -721,6 +763,15 @@ class _McReportsScreenState extends State<McReportsScreen> {
       );
       return;
     }
+    if (_selectedOption == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select an option for all dropdown fields'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
 
     if (_selectedMcId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -741,29 +792,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
       // Collect form data with exact field names
       final reportData = <String, dynamic>{};
 
-      // // Add selected date - ALWAYS store if selected
-      // if (_selectedDate != null) {
-      //   reportData['date'] = _selectedDate!.toIso8601String().split('T')[0];
-      //   print('✅ Date captured: ${reportData['date']}');
-      // } else {
-      //   print('❌ No date selected');
-      // }
-
-      // // Add selected MC data - ALWAYS store if selected
-      // if (_selectedMcName != null && _selectedMcName!.isNotEmpty) {
-      //   reportData['smallGroupName'] = _selectedMcName!;
-      //   print('✅ MC Name captured: ${reportData['smallGroupName']}');
-      // } else {
-      //   print('❌ No MC name selected');
-      // }
-
-      // if (_selectedMcId != null && _selectedMcId!.isNotEmpty) {
-      //   reportData['smallGroupId'] = _selectedMcId!;
-      //   print('✅ MC ID captured: ${reportData['smallGroupId']}');
-      // } else {
-      //   print('❌ No MC ID selected');
-      // }
-
       // Collect all field values using exact field names
       for (var field in _report!.fields!) {
         final controller = _controllers[field.id];
@@ -780,6 +808,8 @@ class _McReportsScreenState extends State<McReportsScreen> {
           reportData['smallGroupName'] = _selectedMcName;
           reportData['smallGroupId'] = int.tryParse(_selectedMcId!);
           reportData['date'] = _selectedDate?.toIso8601String();
+        } else if (field.type.toLowerCase() == 'mcStreamPlatform') {
+          reportData[field.name] = _selectedOption;
         } else {
           // For text, date, and other field types
           reportData[field.name] = value;

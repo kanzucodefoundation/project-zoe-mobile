@@ -28,6 +28,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
   final Map<String, TextEditingController> _controllers = {};
   DateTime? _selectedDate;
   String? _selectedLocationId;
+  String? _selectedContextOption;
 
   @override
   void initState() {
@@ -61,6 +62,11 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
       } else if (key == 'groupId' && value != null) {
         _selectedLocationId = value.toString();
         debugPrint('✅ Pre-filled salvation locationId: $_selectedLocationId');
+      } else if (key == 'salvationContext' && value != null) {
+        _selectedContextOption = value.toString();
+        debugPrint(
+          '✅ Pre-filled salvation context option: $_selectedContextOption',
+        );
       } else if (value != null && value.toString().isNotEmpty) {
         // Create controller if doesn't exist and pre-fill
         if (!_controllers.containsKey(key)) {
@@ -351,7 +357,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
                   style: TextStyle(color: Colors.red),
                 )
               : Text(
-                  'Select Location',
+                  'Select Missional Community',
                   style: TextStyle(color: Colors.grey.shade600),
                 ),
           items: availableLocations.map((mc) {
@@ -441,6 +447,49 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
       );
     }
 
+    if (field.type == 'select') {
+      final availableOptions = field.options as List<dynamic>? ?? [];
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            value: _selectedContextOption,
+            hint: Text(
+              field.label ?? 'Select $fieldLabel Option',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+            items: availableOptions.map((option) {
+              return DropdownMenuItem<String>(
+                value: option.toString(),
+                child: Text(
+                  option.toString(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                if (mounted) {
+                  setState(() {
+                    _selectedContextOption = value;
+                  });
+                }
+              }
+            },
+          ),
+        ),
+      );
+    }
+
     if (!_controllers.containsKey(field.name)) {
       _controllers[field.name] = TextEditingController();
     }
@@ -522,6 +571,16 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
       return;
     }
 
+    if (_selectedContextOption == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select the Context option'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     final data = <String, dynamic>{};
     for (var entry in _controllers.entries) {
       data[entry.key] = entry.value.text;
@@ -529,6 +588,8 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
 
     if (_selectedDate != null) {
       data['salvationDate'] = _selectedDate!.toIso8601String();
+    } else if (_selectedContextOption != null) {
+      data['salvationContext'] = _selectedContextOption;
     }
 
     final provider = Provider.of<SalvationReportsProvider>(
