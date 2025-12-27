@@ -574,12 +574,6 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     final List<Map<String, dynamic>> availableLocations = authProvider
         .getGroupsFromHierarchy('location');
 
-    if (availableLocations.isEmpty) {
-      return const Text(
-        'No locations available',
-        style: TextStyle(color: Colors.red),
-      );
-    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -590,10 +584,15 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         child: DropdownButton<String>(
           isExpanded: true,
           value: _selectedLocationId,
-          hint: Text(
-            'Select Location',
-            style: TextStyle(color: Colors.grey.shade600),
-          ),
+          hint: availableLocations.isEmpty
+              ? Text(
+                  'No location available',
+                  style: TextStyle(color: Colors.red),
+                )
+              : Text(
+                  'Select Location',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
           items: availableLocations.map((mc) {
             return DropdownMenuItem<String>(
               value: mc['id']?.toString(),

@@ -551,9 +551,9 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
     );
   }
 
-  void _showReportDetails(Map<String, dynamic> submission) {
+  void _showReportDetails(Map<String, dynamic> reportDetails) {
     // Check if user can edit this submission AND has submit permissions
-    final canEdit = submission['canEdit'] ?? false;
+    final canEdit = reportDetails['canEdit'] ?? false;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final canSubmit = authProvider.user?.canSubmitReports ?? false;
     final canEditAndSubmit = canEdit && canSubmit;
@@ -601,7 +601,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                       EditReportButton(
                         onPressed: () {
                           Navigator.pop(context);
-                          _editReport(submission);
+                          _editReport(reportDetails);
                         },
                       )
                     else
@@ -643,7 +643,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   children: [
                     () {
-                      final data = submission['data'];
+                      final data = reportDetails['data'];
                       Map<String, dynamic> reportData = {};
 
                       if (data is Map) {
@@ -656,9 +656,11 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                             if (['smallGroupId'].contains(entry.key)) {
                               return const SizedBox();
                             }
-
+                            //  key and Value : get template from fields to show label
                             String fieldLabel = entry.key;
-                            final template = submission['template'];
+
+                            final template = reportDetails['template'];
+
                             if (template != null &&
                                 template['fields'] != null) {
                               final fields = template['fields'] as List;
