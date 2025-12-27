@@ -459,7 +459,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
           border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: _isLoadingMcs
             ? const Padding(
@@ -767,7 +767,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
       // Submit the report with correct payload structure
       await ReportsService.submitReport(
         reportId: _report!.id,
-        groupId: 100, //TODO: Replace with actual group ID
+        groupId: reportData['smallGroupId'],
         data: reportData,
       );
 

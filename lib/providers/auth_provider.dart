@@ -191,6 +191,20 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // function to get group name and id from user hierarchy object
+  List<Map<String, dynamic>> getGroupsFromHierarchy(String type) {
+    if (_user == null || _user!.hierarchy.myGroups.isEmpty) {
+      return [];
+    }
+
+    final canManageIds = _user!.hierarchy.canManageGroupIds;
+
+    return _user!.hierarchy.myGroups
+        .where((group) => group.type == type && canManageIds.contains(group.id))
+        .map((group) => {'id': group.id, 'name': group.name})
+        .toList();
+  }
+
   Future<void> signup({
     required String firstName,
     required String lastName,
