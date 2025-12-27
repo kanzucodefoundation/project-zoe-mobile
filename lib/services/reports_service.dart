@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_zoe/models/group.dart';
 import 'package:project_zoe/models/report_submission.dart';
+import 'package:project_zoe/models/report_submissions_response%20.dart';
 import '../api/api_client.dart';
 import '../api/endpoints/report_endpoints.dart';
 import '../models/report.dart';
@@ -52,66 +53,38 @@ class ReportsService {
   }
 
   /// Get MC report submissions from the server
-  static Future<List<Map<String, dynamic>>> getMcReportSubmissions() async {
+  static Future<ReportSubmissionsResponse> getMcReportSubmissions({
+    int limit = 10,
+    int offset = 0,
+    int? reportId,
+  }) async {
     try {
-      print('🔍 Fetching MC report submissions from server...');
+      final queryParams = {
+        'limit': limit,
+        'offset': offset,
+        if (reportId != null) 'reportId': reportId,
+      };
 
-      // Try the main submissions endpoint first
-      final response = await _dio.get('/reports/submissions');
-      print('✅ Server response received: ${response.data}');
-
-      if (response.data is List) {
-        final submissions = <Map<String, dynamic>>[];
-        for (var item in response.data) {
-          if (item is Map) {
-            final mapItem = Map<String, dynamic>.from(item);
-            submissions.add(mapItem);
-            print('📋 Added server submission: ${mapItem['id']}');
-          }
-        }
-        print('🎉 Loaded ${submissions.length} submissions from server');
-        return submissions;
-      } else if (response.data is Map && response.data['data'] is List) {
-        // Handle wrapped response
-        final dataList = response.data['data'] as List;
-        final submissions = <Map<String, dynamic>>[];
-        for (var item in dataList) {
-          if (item is Map) {
-            final mapItem = Map<String, dynamic>.from(item);
-            submissions.add(mapItem);
-          }
-        }
-        print(
-          '🎉 Loaded ${submissions.length} submissions from server (wrapped)',
-        );
-        return submissions;
-      }
-
-      print('⚠️ No submissions found in server response');
-      return [];
-    } on DioException catch (e) {
-      print(
-        '❌ Error fetching server submissions: ${e.response?.statusCode} ${e.message}',
+      final response = await _dio.get(
+        '/reports/submissions/me',
+        queryParameters: queryParams,
       );
-      if (e.response?.statusCode == 404) {
-        print('ℹ️ Submissions endpoint not available, returning empty list');
-        return [];
-      }
+
+      return ReportSubmissionsResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      debugPrint('❌ Error fetching submissions: ${e.message}');
       throw _handleDioException(e);
-    } catch (e) {
-      print('💀 Unexpected error fetching server submissions: $e');
-      return [];
     }
   }
 
   /// Get specific MC report details by MC ID
-  static Future<List<Map<String, dynamic>>> getMcReportsByGroupId(
+  static Future<List<Map<String, dynamic>>> getReportDetailsByGroupId(
     int groupId,
   ) async {
     try {
-      print('🔍 Fetching reports for MC ID: $groupId');
-      final response = await _dio.get('/reports/group/$groupId');
-      print('✅ MC reports response: ${response.data}');
+      debugPrint('🔍 Fetching reports for MC ID: $groupId');
+      final response = await _dio.get('/reports/submissions/$groupId');
+      debugPrint('✅ MC reports response: ${response.data}');
 
       if (response.data is List) {
         return List<Map<String, dynamic>>.from(response.data);
@@ -119,14 +92,14 @@ class ReportsService {
 
       return [];
     } on DioException catch (e) {
-      print('❌ Error fetching MC reports: ${e.toString()}');
-      print('🔢 Status code: ${e.response?.statusCode}');
-      print('💥 Error response: ${e.response?.data}');
+      debugPrint('❌ Error fetching MC reports: ${e.toString()}');
+      debugPrint('🔢 Status code: ${e.response?.statusCode}');
+      debugPrint('💥 Error response: ${e.response?.data}');
 
       // Return empty list if endpoint doesn't exist yet
       return [];
     } catch (e) {
-      print('💀 Unexpected error: ${e.toString()}');
+      debugPrint('💀 Unexpected error: ${e.toString()}');
       return [];
     }
   }
@@ -134,11 +107,11 @@ class ReportsService {
   /// Get all submitted reports from server (for display)
   static Future<List<Map<String, dynamic>>> getAllSubmittedReports() async {
     try {
-      print('🔍 Fetching all submitted reports from server...');
+      debugPrint('🔍 Fetching all submitted reports from server...');
 
       // Try to get submitted report data
       final response = await _dio.get('/report-data');
-      print('✅ Report data response: ${response.data}');
+      debugPrint('✅ Report data response: ${response.data}');
 
       if (response.data is List) {
         final reports = <Map<String, dynamic>>[];
@@ -151,59 +124,59 @@ class ReportsService {
             }
           }
         }
-        print('📊 Found ${reports.length} submitted reports from server');
+        debugPrint('📊 Found ${reports.length} submitted reports from server');
         return reports;
       }
 
-      print('⚠️ No report data found');
+      debugPrint('⚠️ No report data found');
       return [];
     } on DioException catch (e) {
-      print(
+      debugPrint(
         '❌ Error fetching submitted reports: ${e.response?.statusCode} ${e.message}',
       );
       if (e.response?.statusCode == 404) {
-        print('ℹ️ Report data endpoint not available');
+        debugPrint('ℹ️ Report data endpoint not available');
         return [];
       }
       return [];
     } catch (e) {
-      print('💀 Unexpected error: $e');
+      debugPrint('💀 Unexpected error: $e');
       return [];
     }
   }
 
   static Future<Group> getGroupDetails(int groupId) async {
     try {
-      print('🔍 Fetching group details from /groups/$groupId...');
+      debugPrint('🔍 Fetching group details from /groups/$groupId...');
       final response = await _dio.get('/groups/$groupId');
-      print('✅ Group details response received: ${response.data}');
+      debugPrint('✅ Group details response received: ${response.data}');
 
       return Group.fromJson(response.data);
     } on DioException catch (e) {
-      print('❌ DioException fetching group details: ${e.toString()}');
-      print('💥 Error response: ${e.response?.data}');
-      print('🔢 Status code: ${e.response?.statusCode}');
+      debugPrint('❌ DioException fetching group details: ${e.toString()}');
+      debugPrint('💥 Error response: ${e.response?.data}');
+      debugPrint('🔢 Status code: ${e.response?.statusCode}');
       throw _handleDioException(e);
     } catch (e) {
-      print('💀 Unexpected error fetching group details: ${e.toString()}');
+      debugPrint('💀 Unexpected error fetching group details: ${e.toString()}');
       throw Exception('Failed to fetch group details: ${e.toString()}');
     }
   }
 
   static Future<GroupsResponse> getUserGroups() async {
     try {
-      print('🔍 Fetching user groups from /groups/me...');
+      debugPrint('🔍 Fetching user groups from /groups/me...');
       final response = await _dio.get('/groups/me');
-      print('✅ User groups response received: ${response.data}');
+      debugPrint('✅ User groups response received: ${response.data}');
 
       return GroupsResponse.fromJson(response.data);
     } on DioException catch (e) {
-      print('❌ DioException fetching user groups: ${e.toString()}');
-      print('💥 Error response: ${e.response?.data}');
-      print('🔢 Status code: ${e.response?.statusCode}');
+      debugPrint('❌ DioException fetching user groups: ${e.toString()}');
+      debugPrint('💥 Error response: ${e.response?.data}');
+      debugPrint('🔢 Status code: ${e.response?.statusCode}');
       throw _handleDioException(e);
     } catch (e) {
-      print('💀 Unexpected error fetching user groups: ${e.toString()}');
+      debugPrint('💀 Unexpected error fetching user groups: ${e.toString()}');
       throw Exception('Failed to fetch user groups: ${e.toString()}');
     }
   }

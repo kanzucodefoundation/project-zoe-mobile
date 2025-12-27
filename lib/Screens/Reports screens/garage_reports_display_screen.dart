@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project_zoe/models/report.dart';
 import 'package:project_zoe/models/reports_model.dart';
+import 'package:project_zoe/providers/auth_provider.dart';
 import 'package:project_zoe/services/reports_service.dart';
 import '../../components/text_field.dart';
 import '../../components/submit_button.dart';
@@ -26,6 +27,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   final Map<String, TextEditingController> _controllers = {};
   DateTime? _selectedDate;
   bool _isSubmitting = false;
+
+  String? _selectedLocationId;
+  String? _selectedLocationName;
 
   @override
   void initState() {
@@ -285,6 +289,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
             ),
             const SizedBox(height: 20),
 
+            _buildLocationPicker(context),
+            const SizedBox(height: 20),
+
             // Generate form fields
             ...visibleFields.map(
               (field) => _buildTemplateFieldWithInput(field),
@@ -523,6 +530,58 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     );
   }
 
+  Widget _buildLocationPicker(context) {
+    // final availableMcs = context.read<AuthProvider>().getGroupsFromHierarchy(
+    //   'location',
+    // );
+    //TODO: Fix AuthProvider usage
+    final List<Map<String, dynamic>> availableMcs = AuthProvider()
+        .getGroupsFromHierarchy('location');
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isExpanded: true,
+          value: _selectedLocationId,
+          hint: Text(
+            'Select Location',
+            style: TextStyle(color: Colors.grey.shade600),
+          ),
+          items: availableMcs.map((mc) {
+            return DropdownMenuItem<String>(
+              value: mc['id']?.toString(),
+              child: Text(
+                mc['name'] ?? 'Unknown MC',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              final selectedMc = availableMcs.firstWhere(
+                (mc) => mc['id']?.toString() == value,
+              );
+              if (mounted) {
+                setState(() {
+                  _selectedLocationId = value;
+                  _selectedLocationName = selectedMc['name'] ?? 'Unknown MC';
+                });
+              }
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   TextInputType _getKeyboardType(String type) {
     switch (type.toLowerCase()) {
       case 'number':
@@ -559,16 +618,21 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       if (_selectedDate != null) {
         formData['serviceDate'] = _selectedDate!.toIso8601String();
       }
-      formData['reportId'] = widget.reportId;
-      formData['submittedAt'] = DateTime.now().toIso8601String();
 
       print('🚀 Submitting garage report: $formData');
 
       // TODO: Implement actual submission logic
       // await ReportsService.submitReport(formData);
+      await ReportsService.submitReport(
+        reportId: widget.reportId,
+        groupId: _selectedLocationId != null
+            ? int.parse(_selectedLocationId!)
+            : 0,
+        data: formData,
+      );
 
       // Simulate submission delay
-      await Future.delayed(const Duration(seconds: 2));
+      // await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -770,7 +770,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Report Types',
+            'Report Submissions',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -784,7 +784,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ),
           const SizedBox(height: 16),
           // Show first 2 report types or all if _showAllReportTypes is true
-          ...(_showAllReportTypes ? reportTypeWidgets : reportTypeWidgets.take(3).toList()),
+          ...(_showAllReportTypes
+              ? reportTypeWidgets
+              : reportTypeWidgets.take(3).toList()),
           if (!_showAllReportTypes && reportTypeWidgets.length > 3) ...[
             const SizedBox(height: 16),
             Center(
@@ -798,7 +800,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 label: const Text('Load More Report Types'),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ),
@@ -815,7 +820,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 label: const Text('Show Less'),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ),
@@ -917,7 +925,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Create and submit your reports',
+                'Tap and submit your reports',
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 16),
@@ -1004,7 +1012,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
         crossAxisSpacing: 8,
         childAspectRatio: 1,
       ),
-      itemBuilder: (_, index) => cards[index],
+      itemBuilder: (_, index) =>
+          Padding(padding: const EdgeInsets.all(8), child: cards[index]),
     );
   }
 }

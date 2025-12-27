@@ -46,12 +46,18 @@ class _SalvationReportsListScreenState
       }
 
       // Get salvation reports (assuming report ID 4 for salvation)
-      final submissions = await ReportsService.getReportSubmissions(4);
+      final submissions = await ReportsService.getMcReportSubmissions(
+        reportId: 4,
+      );
 
       if (mounted) {
         setState(() {
-          _allSubmissions = submissions;
-          _reportSubmissions = submissions;
+          _allSubmissions = submissions.submissions
+              .map((e) => e.toJson())
+              .toList();
+          _reportSubmissions = submissions.submissions
+              .map((e) => e.toJson())
+              .toList();
           _isLoading = false;
         });
       }
@@ -76,11 +82,15 @@ class _SalvationReportsListScreenState
           );
           if (submissionDate == null) return false;
 
-          if (_filterStart != null && submissionDate.isBefore(_filterStart!))
+          if (_filterStart != null && submissionDate.isBefore(_filterStart!)) {
             return false;
+          }
           if (_filterEnd != null &&
-              submissionDate.isAfter(_filterEnd!.add(const Duration(days: 1))))
+              submissionDate.isAfter(
+                _filterEnd!.add(const Duration(days: 1)),
+              )) {
             return false;
+          }
 
           return true;
         }).toList();
@@ -281,10 +291,9 @@ class _SalvationReportsListScreenState
   }
 
   Widget _buildEmptyState() {
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
+    return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -335,12 +344,12 @@ class _SalvationReportsListScreenState
 
   Widget _buildReportItem(Map<String, dynamic> report) {
     final reportDate =
-        report['date'] ?? report['submittedAt'] ?? 'Unknown date';
-    final salvationCount =
-        report['salvationCount']?.toString() ??
-        report['count']?.toString() ??
-        '0';
-    final title = report['title'] ?? 'Salvation Report';
+        report['submittedAt']?.toString().split('T')[0] ?? 'No Date';
+    final reportData = report['data'] ?? {};
+
+    final salvationCount = reportData['numberOfSalvations']?.toString() ?? '0';
+    final groupName = report['groupName'] ?? 'Salvation Report';
+    final groupId = report['groupId'] ?? '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -367,7 +376,7 @@ class _SalvationReportsListScreenState
           child: const Icon(Icons.favorite, color: Colors.green, size: 24),
         ),
         title: Text(
-          title,
+          groupName,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
@@ -375,11 +384,11 @@ class _SalvationReportsListScreenState
           children: [
             const SizedBox(height: 4),
             Text(
-              'Date: $reportDate',
+              'Date of Submission: $reportDate',
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             Text(
-              'Salvations: $salvationCount',
+              'Number of Salvations: $salvationCount',
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
           ],

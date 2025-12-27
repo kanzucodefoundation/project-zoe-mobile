@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../api_client.dart';
 import '../../models/contacts.dart';
 
@@ -15,9 +14,9 @@ class ContactEndpoints {
 
       final response = await _apiClient.dio.get(
         '/crm/contacts',
-        options: Options(
-          headers: {'X-Church-Name': churchName ?? 'fellowship'},
-        ),
+        // options: Options(
+        //   headers: {'X-Church-Name': churchName ?? 'fellowship'},
+        // ),
       );
 
       // Comment out debug print for production
@@ -75,9 +74,9 @@ class ContactEndpoints {
 
       final response = await _apiClient.dio.get(
         '/crm/contacts/$contactId',
-        options: Options(
-          headers: {'X-Church-Name': churchName ?? 'fellowship'},
-        ),
+        // options: Options(
+        //   headers: {'X-Church-Name': churchName ?? 'fellowship'},
+        // ),
       );
 
       // Comment out debug print for production

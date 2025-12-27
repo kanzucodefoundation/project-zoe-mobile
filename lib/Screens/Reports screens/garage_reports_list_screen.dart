@@ -45,12 +45,18 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
       }
 
       // Get garage reports (assuming report ID 2 for garage)
-      final submissions = await ReportsService.getReportSubmissions(2);
+      final submissions = await ReportsService.getMcReportSubmissions(
+        reportId: 2,
+      );
 
       if (mounted) {
         setState(() {
-          _allSubmissions = submissions;
-          _reportSubmissions = submissions;
+          _allSubmissions = submissions.submissions
+              .map((e) => e.toJson())
+              .toList();
+          _reportSubmissions = submissions.submissions
+              .map((e) => e.toJson())
+              .toList();
           _isLoading = false;
         });
       }
@@ -75,11 +81,15 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
           );
           if (submissionDate == null) return false;
 
-          if (_filterStart != null && submissionDate.isBefore(_filterStart!))
+          if (_filterStart != null && submissionDate.isBefore(_filterStart!)) {
             return false;
+          }
           if (_filterEnd != null &&
-              submissionDate.isAfter(_filterEnd!.add(const Duration(days: 1))))
+              submissionDate.isAfter(
+                _filterEnd!.add(const Duration(days: 1)),
+              )) {
             return false;
+          }
 
           return true;
         }).toList();
@@ -303,9 +313,11 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
 
   Widget _buildReportItem(Map<String, dynamic> report) {
     final reportDate =
-        report['date'] ?? report['submittedAt'] ?? 'Unknown date';
-    final attendance = report['totalAttendance']?.toString() ?? '0';
-    final serviceName = report['serviceName'] ?? 'Sunday Service';
+        report['submittedAt']?.toString().split('T')[0] ?? 'No Date';
+    final reportData = report['data'] ?? {};
+    final attendance = reportData['totalAttendance']?.toString() ?? '0';
+    final serviceName = reportData['serviceType'] ?? 'Sunday Service';
+    final sermonTopic = reportData['sermonTopic'] ?? 'Sunday Topic';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -339,6 +351,10 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
+            Text(
+              'Topic: $sermonTopic',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
             Text(
               'Date: $reportDate',
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),

@@ -10,7 +10,7 @@ class ReportEndpoints {
 
   /// Submit report endpoint - POST /reports/submit
   static String reportsSubmit(int reportId) =>
-      '$_baseUrl/reports/$reportId/submission';
+      '$_baseUrl/reports/$reportId/submissions';
 
   /// Report categories endpoint - GET /reports/category
   static String get reportsCategories => '$_baseUrl/reports/category';

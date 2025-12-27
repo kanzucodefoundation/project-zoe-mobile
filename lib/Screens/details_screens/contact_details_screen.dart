@@ -6,8 +6,7 @@ import '../../models/contacts.dart';
 class ContactDetailsScreen extends StatefulWidget {
   final int contactId;
 
-  const ContactDetailsScreen({Key? key, required this.contactId})
-    : super(key: key);
+  const ContactDetailsScreen({super.key, required this.contactId});
 
   @override
   State<ContactDetailsScreen> createState() => _ContactDetailsScreenState();
@@ -680,8 +679,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                         ),
                       ),
                     ),
-                    if (membership.group.categoryName != null &&
-                        membership.group.categoryName!.isNotEmpty) ...[
+                    if (membership.group.categoryName.isNotEmpty) ...[
                       const SizedBox(width: 8),
                       Text(
                         '• ${membership.group.categoryName}',
