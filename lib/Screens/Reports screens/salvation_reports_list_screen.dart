@@ -54,8 +54,9 @@ class _SalvationReportsListScreenState
         reportId: 4,
       );
 
-      // Also get the template to include field labels
-      final templateData = await ReportsService.getReportById(1);
+      
+      final templateData = await ReportsService.getReportById(4);
+
       final template = {
         'id': templateData.id,
         'name': templateData.name,
