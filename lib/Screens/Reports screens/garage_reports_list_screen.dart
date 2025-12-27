@@ -53,13 +53,32 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
         reportId: 2,
       );
 
+      // Also get the template to include field labels
+      final templateData = await ReportsService.getReportById(2);
+      final template = {
+        'id': templateData.id,
+        'name': templateData.name,
+        'fields':
+            templateData.fields
+                ?.map(
+                  (field) => {
+                    'id': field.id,
+                    'name': field.name,
+                    'label': field.label,
+                    'type': field.type,
+                  },
+                )
+                .toList() ??
+            [],
+      };
+
       if (mounted) {
         setState(() {
           _allSubmissions = submissions.submissions
-              .map((e) => e.toJson())
+              .map((e) => {...e.toJson(), 'template': template})
               .toList();
           _reportSubmissions = submissions.submissions
-              .map((e) => e.toJson())
+              .map((e) => {...e.toJson(), 'template': template})
               .toList();
           _isLoading = false;
         });
@@ -660,13 +679,15 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                             if (template != null &&
                                 template['fields'] != null) {
                               final fields = template['fields'] as List;
-                              final fieldInfo = fields.firstWhere(
-                                (field) => field['name'] == entry.key,
-                                orElse: () => null,
-                              );
-                              if (fieldInfo != null &&
-                                  fieldInfo['label'] != null) {
-                                fieldLabel = fieldInfo['label'];
+                              try {
+                                final fieldInfo = fields.firstWhere(
+                                  (field) => field['name'] == entry.key,
+                                );
+                                if (fieldInfo['label'] != null) {
+                                  fieldLabel = fieldInfo['label'];
+                                }
+                              } catch (e) {
+                                // Field not found, use original key
                               }
                             }
 

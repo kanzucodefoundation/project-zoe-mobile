@@ -559,7 +559,23 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
                   .take(5)
                   .map(
                     (submission) => ReportSubmissionTile(
-                      submission: submission,
+                      submission: {
+                        ...submission,
+                        'template': {
+                          'id': provider.reportTemplate!.id,
+                          'name': provider.reportTemplate!.name,
+                          'fields': provider.reportTemplate!.fields!
+                              .map(
+                                (field) => {
+                                  'id': field.id,
+                                  'name': field.name,
+                                  'label': field.label,
+                                  'type': field.type,
+                                },
+                              )
+                              .toList(),
+                        },
+                      },
                       themeColor: Colors.green,
                     ),
                   )
