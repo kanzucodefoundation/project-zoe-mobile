@@ -44,18 +44,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<void> _loadReportCategories() async {
     try {
-      print('🔄 Starting to load report categories...');
+      debugPrint('🔄 Starting to load report categories...');
       // Let server determine church from authenticated user
 
       final categories = await ReportsService.getReportCategories();
-      print('✅ Categories loaded successfully: $categories');
+      debugPrint('✅ Categories loaded successfully: $categories');
       setState(() {
         _reportCategories = categories;
         _isLoadingCategories = false;
       });
-      print('🎯 State updated - categories count: ${_reportCategories.length}');
+      debugPrint(
+        '🎯 State updated - categories count: ${_reportCategories.length}',
+      );
     } catch (e) {
-      print('❌ Error loading categories: $e');
+      debugPrint('❌ Error loading categories: $e');
       setState(() {
         _isLoadingCategories = false;
       });
@@ -64,22 +66,22 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<void> _loadSmallGroups() async {
     try {
-      print('🔄 Starting to load user groups...');
+      debugPrint('🔄 Starting to load user groups...');
       // Let server determine church from authenticated user
 
       final groupsResponse = await ReportsService.getUserGroups();
-      print(
+      debugPrint(
         '✅ Groups loaded successfully: ${groupsResponse.groups.length} groups',
       );
       setState(() {
         _groupsResponse = groupsResponse;
         _isLoadingGroups = false;
       });
-      print(
+      debugPrint(
         '🎯 State updated - groups count: ${_groupsResponse!.groups.length}',
       );
     } catch (e) {
-      print('❌ Error loading groups: $e');
+      debugPrint('❌ Error loading groups: $e');
       setState(() {
         _isLoadingGroups = false;
       });
