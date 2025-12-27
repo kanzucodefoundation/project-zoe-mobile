@@ -257,29 +257,31 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       reportData = Map<String, dynamic>.from(data);
     }
 
-    debugPrint('📊 Raw submission structure:');
-    debugPrint('  - ID: ${submission['id']}');
-    debugPrint('  - Report ID: ${submission['reportId']}');
-    debugPrint('  - Created At: ${submission['submittedAt']}');
-    debugPrint('  - Data type: ${data.runtimeType}');
-    debugPrint('  - Data content: $data');
-    debugPrint('📋 Extracted report data: $reportData');
-    debugPrint('📋 Report data keys: ${reportData.keys.toList()}');
-    debugPrint('📋 Report data values: ${reportData.values.toList()}');
+    // debugPrint('📊 Raw submission structure:');
+    // debugPrint('  - ID: ${submission['id']}');
+    // debugPrint('  - Report ID: ${submission['reportId']}');
+    // debugPrint('  - Created At: ${submission['submittedAt']}');
+    // debugPrint('  - Data type: ${data.runtimeType}');
+    // debugPrint('  - Data content: $data');
+    // debugPrint('📋 Extracted report data: $reportData');
+    // debugPrint('📋 Report data keys: ${reportData.keys.toList()}');
+    // debugPrint('📋 Report data values: ${reportData.values.toList()}');
 
     // Extract MC info using exact field names (preserving camelCase)
     String mcName = reportData['smallGroupName']?.toString() ?? 'Unknown MC';
     String date =
         submission['submittedAt']?.toString().split('T')[0] ?? 'No Date';
     String host = reportData['mcHostHome']?.toString() ?? 'No Host';
+    String submittedBy =
+        submission['submittedBy']?['name']?.toString() ?? 'Unknown Person';
 
-    debugPrint('✅ === FINAL EXTRACTED VALUES ===');
-    debugPrint('  - MC Name: "$mcName" (from key: smallGroupName)');
-    debugPrint('  - Raw smallGroupName: ${reportData['smallGroupName']}');
-    debugPrint('  - Date: "$date" (from key: date)');
-    debugPrint('  - Raw date: ${reportData['date']}');
-    debugPrint('  - Host: "$host" (from key: mcHostHome)');
-    debugPrint('🔍 All available fields: ${reportData.keys.toList()}');
+    // debugPrint('✅ === FINAL EXTRACTED VALUES ===');
+    // debugPrint('  - MC Name: "$mcName" (from key: smallGroupName)');
+    // debugPrint('  - Raw smallGroupName: ${reportData['smallGroupName']}');
+    // debugPrint('  - Date: "$date" (from key: date)');
+    // debugPrint('  - Raw date: ${reportData['date']}');
+    // debugPrint('  - Host: "$host" (from key: mcHostHome)');
+    // debugPrint('🔍 All available fields: ${reportData.keys.toList()}');
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -382,7 +384,7 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
                   children: [
                     _buildInfoChip('Host: $host', Colors.green),
                     const SizedBox(width: 8),
-                    _buildInfoChip('Submitted', Colors.blue),
+                    _buildInfoChip('Submitted by: $submittedBy', Colors.blue),
                   ],
                 ),
               ],

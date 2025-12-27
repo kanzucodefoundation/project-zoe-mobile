@@ -265,7 +265,7 @@ class GroupMembership {
   final int id;
   final int groupId;
   final String role;
-  final Group group;
+  final GroupModel group;
 
   GroupMembership({
     required this.id,
@@ -279,20 +279,24 @@ class GroupMembership {
       id: json['id'] as int,
       groupId: json['groupId'] as int,
       role: json['role'] as String,
-      group: Group.fromJson(json['group']),
+      group: GroupModel.fromJson(json['group']),
     );
   }
 }
 
-class Group {
+class GroupModel {
   final int id;
   final String name;
   final String categoryName;
 
-  Group({required this.id, required this.name, required this.categoryName});
+  GroupModel({
+    required this.id,
+    required this.name,
+    required this.categoryName,
+  });
 
-  factory Group.fromJson(Map<String, dynamic> json) {
-    return Group(
+  factory GroupModel.fromJson(Map<String, dynamic> json) {
+    return GroupModel(
       id: json['id'] as int,
       name: json['name'] as String,
       categoryName: json['categoryName'] as String,

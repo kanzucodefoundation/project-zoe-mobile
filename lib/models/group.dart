@@ -12,6 +12,7 @@ class Group {
   final int memberCount;
   final int activeMembers;
   final GroupMetaData? metaData;
+  final Map<String, dynamic>? address;
 
   Group({
     required this.id,
@@ -27,6 +28,7 @@ class Group {
     required this.memberCount,
     required this.activeMembers,
     this.metaData,
+    this.address,
   });
 
   factory Group.fromJson(Map<String, dynamic> json) {
@@ -48,6 +50,7 @@ class Group {
       metaData: json['metaData'] != null
           ? GroupMetaData.fromJson(json['metaData'] as Map<String, dynamic>)
           : null,
+      address: json['address'] as Map<String, dynamic>?,
     );
   }
 

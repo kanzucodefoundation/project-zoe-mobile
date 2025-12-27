@@ -430,7 +430,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
     final attendance = reportData['totalAttendance']?.toString() ?? '0';
     final serviceName = reportData['serviceType'] ?? 'Sunday Service';
     final sermonTopic = reportData['sermonTopic'] ?? 'Sunday Topic';
-    final location = reportData['selectedLocationName'] ?? 'Unknown Location';
+    final submittedBy = report['submittedBy']['name'] ?? 'Unknown Person';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -525,7 +525,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Location: $location',
+                      'Submitted by: $submittedBy',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade600,

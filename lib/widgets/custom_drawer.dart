@@ -78,7 +78,7 @@ class CustomDrawer extends StatelessWidget {
                   title: 'Groups',
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: Navigate to groups screen
+                    Navigator.pushNamed(context, '/groups');
                   },
                 ),
                 _buildDrawerItem(
