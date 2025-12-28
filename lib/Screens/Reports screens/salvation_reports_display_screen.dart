@@ -423,7 +423,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
   }
 
   Widget _buildInputForField(field) {
-    final fieldName = field.name.toLowerCase();
+
     final fieldLabel = field.label.toLowerCase();
 
     if (field.type == 'date') {

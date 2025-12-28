@@ -156,11 +156,9 @@ class _McReportsScreenState extends State<McReportsScreen> {
               _controllers[field.id] = TextEditingController();
             }
             _controllers[field.id]!.text = value.toString();
-            print(
-              '✅ Pre-filled MC field ${field.name} (ID: ${field.id}) with: ${value.toString()}',
-            );
+
           } else {
-            print('⚠️ No MC field found for key: $key');
+
           }
         }
       }

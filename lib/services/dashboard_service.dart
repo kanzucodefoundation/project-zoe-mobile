@@ -9,18 +9,12 @@ class DashboardService {
   /// Get dashboard summary from /dashboard/summary endpoint
   static Future<DashboardSummary> getDashboardSummary() async {
     try {
-      print('🔍 Fetching dashboard summary from /dashboard/summary...');
       final response = await _dio.get('/dashboard/summary');
-      print('✅ Dashboard summary response received: ${response.data}');
 
       return DashboardSummary.fromJson(response.data);
     } on DioException catch (e) {
-      print('❌ DioException fetching dashboard summary: ${e.toString()}');
-      print('💥 Error response: ${e.response?.data}');
-      print('🔢 Status code: ${e.response?.statusCode}');
       throw _handleDioException(e);
     } catch (e) {
-      print('💀 Unexpected error fetching dashboard summary: ${e.toString()}');
       throw Exception('Failed to fetch dashboard summary: ${e.toString()}');
     }
   }
