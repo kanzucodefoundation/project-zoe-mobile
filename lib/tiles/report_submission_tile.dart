@@ -192,13 +192,18 @@ class ReportSubmissionTile extends StatelessWidget {
                       if (data is Map<String, dynamic>) {
                         return data.entries
                             .where(
-                              (entry) => ![
-                                'smallGroupId',
-                                'template',
-                                'id',
-                                'reportId',
-                                'createdAt',
-                              ].contains(entry.key),
+                              (entry) =>
+                                  ![
+                                    'smallGroupId',
+                                    'template',
+                                    'id',
+                                    'reportId',
+                                    'createdAt',
+                                    'updatedAt',
+                                    'groupId',
+                                  ].contains(entry.key) &&
+                                  entry.value != null &&
+                                  entry.value.toString().isNotEmpty,
                             )
                             .map((entry) {
                               final fieldLabel = _getFieldLabel(
@@ -213,14 +218,19 @@ class ReportSubmissionTile extends StatelessWidget {
                       // Fallback to submission entries
                       return submission.entries
                           .where(
-                            (entry) => ![
-                              'smallGroupId',
-                              'template',
-                              'data',
-                              'id',
-                              'reportId',
-                              'createdAt',
-                            ].contains(entry.key),
+                            (entry) =>
+                                ![
+                                  'smallGroupId',
+                                  'template',
+                                  'data',
+                                  'id',
+                                  'reportId',
+                                  'createdAt',
+                                  'updatedAt',
+                                  'groupId',
+                                ].contains(entry.key) &&
+                                entry.value != null &&
+                                entry.value.toString().isNotEmpty,
                           )
                           .map((entry) {
                             final fieldLabel = _getFieldLabel(
@@ -246,24 +256,45 @@ class ReportSubmissionTile extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    // Format value based on field type
+    String displayValue = value.toString();
+
+    // Format date fields
+    if (label.toLowerCase().contains('date') && displayValue.contains('-')) {
+      try {
+        final date = DateTime.parse(displayValue);
+        displayValue = '${date.day}/${date.month}/${date.year}';
+      } catch (e) {
+        // Keep original value if parsing fails
+      }
+    }
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Colors.grey.shade700,
-                fontSize: 14,
-              ),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+              fontSize: 14,
             ),
           ),
-          Expanded(
-            child: Text(value.toString(), style: const TextStyle(fontSize: 14)),
+          const SizedBox(height: 4),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Text(
+              displayValue,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+            ),
           ),
         ],
       ),
@@ -287,6 +318,23 @@ class ReportSubmissionTile extends StatelessWidget {
   }
 
   String _formatLabel(String key) {
+    // Handle specific field names for better formatting
+    final specificLabels = {
+      'salvationDate': 'Date',
+      'numberOfSalvations': 'Number of Salvations',
+      'savedNames': 'Names of Those Who Gave Their Lives to Christ',
+      'salvationContext': 'Context',
+      'followUpPlan': 'Follow-up Plan',
+      'date': 'Date',
+      'submittedAt': 'Submitted At',
+      'submittedBy': 'Submitted By',
+    };
+
+    if (specificLabels.containsKey(key)) {
+      return specificLabels[key]!;
+    }
+
+    // Fallback to formatted field name if not in specific labels
     return key
         .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}')
         .replaceAll('_', ' ')
