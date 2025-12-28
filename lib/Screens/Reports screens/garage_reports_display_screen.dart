@@ -427,33 +427,39 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     // Service Type dropdown
     if (fieldLabel.contains('service type') ||
         fieldName.contains('servicetype')) {
-      return Dropdown(
-        hintText: 'Select ${field.label}',
-        value: _selectedServiceType != null
-            ? {'value': _selectedServiceType, 'label': _selectedServiceType}
-            : null,
-        items: (field.options ?? [])
-            .map(
-              (option) => {
-                'value': option.toString(),
-                'label': option.toString(),
-              },
-            )
-            .toList(),
-        getDisplayText: (option) => option['label'] ?? '',
-        onChanged: (value) {
-          setState(() {
-            _selectedServiceType = value?['value'];
-          });
-        },
-        validator: field.required
-            ? (value) {
-                if (value == null) {
-                  return '${field.label} is required';
-                }
-                return null;
-              }
-            : null,
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            value: _selectedServiceType,
+            hint: Text(
+              'Select ${field.label}',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+            items: (field.options ?? []).map((option) {
+              return DropdownMenuItem<String>(
+                value: option.toString(),
+                child: Text(
+                  option.toString(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedServiceType = value;
+              });
+            },
+          ),
+        ),
       );
     }
 
