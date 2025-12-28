@@ -30,22 +30,9 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
   final Map<String, TextEditingController> _controllers = {};
   Map<String, dynamic>? _selectedMc;
   DateTime? _selectedDate;
-  String? _selectedStreamingPlatform;
+  String? _selectedStreamOption; // For mcStreamPlatform dropdown
   bool _isSubmitting = false;
   bool _isLoadingMcs = false;
-
-  // Streaming platform options
-  final List<String> _streamingPlatforms = [
-    'YouTube',
-    'Facebook Live',
-    'Zoom',
-    'Instagram Live',
-    'WhatsApp',
-    'Telegram',
-    'Google Meet',
-    'Microsoft Teams',
-    'Other',
-  ];
 
   @override
   void initState() {
@@ -114,51 +101,11 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
   /// Load reports for all available MCs
   Future<void> _loadReportsForAllMcs() async {
     for (final mc in _availableMcs) {
-      try {
-        // final reports = await _loadReportsForMc(mcId);
-        // _mcReports[mcId] = reports;
-        // print('✅ Loaded ${reports.length} reports for MC ${mc['name']}');
-      } catch (e) {
+      try {} catch (e) {
         _mcReports[mc['id']] = [];
       }
     }
   }
-
-  /// Load reports for a specific MC
-  // Future<List<Map<String, dynamic>>> _loadReportsForMc(int mcId) async {
-  //   try {
-  //     // For now, we'll use the general reports endpoint
-  //     // In the future, this might be a specific endpoint for MC reports
-  //     final allReports = await ReportsService.getAllReports();
-
-  //     // Filter reports for this specific MC
-  //     final mcReports = allReports
-  //         .where(
-  //           (report) =>
-  //               report.smallGroupId'] == mcId ||
-  //               report.'mcId'] == mcId.toString(),
-  //         )
-  //         .map((report) => _convertReportToMap(report))
-  //         .toList();
-
-  //     return mcReports;
-  //   } catch (e) {
-  //     print('❌ Error loading reports for MC $mcId: $e');
-  //     return [];
-  //   }
-  // }
-
-  /// Convert Report model to Map for easier handling
-  // Map<String, dynamic> _convertReportToMap(Report report) {
-  //   return {
-  //     'id': report.id,
-  //     'title': report.title,
-  //     'description': report.description,
-  //     'status': report.status.toString().split('.').last,
-  //     'createdAt': report.createdAt,
-  //     'data': report.data,
-  //   };
-  // }
 
   /// Get report count for a specific MC
   int _getReportCountForMc(int mcId) {
@@ -681,6 +628,42 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     final fieldName = field.name.toLowerCase();
     final fieldLabel = field.label.toLowerCase();
 
+    // Stream field dropdown - check for streaming platform fields
+    if (field.name == 'mcStreamPlatform' ||
+        fieldName.contains('stream') ||
+        fieldLabel.contains('stream') ||
+        fieldLabel.contains('how did you stream')) {
+      // Convert string options to Map format for Dropdown component
+      final dropdownItems = (field.options ?? [])
+          .map((option) => {'id': option.toString(), 'name': option.toString()})
+          .toList();
+
+      return Dropdown(
+        hintText: 'Select ${field.label}',
+        items: dropdownItems,
+        getDisplayText: (item) => item['name'] ?? 'Unknown Option',
+        value: _selectedStreamOption != null
+            ? dropdownItems.cast<Map<String, dynamic>?>().firstWhere(
+                (item) => item?['name'] == _selectedStreamOption,
+                orElse: () => null,
+              )
+            : null,
+        onChanged: (selectedOption) {
+          setState(() {
+            _selectedStreamOption = selectedOption?['name'];
+          });
+        },
+        validator: field.required
+            ? (value) {
+                if (value == null) {
+                  return 'Please select ${field.label}';
+                }
+                return null;
+              }
+            : null,
+      );
+    }
+
     // Date picker for date fields
     if (fieldName.contains('date') ||
         fieldLabel.contains('date') ||
@@ -703,53 +686,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
                 return null;
               }
             : null,
-      );
-    }
-
-    // Check for streaming platform field
-    if (fieldName.contains('stream') ||
-        fieldName.contains('platform') ||
-        fieldLabel.toLowerCase().contains('stream') ||
-        fieldLabel.toLowerCase().contains('how did you') ||
-        fieldLabel.toLowerCase().contains('streaming')) {
-      // Initialize controller if not exists
-      if (!_controllers.containsKey(field.name)) {
-        _controllers[field.name] = TextEditingController();
-      }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Dropdown(
-            hintText: 'Select ${field.label}',
-            prefixIcon: Icons.live_tv,
-            items: _streamingPlatforms
-                .map((platform) => {'name': platform})
-                .toList(),
-            getDisplayText: (platform) => platform['name'] ?? '',
-            value: _selectedStreamingPlatform != null
-                ? {'name': _selectedStreamingPlatform}
-                : null,
-            onChanged: (selectedPlatform) {
-              setState(() {
-                _selectedStreamingPlatform = selectedPlatform?['name'];
-                // Also update the controller for form submission
-                if (_controllers[field.name] != null) {
-                  _controllers[field.name]!.text =
-                      _selectedStreamingPlatform ?? '';
-                }
-              });
-            },
-            validator: field.required
-                ? (value) {
-                    if (value == null) {
-                      return 'Please select ${field.label}';
-                    }
-                    return null;
-                  }
-                : null,
-          ),
-        ],
       );
     }
 
@@ -971,7 +907,48 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
   }
 
   Widget _buildFormField(ReportField field) {
-    // Initialize controller if not exists
+    // Handle stream field as dropdown with API options
+    if (field.name == 'mcStreamPlatform' ||
+        field.name.toLowerCase().contains('stream') ||
+        field.label.toLowerCase().contains('stream') ||
+        field.label.toLowerCase().contains('how did you stream')) {
+      // Convert string options to Map format for Dropdown component
+      final dropdownItems = (field.options ?? [])
+          .map((option) => {'id': option.toString(), 'name': option.toString()})
+          .toList();
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Dropdown(
+            hintText: 'Select ${field.label}',
+            items: dropdownItems,
+            getDisplayText: (item) => item['name'] ?? 'Unknown Option',
+            value: _selectedStreamOption != null
+                ? dropdownItems.cast<Map<String, dynamic>?>().firstWhere(
+                    (item) => item?['name'] == _selectedStreamOption,
+                    orElse: () => null,
+                  )
+                : null,
+            onChanged: (selectedOption) {
+              setState(() {
+                _selectedStreamOption = selectedOption?['name'];
+              });
+            },
+            validator: field.required
+                ? (value) {
+                    if (value == null) {
+                      return 'Please select ${field.label}';
+                    }
+                    return null;
+                  }
+                : null,
+          ),
+        ],
+      );
+    }
+
+    // Initialize controller if not exists for other fields
     if (!_controllers.containsKey(field.name)) {
       _controllers[field.name] = TextEditingController();
     }
@@ -1040,6 +1017,11 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         formData[entry.key] = entry.value.text;
       }
 
+      // Add stream platform selection
+      if (_selectedStreamOption != null) {
+        formData['mcStreamPlatform'] = _selectedStreamOption;
+      }
+
       // Add MC and report metadata
       if (_selectedMc != null) {
         formData['mcId'] = _selectedMc!['id'];
@@ -1050,8 +1032,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       }
       formData['reportId'] = widget.reportId;
       formData['submittedAt'] = DateTime.now().toIso8601String();
-
-      print('🚀 Submitting MC report: $formData');
 
       // TODO: Implement actual submission logic
       // await ReportsService.submitMcReport(formData);
@@ -1074,6 +1054,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         setState(() {
           _selectedMc = null;
           _selectedDate = null;
+          _selectedStreamOption = null; // Clear stream selection
         });
       }
     } catch (e) {
