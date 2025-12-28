@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
@@ -11,6 +13,8 @@ class AuthGuard {
   static const String _userRoleKey = 'user_role';
   static const String _userDepartmentKey = 'user_department';
   static const String _churchNameKey = 'church_name';
+  static const String _userHierarchyKey = 'user_hierarchy';
+  static const String _userAvaratKey = 'user_avatar';
 
   /// Check if user is currently logged in
   static Future<bool> isLoggedIn() async {
@@ -29,20 +33,50 @@ class AuthGuard {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_tokenKey, token);
+      // await prefs.setString(
+      //   _userHierarchyGroups,
+      //   user.hierarchy.myGroups.join(','),
+      // );
+      // await prefs.setString(
+      //   _userHierarchyCanManageGroups,
+      //   user.hierarchy.canManageGroupIds.join(','),
+      // );
+      // await prefs.setString(
+      //   _userHierarchyCanViewGroups,
+      //   user.hierarchy.canViewGroupIds.join(','),
+      // );
       await prefs.setString(_userIdKey, user.id.toString());
       await prefs.setString(_userNameKey, user.fullName);
       await prefs.setString(_userEmailKey, user.email);
       await prefs.setString(_userRoleKey, user.primaryRole);
-      await prefs.setString(
-        _userDepartmentKey,
-        user.roles.isNotEmpty ? user.roles.first : 'Unknown',
-      );
+      await prefs.setString(_userAvaratKey, user.avatar);
       await prefs.setString(_churchNameKey, user.churchName);
       // Save additional user data as JSON for complex structures
       await prefs.setString('user_roles', user.roles.join(','));
       await prefs.setString('user_permissions', user.permissions.join(','));
+      await prefs.setString(
+        _userHierarchyKey,
+        jsonEncode(user.hierarchy.toJson()),
+      );
     } catch (e) {
       debugPrint('Error saving user data: $e');
+    }
+  }
+
+  static Future<UserHierarchy?> getSavedHierarchy() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final hierarchyJson = prefs.getString(_userHierarchyKey);
+
+      if (hierarchyJson == null) {
+        return null;
+      }
+
+      final hierarchyMap = jsonDecode(hierarchyJson) as Map<String, dynamic>;
+      return UserHierarchy.fromJson(hierarchyMap);
+    } catch (e) {
+      debugPrint('Error loading hierarchy: $e');
+      return null;
     }
   }
 
@@ -52,10 +86,30 @@ class AuthGuard {
       final prefs = await SharedPreferences.getInstance();
       final userIdString = prefs.getString(_userIdKey);
       final userName = prefs.getString(_userNameKey);
+      final userAvatar = prefs.getString(_userAvaratKey);
       final userEmail = prefs.getString(_userEmailKey);
       final userRoleString = prefs.getString(_userRoleKey);
       final userRolesString = prefs.getString('user_roles');
       final userPermissionsString = prefs.getString('user_permissions');
+      // final userHierarchyGroups = prefs.getString(_userHierarchyGroups);
+      // final userHierarchyCanManageGroups = prefs.getString(
+      //   _userHierarchyCanManageGroups,
+      // );
+      // final userHierarchyCanViewGroups = prefs.getString(
+      //   _userHierarchyCanViewGroups,
+      // );
+      debugPrint('✅ ✅✅ ✅ avatar: $userAvatar');
+      final hierarchyJson = prefs.getString(_userHierarchyKey);
+      if (hierarchyJson == null) {
+        return null;
+      }
+
+      final hierarchy = UserHierarchy.fromJson(
+        jsonDecode(hierarchyJson) as Map<String, dynamic>,
+      );
+      debugPrint(
+        '✅ ✅ Loaded hierarchy: ${hierarchy.toJson()}',
+      ); // Debug print to verify loading
 
       if (userIdString != null && userName != null && userEmail != null) {
         // Parse saved data
@@ -63,13 +117,7 @@ class AuthGuard {
         final roles =
             userRolesString?.split(',') ?? [userRoleString ?? 'Unknown'];
         final permissions = userPermissionsString?.split(',') ?? [];
-
-        // Create a simplified hierarchy for saved user (no detailed groups)
-        final hierarchy = UserHierarchy(
-          myGroups: [],
-          canManageGroupIds: [],
-          canViewGroupIds: [],
-        );
+        print('✅ ✅ Loaded permissions: $permissions');
 
         return User(
           id: userId,
@@ -77,7 +125,7 @@ class AuthGuard {
           username: userEmail,
           email: userEmail,
           fullName: userName,
-          avatar: 'https://i.pravatar.cc/200?img=$userId',
+          avatar: userAvatar ?? 'https://i.pravatar.cc/200?img=$userId',
           isActive: true,
           roles: roles,
           permissions: permissions,

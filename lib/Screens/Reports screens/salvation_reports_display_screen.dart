@@ -424,7 +424,6 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
   }
 
   Widget _buildInputForField(field) {
-    final fieldName = field.name.toLowerCase();
     final fieldLabel = field.label.toLowerCase();
 
     if (field.type == 'date') {
@@ -636,109 +635,109 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     }
   }
 
-  Widget _buildSubmissionsSection(SalvationReportsProvider provider) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Recent Submissions',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${provider.submissions.length} submissions found',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (provider.submissions.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.inbox_outlined,
-                      size: 48,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No submissions yet',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Submit your first Salvation report to see it here',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            Column(
-              children: provider.submissions
-                  .take(5)
-                  .map(
-                    (submission) => ReportSubmissionTile(
-                      submission: {
-                        ...submission,
-                        'template': {
-                          'id': provider.reportTemplate!.id,
-                          'name': provider.reportTemplate!.name,
-                          'fields': provider.reportTemplate!.fields!
-                              .map(
-                                (field) => {
-                                  'id': field.id,
-                                  'name': field.name,
-                                  'label': field.label,
-                                  'type': field.type,
-                                },
-                              )
-                              .toList(),
-                        },
-                      },
-                      themeColor: Colors.green,
-                    ),
-                  )
-                  .toList(),
-            ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildSubmissionsSection(SalvationReportsProvider provider) {
+  //   return Container(
+  //     padding: const EdgeInsets.all(20),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(12),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.grey.withValues(alpha: 0.1),
+  //           blurRadius: 10,
+  //           offset: const Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 const Text(
+  //                   'Recent Submissions',
+  //                   style: TextStyle(
+  //                     fontSize: 18,
+  //                     fontWeight: FontWeight.bold,
+  //                     color: Colors.black,
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 4),
+  //                 Text(
+  //                   '${provider.submissions.length} submissions found',
+  //                   style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 16),
+  //         if (provider.submissions.isEmpty)
+  //           Center(
+  //             child: Padding(
+  //               padding: const EdgeInsets.symmetric(vertical: 24),
+  //               child: Column(
+  //                 children: [
+  //                   Icon(
+  //                     Icons.inbox_outlined,
+  //                     size: 48,
+  //                     color: Colors.grey.shade400,
+  //                   ),
+  //                   const SizedBox(height: 16),
+  //                   Text(
+  //                     'No submissions yet',
+  //                     style: TextStyle(
+  //                       fontSize: 16,
+  //                       fontWeight: FontWeight.w500,
+  //                       color: Colors.grey.shade600,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 8),
+  //                   Text(
+  //                     'Submit your first Salvation report to see it here',
+  //                     style: TextStyle(
+  //                       fontSize: 14,
+  //                       color: Colors.grey.shade500,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           )
+  //         else
+  //           Column(
+  //             children: provider.submissions
+  //                 .take(5)
+  //                 .map(
+  //                   (submission) => ReportSubmissionTile(
+  //                     submission: {
+  //                       ...submission,
+  //                       'template': {
+  //                         'id': provider.reportTemplate!.id,
+  //                         'name': provider.reportTemplate!.name,
+  //                         'fields': provider.reportTemplate!.fields!
+  //                             .map(
+  //                               (field) => {
+  //                                 'id': field.id,
+  //                                 'name': field.name,
+  //                                 'label': field.label,
+  //                                 'type': field.type,
+  //                               },
+  //                             )
+  //                             .toList(),
+  //                       },
+  //                     },
+  //                     themeColor: Colors.green,
+  //                   ),
+  //                 )
+  //                 .toList(),
+  //           ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }

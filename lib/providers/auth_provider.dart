@@ -9,7 +9,7 @@ enum AuthStatus { unauthenticated, authenticating, authenticated, failed }
 
 class AuthProvider extends ChangeNotifier {
   AuthProvider() {
-    _checkExistingSession();
+    // _checkExistingSession();
   }
 
   AuthStatus _status = AuthStatus.unauthenticated;
@@ -58,7 +58,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Check for existing session when app starts
-  Future<void> _checkExistingSession() async {
+  Future<void> checkExistingSession() async {
     _status = AuthStatus.authenticating;
     notifyListeners();
 
@@ -67,6 +67,9 @@ class AuthProvider extends ChangeNotifier {
       if (isLoggedIn) {
         final user = await AuthGuard.getSavedUser();
         final token = await AuthGuard.getSavedToken();
+        debugPrint(
+          '🧡🧡🧡 AuthProvider: Loaded saved user: ${user?.toJson()}, token length: ${token?.length}',
+        );
 
         if (user != null && token != null) {
           await restoreSession(user, token);
@@ -75,7 +78,7 @@ class AuthProvider extends ChangeNotifier {
       }
 
       // No valid session found
-      _status = AuthStatus.unauthenticated;
+      _status = AuthStatus.authenticated;
       notifyListeners();
     } catch (e) {
       debugPrint('Error checking existing session: $e');
@@ -140,12 +143,15 @@ class AuthProvider extends ChangeNotifier {
       // Save user data persistently with token and refresh token
       await AuthGuard.saveUserData(_user!, token);
       // TODO: Also save refresh token when AuthGuard supports it
+      // debugPrint(
+      //   '💜💙💙 AuthProvider: Save user: ${user?.toJson()}, token length: ${token?.length}',
+      // );
 
       // Verify token was saved correctly
       final savedToken = await AuthGuard.getSavedToken();
-      debugPrint(
-        'AuthProvider: Token saved and verified: ${savedToken != null ? "✓" : "✗"}',
-      );
+      // debugPrint(
+      //   'AuthProvider: Token saved and verified: ${savedToken != null ? "✓" : "✗"}',
+      // );
       if (savedToken != null) {
         debugPrint(
           'AuthProvider: Saved token starts with: ${savedToken.substring(0, 20)}...',
@@ -201,6 +207,20 @@ class AuthProvider extends ChangeNotifier {
   // function to get group name and id from user hierarchy object
   List<Map<String, dynamic>> getGroupsFromHierarchy(String type) {
     if (_user == null || _user!.hierarchy.myGroups.isEmpty) {
+      //  get from shared preferences
+
+      // final groupsString = _prefs.getString('user_hierarchy_canmanage_groups');
+      // if (groupsString != null) {
+      //   final groupIds = groupsString
+      //       .split(',')
+      //       .map((id) => int.parse(id))
+      //       .toList();
+
+      //   return _user!.hierarchy.myGroups
+      //       .where((group) => group.type == type && groupIds.contains(group.id))
+      //       .map((group) => {'id': group.id, 'name': group.name})
+      //       .toList();
+      // }
       return [];
     }
 
