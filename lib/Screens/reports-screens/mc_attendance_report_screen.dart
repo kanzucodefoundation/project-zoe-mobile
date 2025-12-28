@@ -73,9 +73,14 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       try {
         _availableMcs = await ReportsService.getAvailableGroups();
 
-        setState(() {
-          _isLoadingMcs = false;
-        });
+        // setState(() {
+        //   _isLoadingMcs = false;
+        // });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
 
         // Load reports for each MC
         await _loadReportsForAllMcs();
@@ -223,9 +228,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       ),
     );
   }
-
-
-
 
   Widget _buildReportHeader() {
     return Container(
@@ -591,9 +593,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
           : null,
     );
   }
-
-
-
 
   TextInputType _getKeyboardType(String type) {
     switch (type.toLowerCase()) {

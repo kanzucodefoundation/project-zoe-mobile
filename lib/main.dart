@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project_zoe/Screens/General%20screens/groups.dart';
+import 'package:project_zoe/Screens/general-screens/groups.dart';
 import 'package:project_zoe/providers/contacts_provider.dart';
 import 'package:project_zoe/providers/dashboard_provider.dart';
 import 'package:project_zoe/services/notification_service.dart';
@@ -9,13 +9,13 @@ import 'providers/report_provider.dart';
 import 'providers/salvation_reports_provider.dart';
 import 'widgets/app_wrapper.dart';
 import 'api/api_client.dart';
-import 'Screens/Reports screens/baptism_reports_display_screen.dart';
-import 'Screens/Reports screens/salvation_reports_display_screen.dart';
-import 'Screens/General screens/reports_screen.dart';
-import 'Screens/General screens/admin_screen.dart';
+import 'Screens/reports-screens/baptism_reports_display_screen.dart';
+import 'Screens/reports-screens/salvation_reports_display_screen.dart';
+import 'Screens/general-screens/reports_screen.dart';
+import 'Screens/general-screens/admin_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
-import 'Screens/General screens/settings_screen.dart';
+import 'Screens/general-screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

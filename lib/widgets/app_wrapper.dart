@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../Screens/General screens/splash_screen.dart';
+import '../Screens/general-screens/splash_screen.dart';
 import '../auth/auth_screen.dart';
 import 'main_scaffold.dart';
 
