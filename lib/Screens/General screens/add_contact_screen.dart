@@ -140,8 +140,9 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
 
       // Add dropdown values
       if (_selectedGender != null) contactData['gender'] = _selectedGender;
-      if (_selectedAgeGroup != null)
+      if (_selectedAgeGroup != null) {
         contactData['ageGroup'] = _selectedAgeGroup;
+      }
       contactData['isActive'] = true;
 
       final churchName = authProvider.user?.churchName ?? 'fellowship';
@@ -510,7 +511,7 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
               border: Border.all(color: const Color(0xFFE0E0E0)),
             ),
             child: DropdownButtonFormField<String>(
-              value: _selectedGender,
+              initialValue: _selectedGender,
               decoration: InputDecoration(
                 hintText:
                     field.placeholder ?? 'Select ${field.label.toLowerCase()}',
@@ -551,7 +552,7 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
               border: Border.all(color: const Color(0xFFE0E0E0)),
             ),
             child: DropdownButtonFormField<String>(
-              value: _selectedAgeGroup,
+              initialValue: _selectedAgeGroup,
               decoration: InputDecoration(
                 hintText:
                     field.placeholder ?? 'Select ${field.label.toLowerCase()}',

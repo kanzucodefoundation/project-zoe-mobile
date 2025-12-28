@@ -302,40 +302,35 @@ class _GroupsScreenState extends State<GroupsScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                ...children
-                    .map(
-                      (child) => Card(
-                        margin: const EdgeInsets.only(bottom: 4),
-                        child: ListTile(
-                          dense: true,
-                          leading: Icon(
-                            Icons.folder,
-                            color: Colors.blue.shade600,
-                            size: 20,
-                          ),
-                          title: Text(
-                            child.name,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          subtitle: Text(
-                            '${child.type.toUpperCase()} • ${child.memberCount} members',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          trailing: const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 14,
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            showGroupDetails(context, child);
-                          },
+                ...children.map(
+                  (child) => Card(
+                    margin: const EdgeInsets.only(bottom: 4),
+                    child: ListTile(
+                      dense: true,
+                      leading: Icon(
+                        Icons.folder,
+                        color: Colors.blue.shade600,
+                        size: 20,
+                      ),
+                      title: Text(
+                        child.name,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    )
-                    .toList(),
+                      subtitle: Text(
+                        '${child.type.toUpperCase()} • ${child.memberCount} members',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                      onTap: () {
+                        Navigator.pop(context);
+                        showGroupDetails(context, child);
+                      },
+                    ),
+                  ),
+                ),
               ],
               if (group.address != null) ...[
                 const Divider(),

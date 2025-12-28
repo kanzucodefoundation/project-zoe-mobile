@@ -151,17 +151,13 @@ class _McReportsScreenState extends State<McReportsScreen> {
               throw StateError('Field not found');
             },
           );
-          if (field != null) {
-            if (!_controllers.containsKey(field.id)) {
-              _controllers[field.id] = TextEditingController();
-            }
-            _controllers[field.id]!.text = value.toString();
-            print(
-              '✅ Pre-filled MC field ${field.name} (ID: ${field.id}) with: ${value.toString()}',
-            );
-          } else {
-            print('⚠️ No MC field found for key: $key');
+          if (!_controllers.containsKey(field.id)) {
+            _controllers[field.id] = TextEditingController();
           }
+          _controllers[field.id]!.text = value.toString();
+          print(
+            '✅ Pre-filled MC field ${field.name} (ID: ${field.id}) with: ${value.toString()}',
+          );
         }
       }
     });

@@ -89,7 +89,7 @@ class GroupBreadcrumb extends StatelessWidget {
                   ),
                 ],
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
