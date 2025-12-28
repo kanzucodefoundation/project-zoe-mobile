@@ -287,6 +287,11 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
   }
 
   Widget _buildReportFieldsWithForm(AuthProvider authProvider) {
+    // Add null safety checks
+    if (_reportTemplate?.fields == null) {
+      return const SizedBox.shrink();
+    }
+
     final visibleFields = _reportTemplate!.fields!
         .where((field) => !field.hidden)
         .toList();
@@ -527,7 +532,9 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
   }
 
   void _submitReport() async {
-    if (!_formKey.currentState!.validate()) {
+    // Add null safety check for form state
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please fill in all required fields'),
@@ -563,7 +570,9 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
     try {
       // Using report service to submit
       await ReportsService.submitReport(
-        groupId: int.parse(_selectedLocationId!),
+        groupId: int.parse(
+          _selectedLocationId!,
+        ), // Safe to use ! here after null check above
         reportId: widget.reportId,
         data: data,
       );

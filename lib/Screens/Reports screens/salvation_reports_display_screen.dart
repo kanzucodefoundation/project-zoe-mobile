@@ -73,7 +73,10 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
         if (!_controllers.containsKey(key)) {
           _controllers[key] = TextEditingController();
         }
-        _controllers[key]!.text = value.toString();
+        final controller = _controllers[key];
+        if (controller != null) {
+          controller.text = value.toString();
+        }
         debugPrint(
           '✅ Pre-filled salvation field $key with: ${value.toString()}',
         );
@@ -278,6 +281,11 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     SalvationReportsProvider provider,
     AuthProvider authProvider,
   ) {
+    // Add null safety check
+    if (provider.reportTemplate?.fields == null) {
+      return const SizedBox.shrink();
+    }
+
     final visibleFields = provider.reportTemplate!.fields!
         .where((field) => !field.hidden)
         .toList();
@@ -529,7 +537,8 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     }
 
     return TextFormField(
-      controller: _controllers[field.label],
+      controller:
+          _controllers[field.name], // Changed from field.label to field.name
       validator: field.required
           ? (value) {
               if (value == null || value.isEmpty) {
@@ -551,7 +560,8 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
   }
 
   void _submitReport() async {
-    if (!_formKey.currentState!.validate()) {
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please fill in all required fields'),
@@ -586,9 +596,13 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
       data[entry.key] = entry.value.text;
     }
 
+    // Add date if selected
     if (_selectedDate != null) {
       data['salvationDate'] = _selectedDate!.toIso8601String();
-    } else if (_selectedContextOption != null) {
+    }
+
+    // Add context option if selected
+    if (_selectedContextOption != null) {
       data['salvationContext'] = _selectedContextOption;
     }
 
@@ -596,8 +610,23 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
       context,
       listen: false,
     );
+
+    // Parse location ID safely
+    int? groupId;
+    try {
+      groupId = int.parse(_selectedLocationId ?? '');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid Missional Community selected'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final success = await provider.submitReport(
-      groupId: int.parse(_selectedLocationId!),
+      groupId: groupId,
       reportId: widget.reportId,
       data: data,
     );
@@ -614,7 +643,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
         Navigator.pop(context);
       }
       // Clear form after successful submission
-      _formKey.currentState!.reset();
+      _formKey.currentState?.reset();
       for (var controller in _controllers.values) {
         controller.clear();
       }
@@ -635,109 +664,109 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     }
   }
 
-  // Widget _buildSubmissionsSection(SalvationReportsProvider provider) {
-  //   return Container(
-  //     padding: const EdgeInsets.all(20),
-  //     decoration: BoxDecoration(
-  //       color: Colors.white,
-  //       borderRadius: BorderRadius.circular(12),
-  //       boxShadow: [
-  //         BoxShadow(
-  //           color: Colors.grey.withValues(alpha: 0.1),
-  //           blurRadius: 10,
-  //           offset: const Offset(0, 2),
-  //         ),
-  //       ],
-  //     ),
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //           children: [
-  //             Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 const Text(
-  //                   'Recent Submissions',
-  //                   style: TextStyle(
-  //                     fontSize: 18,
-  //                     fontWeight: FontWeight.bold,
-  //                     color: Colors.black,
-  //                   ),
-  //                 ),
-  //                 const SizedBox(height: 4),
-  //                 Text(
-  //                   '${provider.submissions.length} submissions found',
-  //                   style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-  //                 ),
-  //               ],
-  //             ),
-  //           ],
-  //         ),
-  //         const SizedBox(height: 16),
-  //         if (provider.submissions.isEmpty)
-  //           Center(
-  //             child: Padding(
-  //               padding: const EdgeInsets.symmetric(vertical: 24),
-  //               child: Column(
-  //                 children: [
-  //                   Icon(
-  //                     Icons.inbox_outlined,
-  //                     size: 48,
-  //                     color: Colors.grey.shade400,
-  //                   ),
-  //                   const SizedBox(height: 16),
-  //                   Text(
-  //                     'No submissions yet',
-  //                     style: TextStyle(
-  //                       fontSize: 16,
-  //                       fontWeight: FontWeight.w500,
-  //                       color: Colors.grey.shade600,
-  //                     ),
-  //                   ),
-  //                   const SizedBox(height: 8),
-  //                   Text(
-  //                     'Submit your first Salvation report to see it here',
-  //                     style: TextStyle(
-  //                       fontSize: 14,
-  //                       color: Colors.grey.shade500,
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //           )
-  //         else
-  //           Column(
-  //             children: provider.submissions
-  //                 .take(5)
-  //                 .map(
-  //                   (submission) => ReportSubmissionTile(
-  //                     submission: {
-  //                       ...submission,
-  //                       'template': {
-  //                         'id': provider.reportTemplate!.id,
-  //                         'name': provider.reportTemplate!.name,
-  //                         'fields': provider.reportTemplate!.fields!
-  //                             .map(
-  //                               (field) => {
-  //                                 'id': field.id,
-  //                                 'name': field.name,
-  //                                 'label': field.label,
-  //                                 'type': field.type,
-  //                               },
-  //                             )
-  //                             .toList(),
-  //                       },
-  //                     },
-  //                     themeColor: Colors.green,
-  //                   ),
-  //                 )
-  //                 .toList(),
-  //           ),
-  //       ],
-  //     ),
-  //   );
-  // }
+  Widget _buildSubmissionsSection(SalvationReportsProvider provider) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Recent Submissions',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${provider.submissions.length} submissions found',
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (provider.submissions.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.inbox_outlined,
+                      size: 48,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No submissions yet',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Submit your first Salvation report to see it here',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Column(
+              children: provider.submissions
+                  .take(5)
+                  .map(
+                    (submission) => ReportSubmissionTile(
+                      submission: {
+                        ...submission,
+                        'template': {
+                          'id': provider.reportTemplate!.id,
+                          'name': provider.reportTemplate!.name,
+                          'fields': provider.reportTemplate!.fields!
+                              .map(
+                                (field) => {
+                                  'id': field.id,
+                                  'name': field.name,
+                                  'label': field.label,
+                                  'type': field.type,
+                                },
+                              )
+                              .toList(),
+                        },
+                      },
+                      themeColor: Colors.green,
+                    ),
+                  )
+                  .toList(),
+            ),
+        ],
+      ),
+    );
+  }
 }

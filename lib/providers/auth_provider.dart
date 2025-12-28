@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../models/user.dart';
 import '../services/auth_guard.dart';
 import '../services/auth_service.dart';
@@ -36,7 +37,9 @@ class AuthProvider extends ChangeNotifier {
   /// Clear the current error message
   void clearError() {
     _error = null;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   /// Get current API connection status
@@ -60,7 +63,9 @@ class AuthProvider extends ChangeNotifier {
   /// Check for existing session when app starts
   Future<void> checkExistingSession() async {
     _status = AuthStatus.authenticating;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       final isLoggedIn = await AuthGuard.isLoggedIn();
@@ -78,12 +83,16 @@ class AuthProvider extends ChangeNotifier {
       }
 
       // No valid session found
-      _status = AuthStatus.authenticated;
-      notifyListeners();
+      _status = AuthStatus.unauthenticated;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     } catch (e) {
       debugPrint('Error checking existing session: $e');
       _status = AuthStatus.unauthenticated;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
@@ -95,7 +104,9 @@ class AuthProvider extends ChangeNotifier {
     debugPrint('AuthProvider: Starting login for $email');
     _status = AuthStatus.authenticating;
     _error = null;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
     debugPrint('AuthProvider: Status set to authenticating');
 
     try {
@@ -165,7 +176,9 @@ class AuthProvider extends ChangeNotifier {
       _error = null;
 
       debugPrint('AuthProvider: Login successful, status = $_status');
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     } catch (e) {
       debugPrint('AuthProvider: Login failed with error: $e');
       _status = AuthStatus.failed;
@@ -200,7 +213,9 @@ class AuthProvider extends ChangeNotifier {
         debugPrint('AuthProvider: Unhandled error details: $e');
       }
 
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
@@ -230,7 +245,9 @@ class AuthProvider extends ChangeNotifier {
         .where((group) => group.type == type && canManageIds.contains(group.id))
         .map((group) => {'id': group.id, 'name': group.name})
         .toList();
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
     return groups;
   }
 
@@ -246,7 +263,9 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _status = AuthStatus.authenticating;
     _error = null;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       // Use real API registration
@@ -273,23 +292,31 @@ class AuthProvider extends ChangeNotifier {
       _error = e.toString();
     }
 
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   Future<bool> forgotPassword(String email) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       await AuthService.forgotPassword(email);
       _isLoading = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       return true;
     } catch (e) {
       _isLoading = false;
       _errorMessage = e.toString();
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       return false;
     }
   }
@@ -301,6 +328,14 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.authenticated; // Assume valid if saved
       _error = null;
 
+      // Restore permissions and roles from user data
+      _permissions = List<String>.from(_user!.permissions);
+      _roles = List<String>.from(_user!.roles);
+      debugPrint(
+        'AuthProvider: Restored permissions: ${_permissions.join(', ')}',
+      );
+      debugPrint('AuthProvider: Restored roles: ${_roles.join(', ')}');
+
       // Set auth token for API calls
       ApiClient().setAuthToken(token);
 
@@ -311,12 +346,16 @@ class AuthProvider extends ChangeNotifier {
       }
       ApiClient().setTenant(tenantName);
 
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     } catch (e) {
       debugPrint('Error restoring session: $e');
       _status = AuthStatus.unauthenticated;
       _error = 'Failed to restore session';
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
@@ -329,7 +368,9 @@ class AuthProvider extends ChangeNotifier {
     // Clear persistent data
     await AuthGuard.clearUserData();
 
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   /// Check if current user has admin privileges
