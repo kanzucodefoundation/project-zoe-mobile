@@ -19,7 +19,8 @@ class _AppWrapperState extends State<AppWrapper> {
     super.initState();
     // Trigger session check on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AuthProvider>(context, listen: false).checkExistingSession();
+      // Provider.of<AuthProvider>(context, listen: false).checkExistingSession();
+      context.read<AuthProvider>().checkExistingSession();
     });
   }
 

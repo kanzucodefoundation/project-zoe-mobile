@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:project_zoe/models/report.dart';
 import 'package:project_zoe/models/reports_model.dart';
+import 'package:project_zoe/providers/auth_provider.dart';
 import 'package:project_zoe/services/reports_service.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../components/long_button.dart';
@@ -40,14 +42,17 @@ class _McReportsScreenState extends State<McReportsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadReportData();
+    // _loadReportData();
     _loadAvailableMcs();
   }
 
   /// Load available MCs from server
   Future<void> _loadAvailableMcs() async {
     try {
-      final groups = await ReportsService.getMyGroups();
+      // final groups = await ReportsService.getMyGroups();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final List<Map<String, dynamic>> groups = authProvider
+          .getGroupsFromHierarchy('fellowship');
       if (mounted) {
         setState(() {
           _availableMcs = groups;
@@ -135,9 +140,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
         } catch (e) {
           print('⚠️ Invalid date format: $value');
         }
-      } else if (key == 'smallGroupId') {
-        _selectedMcId = value?.toString();
-        print('✅ Pre-filled MC ID: $_selectedMcId');
       } else if (key == 'smallGroupName') {
         _selectedMcName = value?.toString();
         print('✅ Pre-filled MC name: $_selectedMcName');
@@ -762,7 +764,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
     if (_selectedOption == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select an option for all dropdown fields'),
+          content: Text('Please select a stream platform'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -842,7 +844,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
       // Submit the report with correct payload structure
       await ReportsService.submitReport(
         reportId: _report!.id,
-        groupId: reportData['smallGroupId'],
+        groupId: int.parse(_selectedMcId!),
         data: reportData,
       );
 
@@ -919,7 +921,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
         'id': DateTime.now().millisecondsSinceEpoch, // Unique ID
         'reportId': _report!.id,
         'reportName': _report!.name,
-        'createdAt': DateTime.now().toIso8601String(),
+        'submittedAt': DateTime.now().toIso8601String(),
         'data': reportData, // This preserves exact field names
         'template': {
           'id': _report!.id,
