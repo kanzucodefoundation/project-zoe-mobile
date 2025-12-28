@@ -27,24 +27,18 @@ class _AppWrapperState extends State<AppWrapper> {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
-        debugPrint('AppWrapper: AuthProvider status = ${authProvider.status}');
         switch (authProvider.status) {
           case AuthStatus.authenticating:
             // Show splash/loading screen while checking session or authenticating
-            debugPrint('AppWrapper: Showing SplashScreen');
             return const SplashScreen();
 
           case AuthStatus.authenticated:
             // User is logged in, show main app with navigation
-            debugPrint('AppWrapper: Showing MainScaffold (authenticated)');
             return const MainScaffold();
 
           case AuthStatus.unauthenticated:
           case AuthStatus.failed:
             // User is not logged in or login failed, show auth screen
-            debugPrint(
-              'AppWrapper: Showing AuthScreen (unauthenticated/failed)',
-            );
             return const AuthScreen();
         }
       },

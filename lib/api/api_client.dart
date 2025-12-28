@@ -40,24 +40,13 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          print('API REQUEST: ${options.method} ${options.uri}');
-          // print('API HEADERS: ${options.headers}');
           handler.next(options);
         },
         onResponse: (response, handler) {
-          // print(
-          //   'API RESPONSE: ${response.statusCode} ${response.statusMessage}',
-          // );
           handler.next(response);
         },
         onError: (error, handler) {
-          print('API ERROR: ${error.message}');
-          print('API ERROR TYPE: ${error.type}');
-          if (error.response != null) {
-            print(
-              'API ERROR RESPONSE: ${error.response?.statusCode} ${error.response?.data}',
-            );
-          }
+          if (error.response != null) {}
           handler.next(error);
         },
       ),
