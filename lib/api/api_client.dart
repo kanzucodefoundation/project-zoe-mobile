@@ -40,19 +40,13 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-
-
           handler.next(options);
         },
         onResponse: (response, handler) {
-
           handler.next(response);
         },
         onError: (error, handler) {
-
-          if (error.response != null) {
-
-          }
+          if (error.response != null) {}
           handler.next(error);
         },
       ),

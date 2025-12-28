@@ -8,7 +8,6 @@ import '../../components/text_field.dart';
 import '../../components/submit_button.dart';
 import '../../components/custom_date_picker.dart';
 
-
 /// Garage Reports Display Screen - Shows Garage report template and submissions
 class GarageReportsScreen extends StatefulWidget {
   final int reportId;

@@ -188,11 +188,11 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _loadReportSubmissions,
-              child: const Text('Try Again'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 foregroundColor: Colors.white,
               ),
+              child: const Text('Try Again'),
             ),
           ],
         ),
@@ -229,11 +229,11 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
               children: [
                 ElevatedButton(
                   onPressed: _loadReportSubmissions,
-                  child: const Text('Refresh'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
                   ),
+                  child: const Text('Refresh'),
                 ),
                 const SizedBox(width: 12),
                 // OutlinedButton(

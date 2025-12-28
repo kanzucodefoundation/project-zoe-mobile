@@ -151,15 +151,13 @@ class _McReportsScreenState extends State<McReportsScreen> {
               throw StateError('Field not found');
             },
           );
-          if (field != null) {
-            if (!_controllers.containsKey(field.id)) {
-              _controllers[field.id] = TextEditingController();
-            }
-            _controllers[field.id]!.text = value.toString();
-
-          } else {
-
+          if (!_controllers.containsKey(field.id)) {
+            _controllers[field.id] = TextEditingController();
           }
+          _controllers[field.id]!.text = value.toString();
+          print(
+            '✅ Pre-filled MC field ${field.name} (ID: ${field.id}) with: ${value.toString()}',
+          );
         }
       }
     });
@@ -841,17 +839,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
         return;
       }
 
-      // Log the data being sent for debugging
-      print('📦 Submitting report data: $reportData');
-      print('🆔 Report template ID: ${_report!.id}');
-      print('📅 Selected Date: $_selectedDate');
-      print('🏠 Selected MC Name: $_selectedMcName');
-      print('🆔 Selected MC ID: $_selectedMcId');
-      // print('📝 All Controllers:');
-      // _controllers.forEach((fieldId, controller) {
-      //   print('  Field $fieldId: ${controller.text}');
-      // });
-
       // Submit the report with correct payload structure
       await ReportsService.submitReport(
         reportId: _report!.id,
@@ -863,12 +850,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
 
       // Store the submitted data locally for display in MC Reports List
       await _storeSubmittedData(reportData);
-
-      // Additional debug: verify what was stored
-      print('🔍 === POST-STORAGE VERIFICATION ===');
-      print('🔍 Stored MC Name: ${reportData['smallGroupName']}');
-      print('🔍 Stored Date: ${reportData['date']}');
-      print('🔍 All stored keys: ${reportData.keys.toList()}');
 
       if (mounted) {
         setState(() {
@@ -891,11 +872,6 @@ class _McReportsScreenState extends State<McReportsScreen> {
           _isSubmitting = false;
         });
       }
-
-      // Enhanced error logging for debugging
-      print('❌ Report Submission Failed:');
-      print('🔍 Error Details: $e');
-      print('🆔 Report ID: ${_report!.id}');
 
       String errorMessage = 'Error submitting report';
       if (e.toString().contains('500') ||

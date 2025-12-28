@@ -18,7 +18,6 @@ class _AppWrapperState extends State<AppWrapper> {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
-
         switch (authProvider.status) {
           case AuthStatus.authenticating:
             // Show splash/loading screen while checking session or authenticating

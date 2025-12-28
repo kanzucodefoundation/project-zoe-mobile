@@ -72,12 +72,10 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     try {
       // Load MC report template
       if (widget.reportId != null) {
-
         final templateData = await ReportsService.getReportById(
           widget.reportId!,
         );
         _reportTemplate = Report.fromJson(templateData.toJson());
-
       }
 
       // Load available MCs with proper loading state
@@ -95,7 +93,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         // Load reports for each MC
         await _loadReportsForAllMcs();
       } catch (e) {
-
         setState(() {
           _isLoadingMcs = false;
           _availableMcs = [];
@@ -103,7 +100,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         // Don't fail the entire screen, just continue without MC data
       }
     } catch (e) {
-
       setState(() {
         _error = 'Failed to load report template: ${e.toString()}';
         _isLoadingMcs = false;
@@ -117,15 +113,12 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
 
   /// Load reports for all available MCs
   Future<void> _loadReportsForAllMcs() async {
-
-
     for (final mc in _availableMcs) {
       try {
         // final reports = await _loadReportsForMc(mcId);
         // _mcReports[mcId] = reports;
         // print('✅ Loaded ${reports.length} reports for MC ${mc['name']}');
       } catch (e) {
-
         _mcReports[mc['id']] = [];
       }
     }
@@ -719,19 +712,20 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         fieldLabel.toLowerCase().contains('stream') ||
         fieldLabel.toLowerCase().contains('how did you') ||
         fieldLabel.toLowerCase().contains('streaming')) {
-      
       // Initialize controller if not exists
       if (!_controllers.containsKey(field.name)) {
         _controllers[field.name] = TextEditingController();
       }
-      
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Dropdown(
             hintText: 'Select ${field.label}',
             prefixIcon: Icons.live_tv,
-            items: _streamingPlatforms.map((platform) => {'name': platform}).toList(),
+            items: _streamingPlatforms
+                .map((platform) => {'name': platform})
+                .toList(),
             getDisplayText: (platform) => platform['name'] ?? '',
             value: _selectedStreamingPlatform != null
                 ? {'name': _selectedStreamingPlatform}
@@ -741,7 +735,8 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
                 _selectedStreamingPlatform = selectedPlatform?['name'];
                 // Also update the controller for form submission
                 if (_controllers[field.name] != null) {
-                  _controllers[field.name]!.text = _selectedStreamingPlatform ?? '';
+                  _controllers[field.name]!.text =
+                      _selectedStreamingPlatform ?? '';
                 }
               });
             },
@@ -766,8 +761,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
             fieldLabel.contains('mc name')) &&
         !fieldLabel.contains('attended') &&
         !fieldLabel.contains('visit')) {
-
-
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -781,7 +774,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
               setState(() {
                 _selectedMc = selectedMc;
               });
-
             },
             validator: field.required
                 ? (value) {

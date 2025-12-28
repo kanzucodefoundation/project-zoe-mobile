@@ -50,6 +50,10 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
 
     debugPrint('🔍 Salvation pre-fill data: $data');
 
+    if (submission['groupId'] != null) {
+      _selectedLocationId = submission['groupId'].toString();
+      debugPrint('✅ Pre-filled salvation locationId: $_selectedLocationId');
+    }
     // Pre-fill text controllers
     data.forEach((key, value) {
       if (key == 'salvationDate' && value != null) {
@@ -59,9 +63,6 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
         } catch (e) {
           debugPrint('⚠️ Invalid date format: $value');
         }
-      } else if (key == 'groupId' && value != null) {
-        _selectedLocationId = value.toString();
-        debugPrint('✅ Pre-filled salvation locationId: $_selectedLocationId');
       } else if (key == 'salvationContext' && value != null) {
         _selectedContextOption = value.toString();
         debugPrint(
@@ -423,7 +424,6 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
   }
 
   Widget _buildInputForField(field) {
-
     final fieldLabel = field.label.toLowerCase();
 
     if (field.type == 'date') {
@@ -461,7 +461,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
             isExpanded: true,
             value: _selectedContextOption,
             hint: Text(
-              field.label ?? 'Select $fieldLabel Option',
+              'Select $fieldLabel option',
               style: TextStyle(color: Colors.grey.shade600),
             ),
             items: availableOptions.map((option) {
@@ -529,7 +529,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     }
 
     return TextFormField(
-      controller: _controllers[field.name],
+      controller: _controllers[field.label],
       validator: field.required
           ? (value) {
               if (value == null || value.isEmpty) {
