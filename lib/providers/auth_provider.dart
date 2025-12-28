@@ -9,7 +9,7 @@ enum AuthStatus { unauthenticated, authenticating, authenticated, failed }
 
 class AuthProvider extends ChangeNotifier {
   AuthProvider() {
-    // _checkExistingSession();
+    checkExistingSession();
   }
 
   AuthStatus _status = AuthStatus.unauthenticated;
@@ -78,7 +78,7 @@ class AuthProvider extends ChangeNotifier {
       }
 
       // No valid session found
-      _status = AuthStatus.authenticated;
+      _status = AuthStatus.unauthenticated;
       notifyListeners();
     } catch (e) {
       debugPrint('Error checking existing session: $e');
@@ -393,4 +393,7 @@ class AuthProvider extends ChangeNotifier {
         _permissions.contains(AppPermissions.roleReportSubmit) &&
         _permissions.contains(AppPermissions.roleReportView);
   }
+
+  bool get canSubmitReport =>
+      !(_user?.hasPermission(AppPermissions.roleReportSubmit) ?? false);
 }

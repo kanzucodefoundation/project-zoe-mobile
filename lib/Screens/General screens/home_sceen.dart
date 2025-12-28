@@ -8,6 +8,7 @@ import '../Reports screens/mc_attendance_report_screen.dart';
 import '../Reports screens/garage_reports_display_screen.dart';
 import '../Reports screens/salvation_reports_display_screen.dart';
 import '../Reports screens/baptism_reports_display_screen.dart';
+import '../../helpers/app_permissions.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

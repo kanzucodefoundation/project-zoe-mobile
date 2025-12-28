@@ -27,12 +27,12 @@ class ApiClient {
     // Add interceptors for logging and error handling
     _dio.interceptors.add(
       LogInterceptor(
-        requestBody: true,
+        requestBody: false,
         responseBody: true,
         error: true,
-        request: true,
-        requestHeader: true,
-        responseHeader: true,
+        request: false,
+        requestHeader: false,
+        responseHeader: false,
       ),
     );
 
