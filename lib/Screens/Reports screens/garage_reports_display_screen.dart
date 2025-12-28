@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../components/text_field.dart';
 import '../../components/submit_button.dart';
 import '../../components/custom_date_picker.dart';
+import '../../components/dropdown.dart';
 
 /// Garage Reports Display Screen - Shows Garage report template and submissions
 class GarageReportsScreen extends StatefulWidget {
@@ -36,6 +37,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   bool _isSubmitting = false;
 
   String? _selectedLocationId;
+  String? _selectedServiceType;
 
   @override
   void initState() {
@@ -101,6 +103,10 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         } catch (e) {
           print('⚠️ Invalid date format: $value');
         }
+      } else if (key.toLowerCase().contains('servicetype') ||
+          key.toLowerCase().contains('service type')) {
+        _selectedServiceType = value?.toString();
+        print('✅ Pre-filled service type: $_selectedServiceType');
       } else if (value != null && value.toString().isNotEmpty) {
         // Create controller if doesn't exist and pre-fill
         if (!_controllers.containsKey(key)) {
@@ -328,6 +334,31 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
             ),
             const SizedBox(height: 20),
 
+            // Location selection with label
+            Row(
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Location',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             _buildLocationPicker(authProvider),
             const SizedBox(height: 20),
 
@@ -392,6 +423,45 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   Widget _buildInputForField(ReportField field) {
     final fieldName = field.name.toLowerCase();
     final fieldLabel = field.label.toLowerCase();
+
+    // Service Type dropdown
+    if (fieldLabel.contains('service type') ||
+        fieldName.contains('servicetype')) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            value: _selectedServiceType,
+            hint: Text(
+              'Select ${field.label}',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+            items: (field.options ?? []).map((option) {
+              return DropdownMenuItem<String>(
+                value: option.toString(),
+                child: Text(
+                  option.toString(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedServiceType = value;
+              });
+            },
+          ),
+        ),
+      );
+    }
 
     // Date picker for date fields (but NOT service type)
     if ((fieldName.contains('date') || fieldLabel.contains('date')) &&
@@ -671,6 +741,11 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         formData['serviceDate'] = _selectedDate!.toIso8601String();
       }
 
+      // Add selected service type
+      if (_selectedServiceType != null) {
+        formData['serviceType'] = _selectedServiceType;
+      }
+
       print('🚀 Submitting garage report: $formData');
 
       // TODO: Implement actual submission logic
@@ -703,6 +778,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         }
         setState(() {
           _selectedDate = null;
+          _selectedServiceType = null;
         });
       }
     } catch (e) {
