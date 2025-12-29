@@ -854,27 +854,25 @@ class _McReportsScreenState extends State<McReportsScreen> {
       await _storeSubmittedData(reportData);
 
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('MC report submitted successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+
+        for (var controller in _controllers.values) {
+          controller.clear();
+        }
+
         setState(() {
           _isSubmitting = false;
         });
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('MC report submitted successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
 
       // Navigate back to reports screen
-      Navigator.pop(context);
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-
       String errorMessage = 'Error submitting report';
       if (e.toString().contains('500') ||
           e.toString().contains('Internal Server Error')) {
@@ -894,13 +892,19 @@ class _McReportsScreenState extends State<McReportsScreen> {
         errorMessage = 'Network error - please check your connection';
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$errorMessage: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$errorMessage: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isSubmitting = false;
+      });
     }
   }
 

@@ -7,24 +7,25 @@ import '../../api/api_client.dart';
 import '../../components/apply_filter_button.dart';
 import '../../components/clear_filter_button.dart';
 import '../../components/edit_report_button.dart';
-import '../Reports screens/garage_reports_display_screen.dart';
+import 'salvation_reports_display_screen.dart';
 
-class GarageReportsListScreen extends StatefulWidget {
-  const GarageReportsListScreen({super.key});
+class SalvationReportsListScreen extends StatefulWidget {
+  const SalvationReportsListScreen({super.key});
 
   @override
-  State<GarageReportsListScreen> createState() =>
-      _GarageReportsListScreenState();
+  State<SalvationReportsListScreen> createState() =>
+      _SalvationReportsListScreenState();
 }
 
-class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
+class _SalvationReportsListScreenState
+    extends State<SalvationReportsListScreen> {
   List<Map<String, dynamic>> _reportSubmissions = [];
   List<Map<String, dynamic>> _allSubmissions = [];
   bool _isLoading = true;
   String? _error;
   DateTime? _filterStart;
   DateTime? _filterEnd;
-  int _itemsToShow = 2; // Show only 2 items initially
+  int _itemsToShow = 2;
 
   @override
   void initState() {
@@ -48,13 +49,13 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
         throw Exception('User not authenticated. Please login again.');
       }
 
-      // Get garage reports (assuming report ID 2 for garage)
+      // Get salvation reports (assuming report ID 4 for salvation)
       final submissions = await ReportsService.getMcReportSubmissions(
-        reportId: 2,
+        reportId: 4,
       );
 
-      // Also get the template to include field labels
-      final templateData = await ReportsService.getReportById(2);
+      final templateData = await ReportsService.getReportById(4);
+
       final template = {
         'id': templateData.id,
         'name': templateData.name,
@@ -117,120 +118,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
           return true;
         }).toList();
       }
-      _itemsToShow = 2; // Reset pagination when filters change
     });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Garage Report Submissions',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_alt, color: Colors.black),
-            tooltip: 'Filter by date range',
-            onPressed: _openFilterSheet,
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? _buildErrorView()
-          : _buildReportsList(),
-    );
-  }
-
-  Widget _buildErrorView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
-            const SizedBox(height: 16),
-            Text(
-              'Error Loading Reports',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.red.shade700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _error!,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReportsList() {
-    return RefreshIndicator(
-      onRefresh: _loadReportSubmissions,
-      child: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _itemsToShow < _reportSubmissions.length
-                  ? _itemsToShow + 1
-                  : _reportSubmissions.length,
-              itemBuilder: (context, index) {
-                if (index == _itemsToShow &&
-                    _itemsToShow < _reportSubmissions.length) {
-                  return _buildLoadMoreButton();
-                }
-                return _buildReportItem(_reportSubmissions[index]);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoadMoreButton() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      child: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            setState(() {
-              _itemsToShow += 5; // Load 5 more items
-            });
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-          ),
-          child: Text(
-            'Load More (${_reportSubmissions.length - _itemsToShow} remaining)',
-          ),
-        ),
-      ),
-    );
   }
 
   void _openFilterSheet() {
@@ -286,7 +174,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Select date range to filter garage reports',
+                'Select date range to filter salvation reports',
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 20),
@@ -442,13 +330,164 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Salvation Report Submissions',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_alt, color: Colors.black),
+            tooltip: 'Filter by date range',
+            onPressed: _openFilterSheet,
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+          ? _buildErrorView()
+          : _buildReportsList(),
+    );
+  }
+
+  Widget _buildErrorView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
+            const SizedBox(height: 16),
+            Text(
+              'Error Loading Reports',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.red.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _loadReportSubmissions,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReportsList() {
+    return RefreshIndicator(
+      onRefresh: _loadReportSubmissions,
+      child: _reportSubmissions.isEmpty
+          ? _buildEmptyState()
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _itemsToShow < _reportSubmissions.length
+                        ? _itemsToShow + 1
+                        : _reportSubmissions.length,
+                    itemBuilder: (context, index) {
+                      if (index == _itemsToShow &&
+                          _itemsToShow < _reportSubmissions.length) {
+                        return _buildLoadMoreButton();
+                      }
+                      return _buildReportItem(_reportSubmissions[index]);
+                    },
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.favorite, size: 64, color: Colors.green.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'No Salvation Reports Found',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No salvation reports have been submitted yet.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadMoreButton() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            setState(() {
+              _itemsToShow += 5; // Load 5 more items
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          ),
+          child: Text(
+            'Load More (${_reportSubmissions.length - _itemsToShow} remaining)',
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildReportItem(Map<String, dynamic> report) {
     final reportDate =
         report['submittedAt']?.toString().split('T')[0] ?? 'No Date';
     final reportData = report['data'] ?? {};
-    final attendance = reportData['totalAttendance']?.toString() ?? '0';
-    final serviceName = reportData['serviceType'] ?? 'Sunday Service';
-    final sermonTopic = reportData['sermonTopic'] ?? 'Sunday Topic';
+    final salvationCount = reportData['numberOfSalvations']?.toString() ?? '0';
+    final groupName = report['groupName'] ?? 'Salvation Report';
     final submittedBy = report['submittedBy']['name'] ?? 'Unknown Person';
 
     return Card(
@@ -487,12 +526,12 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        Icons.garage,
-                        color: Colors.orange,
+                        Icons.favorite,
+                        color: Colors.green,
                         size: 20,
                       ),
                     ),
@@ -502,7 +541,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            serviceName,
+                            groupName,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -525,22 +564,6 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                 ),
                 const SizedBox(height: 12),
                 Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Topic: $sermonTopic',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade700,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
@@ -551,11 +574,11 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                       ),
                     ),
                     Text(
-                      'Attendance: $attendance',
+                      'Salvations: $salvationCount',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: Colors.orange.shade700,
+                        color: Colors.green.shade700,
                       ),
                     ),
                   ],
@@ -606,7 +629,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Garage Report Details',
+                        'Salvation Report Details',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -743,12 +766,12 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
   }
 
   void _editReport(Map<String, dynamic> submission) {
-    // Navigate to the garage report display screen in edit mode
+    // Navigate to the salvation report display screen in edit mode
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => GarageReportsScreen(
-          reportId: submission['reportId'] ?? 2, // Garage report ID
+        builder: (context) => SalvationReportsScreen(
+          reportId: submission['reportId'] ?? 4, // Salvation report ID
           editingSubmission: submission, // Pass submission for editing
         ),
       ),

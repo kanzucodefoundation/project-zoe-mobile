@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../../components/text_field.dart';
 import '../../components/submit_button.dart';
 import '../../components/custom_date_picker.dart';
-import '../../components/dropdown.dart';
+// import '../../components/dropdown.dart';
 
 /// Garage Reports Display Screen - Shows Garage report template and submissions
 class GarageReportsScreen extends StatefulWidget {
@@ -93,6 +93,11 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     final data = submission['data'] as Map<String, dynamic>? ?? {};
 
     print('🔍 Garage pre-fill data: $data');
+
+    if (submission['groupId'] != null) {
+      _selectedLocationId = submission['groupId'].toString();
+      // debugPrint('✅ Pre-filled salvation locationId: $_selectedLocationId');
+    }
 
     // Pre-fill text controllers
     data.forEach((key, value) {
@@ -748,8 +753,6 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
       print('🚀 Submitting garage report: $formData');
 
-      // TODO: Implement actual submission logic
-      // await ReportsService.submitReport(formData);
       await ReportsService.submitReport(
         reportId: widget.reportId,
         groupId: _selectedLocationId != null

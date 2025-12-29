@@ -5,15 +5,15 @@ import '../../providers/report_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/group.dart';
 import '../../components/report_card.dart';
-import '../Reports screens/mc_attendance_report_screen.dart';
-import '../Reports screens/garage_reports_display_screen.dart';
-import '../Reports screens/mc_reports_list_screen.dart';
-import '../Reports screens/garage_reports_list_screen.dart';
-import '../Reports screens/baptism_reports_list_screen.dart';
-import '../Reports screens/salvation_reports_list_screen.dart';
+import '../reports-screens/mc_attendance_report_screen.dart';
+import '../reports-screens/garage_reports_display_screen.dart';
+import '../reports-screens/mc_reports_list_screen.dart';
+import '../reports-screens/garage_reports_list_screen.dart';
+import '../reports-screens/baptism_reports_list_screen.dart';
+import '../reports-screens/salvation_reports_list_screen.dart';
 import '../details_screens/group_details_screen.dart';
-import '../Reports screens/baptism_reports_display_screen.dart';
-import '../Reports screens/salvation_reports_display_screen.dart';
+import '../reports-screens/baptism_reports_display_screen.dart';
+import '../reports-screens/salvation_reports_display_screen.dart';
 
 /// Reports screen displaying all reports with server data
 class ReportsScreen extends StatefulWidget {
@@ -126,9 +126,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Category Filter Dropdown
-                  _buildCategoryDropdown(),
+                  // _buildCategoryDropdown(),
 
-                  const SizedBox(height: 16),
+                  // const SizedBox(height: 16),
 
                   // Report Types Section
                   _buildReportTypesSection(),

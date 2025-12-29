@@ -8,7 +8,7 @@ import '../../api/api_client.dart';
 import '../../components/apply_filter_button.dart';
 import '../../components/clear_filter_button.dart';
 import '../../components/edit_report_button.dart';
-import '../Reports screens/mc_reports_display_screen.dart';
+import 'mc_reports_display_screen.dart';
 
 class McReportsListScreen extends StatefulWidget {
   const McReportsListScreen({super.key});

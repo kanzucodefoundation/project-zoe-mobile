@@ -7,17 +7,17 @@ import '../../api/api_client.dart';
 import '../../components/apply_filter_button.dart';
 import '../../components/clear_filter_button.dart';
 import '../../components/edit_report_button.dart';
-import '../Reports screens/baptism_reports_display_screen.dart';
+import 'garage_reports_display_screen.dart';
 
-class BaptismReportsListScreen extends StatefulWidget {
-  const BaptismReportsListScreen({super.key});
+class GarageReportsListScreen extends StatefulWidget {
+  const GarageReportsListScreen({super.key});
 
   @override
-  State<BaptismReportsListScreen> createState() =>
-      _BaptismReportsListScreenState();
+  State<GarageReportsListScreen> createState() =>
+      _GarageReportsListScreenState();
 }
 
-class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
+class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
   List<Map<String, dynamic>> _reportSubmissions = [];
   List<Map<String, dynamic>> _allSubmissions = [];
   bool _isLoading = true;
@@ -48,13 +48,13 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
         throw Exception('User not authenticated. Please login again.');
       }
 
-      // Get baptism reports (assuming report ID 3 for baptism)
+      // Get garage reports (assuming report ID 2 for garage)
       final submissions = await ReportsService.getMcReportSubmissions(
-        reportId: 3,
+        reportId: 2,
       );
 
       // Also get the template to include field labels
-      final templateData = await ReportsService.getReportById(3);
+      final templateData = await ReportsService.getReportById(2);
       final template = {
         'id': templateData.id,
         'name': templateData.name,
@@ -133,7 +133,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Baptism Report Submissions',
+          'Garage Report Submissions',
           style: TextStyle(
             color: Colors.black,
             fontSize: 20,
@@ -221,7 +221,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
             });
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
+            backgroundColor: Colors.orange,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
           ),
@@ -286,7 +286,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Select date range to filter baptism reports',
+                'Select date range to filter garage reports',
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 20),
@@ -446,8 +446,9 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
     final reportDate =
         report['submittedAt']?.toString().split('T')[0] ?? 'No Date';
     final reportData = report['data'] ?? {};
-    final baptismCount = reportData['numberOfBaptisms']?.toString() ?? '0';
-    final groupName = report['groupName'] ?? 'Baptism Report';
+    final attendance = reportData['totalAttendance']?.toString() ?? '0';
+    final serviceName = reportData['serviceType'] ?? 'Sunday Service';
+    final sermonTopic = reportData['sermonTopic'] ?? 'Sunday Topic';
     final submittedBy = report['submittedBy']['name'] ?? 'Unknown Person';
 
     return Card(
@@ -486,12 +487,12 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
+                        color: Colors.orange.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        Icons.water_drop,
-                        color: Colors.blue,
+                        Icons.garage,
+                        color: Colors.orange,
                         size: 20,
                       ),
                     ),
@@ -501,7 +502,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            groupName,
+                            serviceName,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -524,21 +525,37 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                 ),
                 const SizedBox(height: 12),
                 Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Topic: $sermonTopic',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Submitted By: $submittedBy',
+                      'Submitted by: $submittedBy',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade600,
                       ),
                     ),
                     Text(
-                      'Baptisms: $baptismCount',
+                      'Attendance: $attendance',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: Colors.blue.shade700,
+                        color: Colors.orange.shade700,
                       ),
                     ),
                   ],
@@ -551,9 +568,9 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
     );
   }
 
-  void _showReportDetails(Map<String, dynamic> reportDetails) {
+  void _showReportDetails(Map<String, dynamic> submission) {
     // Check if user can edit this submission AND has submit permissions
-    final canEdit = reportDetails['canEdit'] ?? false;
+    final canEdit = submission['canEdit'] ?? false;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final canSubmit = authProvider.user?.canSubmitReports ?? false;
     final canEditAndSubmit = canEdit && canSubmit;
@@ -589,7 +606,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Baptism Report Details',
+                        'Garage Report Details',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -601,7 +618,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                       EditReportButton(
                         onPressed: () {
                           Navigator.pop(context);
-                          _editReport(reportDetails);
+                          _editReport(submission);
                         },
                       )
                     else
@@ -643,7 +660,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   children: [
                     () {
-                      final data = reportDetails['data'];
+                      final data = submission['data'];
                       Map<String, dynamic> reportData = {};
 
                       if (data is Map) {
@@ -656,11 +673,9 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                             if (['smallGroupId'].contains(entry.key)) {
                               return const SizedBox();
                             }
-                            //  key and Value : get template from fields to show label
+
                             String fieldLabel = entry.key;
-
-                            final template = reportDetails['template'];
-
+                            final template = submission['template'];
                             if (template != null &&
                                 template['fields'] != null) {
                               final fields = template['fields'] as List;
@@ -728,13 +743,12 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
   }
 
   void _editReport(Map<String, dynamic> submission) {
-    // Navigate to the baptism report display screen in edit mode
-    // Pass the submission data so it can be pre-filled
+    // Navigate to the garage report display screen in edit mode
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BaptismReportsScreen(
-          reportId: submission['reportId'] ?? 3, // Baptism report ID
+        builder: (context) => GarageReportsScreen(
+          reportId: submission['reportId'] ?? 2, // Garage report ID
           editingSubmission: submission, // Pass submission for editing
         ),
       ),

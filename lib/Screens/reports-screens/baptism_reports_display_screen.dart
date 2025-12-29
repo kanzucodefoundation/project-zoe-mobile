@@ -85,7 +85,12 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
     final submission = widget.editingSubmission!;
     final data = submission['data'] as Map<String, dynamic>? ?? {};
 
-    print('🔍 Pre-fill data: $data');
+    print('🔍 Pre-fill data: $submission');
+
+    if (submission['groupId'] != null) {
+      _selectedLocationId = submission['groupId'].toString();
+      print('✅ Pre-filled location ID: $_selectedLocationId');
+    }
 
     // Pre-fill text controllers
     data.forEach((key, value) {
@@ -505,13 +510,21 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
   Widget _buildLocationPicker(AuthProvider authProvider) {
     final List<Map<String, dynamic>> availableLocations = authProvider
         .getGroupsFromHierarchy('location');
+    // if (ed) {}
 
-    // if (availableLocations.isEmpty) {
-    //   return const Text(
-    //     'No Missional Community available',
-    //     style: TextStyle(color: Colors.red),
-    //   );
-    // }
+    // When editing, ensure the current location is included
+    //- if U don not have access, this will not occur
+    /*if (widget.editingSubmission != null &&
+        widget.editingSubmission!['groupId'] != null) {
+      final editingGroupId = widget.editingSubmission!['groupId'];
+      if (!availableLocations.any((mc) => mc['id'] == editingGroupId)) {
+        final editingGroup = ReportsService.getGroupDetails(editingGroupId);
+        if (editingGroup != null) {
+          availableLocations.add();
+        }
+      }
+    }*/
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
