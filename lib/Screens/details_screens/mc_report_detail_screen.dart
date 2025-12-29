@@ -507,7 +507,11 @@ class _McReportDetailScreenState extends State<McReportDetailScreen> {
         .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}')
         .replaceAll('_', ' ')
         .split(' ')
-        .map((word) => word.isEmpty ? '' : '${word[0].toUpperCase()}${word.substring(1)}')
+        .map(
+          (word) => word.isEmpty
+              ? ''
+              : '${word[0].toUpperCase()}${word.substring(1)}',
+        )
         .join(' ')
         .trim();
   }
@@ -516,18 +520,20 @@ class _McReportDetailScreenState extends State<McReportDetailScreen> {
     // Determine if field should be displayed as long text based on key or value length
     final longFieldKeys = [
       'attendeesNames',
-      'visitors', 
+      'visitors',
       'highlights',
       'testimonies',
       'prayerRequests',
       'notes',
       'comments',
       'description',
-      'summary'
+      'summary',
     ];
 
     // Check if it's a known long field
-    if (longFieldKeys.any((key) => fieldKey.toLowerCase().contains(key.toLowerCase()))) {
+    if (longFieldKeys.any(
+      (key) => fieldKey.toLowerCase().contains(key.toLowerCase()),
+    )) {
       return true;
     }
 
@@ -705,24 +711,28 @@ class _McReportDetailScreenState extends State<McReportDetailScreen> {
                     const SizedBox(height: 20),
                     _buildDetailSection('Form Fields', [
                       ...data.entries
-                          .where((entry) => 
-                              // Exclude technical/system fields but show all form fields
-                              ![
-                                'id',
-                                'reportId', 
-                                'createdAt',
-                                'updatedAt',
-                                'status',
-                                'template'
-                              ].contains(entry.key) &&
-                              entry.value != null &&
-                              entry.value.toString().isNotEmpty
+                          .where(
+                            (entry) =>
+                                // Exclude technical/system fields but show all form fields
+                                ![
+                                  'id',
+                                  'reportId',
+                                  'createdAt',
+                                  'updatedAt',
+                                  'status',
+                                  'template',
+                                ].contains(entry.key) &&
+                                entry.value != null &&
+                                entry.value.toString().isNotEmpty,
                           )
                           .map((entry) {
                             final fieldLabel = _formatFieldLabel(entry.key);
-                            final isLongField = _isLongField(entry.key, entry.value);
+                            final isLongField = _isLongField(
+                              entry.key,
+                              entry.value,
+                            );
                             return _buildDetailRow(
-                              fieldLabel, 
+                              fieldLabel,
                               entry.value,
                               isLong: isLongField,
                             );
