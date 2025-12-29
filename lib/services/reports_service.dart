@@ -14,6 +14,32 @@ class ReportsService {
   static final ApiClient _apiClient = ApiClient();
   static Dio get _dio => _apiClient.dio;
 
+  static Future<List<Group>> getAllGroups() async {
+    try {
+      debugPrint('🔍 Fetching groups from /groups...');
+      final response = await _dio.get('/groups');
+
+      // Handle the new API response structure: { groups: [...], summary: {...} }
+      final Map<String, dynamic> responseData = response.data ?? {};
+      final List<dynamic> groupsData = responseData['groups'] ?? [];
+      debugPrint('📝 Parsed groups count: ${groupsData.length}');
+
+      final result = groupsData
+          .map((group) => Group.fromJson(group as Map<String, dynamic>))
+          .toList();
+
+      return result;
+    } on DioException catch (e) {
+      debugPrint('❌ DioException fetching groups: ${e.toString()}');
+      debugPrint('💥 Error response: ${e.response?.data}');
+      debugPrint('🔢 Status code: ${e.response?.statusCode}');
+      throw _handleDioException(e);
+    } catch (e) {
+      debugPrint('💀 Unexpected error fetching groups: ${e.toString()}');
+      throw Exception('Failed to fetch groups: ${e.toString()}');
+    }
+  }
+
   /// Get available groups/MCs from server
   static Future<List<Map<String, dynamic>>> getAvailableGroups() async {
     try {
