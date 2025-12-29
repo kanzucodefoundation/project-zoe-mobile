@@ -513,9 +513,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     }
 
     // MC Name dropdown
-    if ((fieldName == 'smallGroupName' ||
-            fieldName == 'mc_name' ||
-            fieldName.contains('mcname')) &&
+    if ((field.name == 'smallGroupName') &&
         !fieldLabel.contains('attended') &&
         !fieldLabel.contains('visit')) {
       return Column(
