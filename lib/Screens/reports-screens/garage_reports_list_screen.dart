@@ -511,7 +511,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            reportDate,
+                            'Topic: $sermonTopic',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey.shade600,
@@ -528,9 +528,9 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Topic: $sermonTopic',
+                        'Submitted on: $reportDate',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           color: Colors.grey.shade700,
                         ),
                         maxLines: 1,
