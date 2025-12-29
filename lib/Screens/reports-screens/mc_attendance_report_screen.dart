@@ -71,7 +71,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       });
 
       try {
-        _availableMcs = await ReportsService.getAvailableGroups();
+        _availableMcs = await ReportsService.getMyAvailableGroups();
 
         // setState(() {
         //   _isLoadingMcs = false;

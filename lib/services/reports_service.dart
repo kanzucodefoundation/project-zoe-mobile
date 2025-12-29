@@ -41,7 +41,7 @@ class ReportsService {
   }
 
   /// Get available groups/MCs from server
-  static Future<List<Map<String, dynamic>>> getAvailableGroups() async {
+  static Future<List<Map<String, dynamic>>> getMyAvailableGroups() async {
     try {
       debugPrint('🔍 Fetching groups from /groups/me...');
       final response = await _dio.get('/groups/me');
