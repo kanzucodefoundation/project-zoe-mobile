@@ -126,9 +126,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Category Filter Dropdown
-                  _buildCategoryDropdown(),
+                  // _buildCategoryDropdown(),
 
-                  const SizedBox(height: 16),
+                  // const SizedBox(height: 16),
 
                   // Report Types Section
                   _buildReportTypesSection(),
