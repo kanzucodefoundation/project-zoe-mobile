@@ -266,7 +266,7 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
 
   Widget _buildReportCard(Map<String, dynamic> submission) {
     debugPrint('\n🔎 === BUILDING REPORT CARD ===');
-    debugPrint('🔎 Full submission: $submission');
+    // debugPrint('🔎 Full submission: $submission');
 
     // Extract data from the correct structure: {reportId: 5, data: {...}}
     final data = submission['data'];

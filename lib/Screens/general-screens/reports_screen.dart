@@ -31,6 +31,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   bool _showAllGroups = false;
   bool _showAllReportTypes = false;
   String? _selectedCategory;
+  bool _hasInitialized = false; // 🔥 ADD INITIALIZATION FLAG
 
   @override
   void initState() {
@@ -39,52 +40,71 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Future<void> _loadInitialData() async {
+    if (_hasInitialized) return; // 🔥 PREVENT MULTIPLE CALLS
+    _hasInitialized = true;
+
     await Future.wait([_loadReportCategories(), _loadSmallGroups()]);
   }
 
+  // 🔥 ADD MANUAL REFRESH METHOD
+  Future<void> _refreshData() async {
+    _hasInitialized = false;
+    await _loadInitialData();
+  }
+
   Future<void> _loadReportCategories() async {
+    if (!mounted) return; // 🔥 CHECK MOUNTED
+
     try {
       debugPrint('🔄 Starting to load report categories...');
-      // Let server determine church from authenticated user
-
       final categories = await ReportsService.getReportCategories();
       debugPrint('✅ Categories loaded successfully: $categories');
-      setState(() {
-        _reportCategories = categories;
-        _isLoadingCategories = false;
-      });
-      debugPrint(
-        '🎯 State updated - categories count: ${_reportCategories.length}',
-      );
+
+      if (mounted) {
+        setState(() {
+          _reportCategories = categories;
+          _isLoadingCategories = false;
+        });
+        debugPrint(
+          '🎯 State updated - categories count: ${_reportCategories.length}',
+        );
+      }
     } catch (e) {
       debugPrint('❌ Error loading categories: $e');
-      setState(() {
-        _isLoadingCategories = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingCategories = false;
+        });
+      }
     }
   }
 
   Future<void> _loadSmallGroups() async {
+    if (!mounted) return; // 🔥 CHECK MOUNTED
+
     try {
       debugPrint('🔄 Starting to load user groups...');
-      // Let server determine church from authenticated user
-
       final groupsResponse = await ReportsService.getUserGroups();
       debugPrint(
         '✅ Groups loaded successfully: ${groupsResponse.groups.length} groups',
       );
-      setState(() {
-        _groupsResponse = groupsResponse;
-        _isLoadingGroups = false;
-      });
-      debugPrint(
-        '🎯 State updated - groups count: ${_groupsResponse!.groups.length}',
-      );
+
+      if (mounted) {
+        setState(() {
+          _groupsResponse = groupsResponse;
+          _isLoadingGroups = false;
+        });
+        debugPrint(
+          '🎯 State updated - groups count: ${_groupsResponse!.groups.length}',
+        );
+      }
     } catch (e) {
       debugPrint('❌ Error loading groups: $e');
-      setState(() {
-        _isLoadingGroups = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingGroups = false;
+        });
+      }
     }
   }
 
@@ -108,9 +128,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.refresh, color: Colors.black),
-                onPressed: () {
-                  reportProvider.refreshReports();
-                  _loadInitialData();
+                onPressed: () async {
+                  await reportProvider.refreshReports();
+                  await _refreshData(); // 🔥 USE NEW REFRESH METHOD
                 },
               ),
             ],
@@ -118,16 +138,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
           body: RefreshIndicator(
             onRefresh: () async {
               await reportProvider.refreshReports();
-              await _loadInitialData();
+              await _refreshData(); // 🔥 USE NEW REFRESH METHOD
             },
             child: SingleChildScrollView(
+              physics:
+                  const AlwaysScrollableScrollPhysics(), // 🔥 ENSURE SCROLLABLE
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Category Filter Dropdown
+                  // Category Filter Dropdown (commented out)
                   // _buildCategoryDropdown(),
-
                   // const SizedBox(height: 16),
 
                   // Report Types Section
@@ -140,11 +161,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Submitted Reports List
+                  // Submitted Reports List (commented out)
                   // _buildSubmittedReportsSection(),
                   const SizedBox(height: 16),
 
-                  // MC Report Submissions Status
+                  // MC Report Submissions Status (commented out)
                   // _buildMcSubmissionsSection(reportProvider),
                   const SizedBox(height: 24),
 
@@ -191,6 +212,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             const Center(child: CircularProgressIndicator())
           else
             DropdownButtonFormField<String>(
+              key: const ValueKey('category_dropdown'), // 🔥 ADD KEY
               decoration: InputDecoration(
                 hintText: 'Select a report category',
                 border: OutlineInputBorder(
@@ -201,7 +223,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   vertical: 12,
                 ),
               ),
-              initialValue: _selectedCategory,
+              value: _selectedCategory,
               items: [
                 const DropdownMenuItem<String>(
                   value: null,
@@ -215,9 +237,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 }),
               ],
               onChanged: (value) {
-                setState(() {
-                  _selectedCategory = value;
-                });
+                if (mounted) {
+                  setState(() {
+                    _selectedCategory = value;
+                  });
+                }
               },
             ),
         ],
@@ -267,9 +291,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
               if (_groupsResponse != null && _groupsResponse!.groups.length > 5)
                 TextButton(
                   onPressed: () {
-                    setState(() {
-                      _showAllGroups = !_showAllGroups;
-                    });
+                    if (mounted) {
+                      setState(() {
+                        _showAllGroups = !_showAllGroups;
+                      });
+                    }
                   },
                   child: Text(
                     _showAllGroups ? 'Show Less' : 'Show All',
@@ -304,6 +330,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     : _groupsResponse!.groups.take(5))
                 .map((group) {
                   return Container(
+                    key: ValueKey('group_${group.id}'), // 🔥 ADD KEY
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       leading: CircleAvatar(
@@ -527,7 +554,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 16),
-          // Show first 2 report types or all if _showAllReportTypes is true
+          // Show first 3 report types or all if _showAllReportTypes is true
           ...(_showAllReportTypes
               ? reportTypeWidgets
               : reportTypeWidgets.take(3).toList()),
@@ -536,9 +563,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
             Center(
               child: TextButton.icon(
                 onPressed: () {
-                  setState(() {
-                    _showAllReportTypes = true;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      _showAllReportTypes = true;
+                    });
+                  }
                 },
                 icon: const Icon(Icons.expand_more),
                 label: const Text('Load More Report Types'),
@@ -556,9 +585,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
             Center(
               child: TextButton.icon(
                 onPressed: () {
-                  setState(() {
-                    _showAllReportTypes = false;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      _showAllReportTypes = false;
+                    });
+                  }
                 },
                 icon: const Icon(Icons.expand_less),
                 label: const Text('Show Less'),
@@ -693,7 +724,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final salvationReportTitle = 'salvation';
     final baptismReportTitle = 'baptism';
 
-    // Process all reports from server (the original 5 that were on home screen)
+    // Process all reports from server
     for (final report in titleAndId) {
       final String title = report['title']?.toString() ?? '';
       final dynamic id = report['id'];
@@ -737,6 +768,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
       cards.add(
         ReportCard(
+          key: ValueKey('report_card_$id'), // 🔥 ADD KEY
           reportTitle: title,
           reportIcon: icon,
           iconColor: hasPermission ? Colors.black : Colors.grey,
@@ -779,7 +811,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         crossAxisCount: 3,
         mainAxisSpacing: 6,
         crossAxisSpacing: 6,
-        childAspectRatio: 0.85, // Taller cards to accommodate text
+        childAspectRatio: 0.85,
       ),
       itemBuilder: (_, index) =>
           Padding(padding: const EdgeInsets.all(4), child: cards[index]),

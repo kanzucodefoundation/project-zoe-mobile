@@ -110,7 +110,7 @@ class ReportsService {
     try {
       debugPrint('🔍 Fetching reports for MC ID: $groupId');
       final response = await _dio.get('/reports/submissions/$groupId');
-      debugPrint('✅ MC reports response: ${response.data}');
+      debugPrint('✅✅✅ MC reports response: ${response.data}');
 
       if (response.data is List) {
         return List<Map<String, dynamic>>.from(response.data);

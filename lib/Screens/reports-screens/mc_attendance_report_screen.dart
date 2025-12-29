@@ -30,9 +30,10 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
   final Map<String, TextEditingController> _controllers = {};
   Map<String, dynamic>? _selectedMc;
   DateTime? _selectedDate;
-  String? _selectedStreamOption; // For mcStreamPlatform dropdown
+  String? _selectedStreamOption;
   bool _isSubmitting = false;
   bool _isLoadingMcs = false;
+  bool _hasInitialized = false; // 🔥 ADD THIS FLAG
 
   @override
   void initState() {
@@ -51,6 +52,9 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
 
   /// Load MC report template and data
   Future<void> _loadMcData() async {
+    if (_hasInitialized) return; // 🔥 PREVENT MULTIPLE CALLS
+    _hasInitialized = true;
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -92,9 +96,11 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         _isLoadingMcs = false;
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -114,14 +120,28 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
           final dateB =
               DateTime.tryParse(b['submittedAt']?.toString() ?? '') ??
               DateTime(1970);
-          return dateB.compareTo(dateA); // Newest first
+          return dateB.compareTo(dateA);
         });
 
-        _mcReports[mc['id']] = reports;
+        if (mounted) {
+          setState(() {
+            _mcReports[mc['id']] = reports;
+          });
+        }
       } catch (e) {
-        _mcReports[mc['id']] = [];
+        if (mounted) {
+          setState(() {
+            _mcReports[mc['id']] = [];
+          });
+        }
       }
     }
+  }
+
+  // 🔥 ADD MANUAL REFRESH METHOD
+  Future<void> _refreshData() async {
+    _hasInitialized = false;
+    await _loadMcData();
   }
 
   @override
@@ -143,12 +163,12 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.refresh, color: Colors.black),
-        //     onPressed: _loadMcData,
-        //   ),
-        // ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            onPressed: _refreshData, // 🔥 USE NEW REFRESH METHOD
+          ),
+        ],
       ),
       body: _buildBody(),
     );
@@ -182,7 +202,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: _loadMcData,
+              onPressed: _refreshData, // 🔥 USE NEW REFRESH METHOD
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
@@ -195,7 +215,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       );
     }
 
-    // If we have no template and no data, show empty state
     if (_reportTemplate == null && _availableMcs.isEmpty) {
       return const Center(
         child: Column(
@@ -222,13 +241,13 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadMcData,
+      onRefresh: _refreshData, // 🔥 USE NEW REFRESH METHOD
       child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(), // 🔥 ENSURE SCROLLABLE
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Report Template Section (if available)
             if (_reportTemplate != null) ...[
               _buildReportHeader(),
               const SizedBox(height: 24),
@@ -333,6 +352,9 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         .where((field) => !field.hidden)
         .toList();
 
+    // 🔥 SORT FIELDS BY ORDER
+    visibleFields.sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -392,7 +414,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Field info header (without type)
           Row(
             children: [
               Container(
@@ -417,7 +438,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          // Dynamic input field based on field type and name
           _buildInputForField(field),
         ],
       ),
@@ -428,17 +448,18 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     final fieldName = field.name.toLowerCase();
     final fieldLabel = field.label.toLowerCase();
 
-    // Stream field dropdown - check for streaming platform fields
+    // Stream field dropdown
     if (field.name == 'mcStreamPlatform' ||
         fieldName.contains('stream') ||
         fieldLabel.contains('stream') ||
         fieldLabel.contains('how did you stream')) {
-      // Convert string options to Map format for Dropdown component
       final dropdownItems = (field.options ?? [])
           .map((option) => {'id': option.toString(), 'name': option.toString()})
           .toList();
 
+      // 🔥 USE KEY TO PREVENT REBUILD LOOPS
       return Dropdown(
+        key: ValueKey('stream_${field.name}'), // 🔥 ADD UNIQUE KEY
         hintText: 'Select ${field.label}',
         items: dropdownItems,
         getDisplayText: (item) => item['name'] ?? 'Unknown Option',
@@ -449,9 +470,11 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
               )
             : null,
         onChanged: (selectedOption) {
-          setState(() {
-            _selectedStreamOption = selectedOption?['name'];
-          });
+          if (mounted) {
+            setState(() {
+              _selectedStreamOption = selectedOption?['name'];
+            });
+          }
         },
         validator: field.required
             ? (value) {
@@ -464,19 +487,19 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       );
     }
 
-    // Date picker for date fields
-    if (fieldName.contains('date') ||
-        fieldLabel.contains('date') ||
-        fieldName.contains('gathering') ||
-        fieldLabel.contains('gathering')) {
+    // Date picker
+    if (fieldName.contains('date') || fieldLabel.contains('date')) {
       return CustomDatePicker(
+        key: ValueKey('date_${field.name}'), // 🔥 ADD UNIQUE KEY
         hintText: 'Select ${field.label.toLowerCase()}',
         prefixIcon: Icons.calendar_today,
         selectedDate: _selectedDate,
         onDateSelected: (date) {
-          setState(() {
-            _selectedDate = date;
-          });
+          if (mounted) {
+            setState(() {
+              _selectedDate = date;
+            });
+          }
         },
         validator: field.required
             ? (value) {
@@ -489,27 +512,28 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       );
     }
 
-    // ONLY MC Name field gets the dropdown - very specific check
-    if ((fieldName == 'mcname' ||
+    // MC Name dropdown
+    if ((fieldName == 'smallGroupName' ||
             fieldName == 'mc_name' ||
-            fieldName.contains('mcname') ||
-            fieldLabel == 'mc name' ||
-            fieldLabel.contains('mc name')) &&
+            fieldName.contains('mcname')) &&
         !fieldLabel.contains('attended') &&
         !fieldLabel.contains('visit')) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Dropdown(
+            key: ValueKey('mc_${field.name}'), // 🔥 ADD UNIQUE KEY
             hintText: 'Select ${field.label}',
             prefixIcon: Icons.church,
             items: _availableMcs,
             getDisplayText: (mc) => mc['name'] ?? 'Unknown MC',
             value: _selectedMc,
             onChanged: (selectedMc) {
-              setState(() {
-                _selectedMc = selectedMc;
-              });
+              if (mounted) {
+                setState(() {
+                  _selectedMc = selectedMc;
+                });
+              }
             },
             validator: field.required
                 ? (value) {
@@ -521,7 +545,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
                 : null,
             isLoading: _isLoadingMcs,
           ),
-          // Debug info
           if (_isLoadingMcs)
             Padding(
               padding: const EdgeInsets.only(top: 4),
@@ -538,14 +561,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
                 style: TextStyle(fontSize: 12, color: Colors.red[600]),
               ),
             ),
-          // if (!_isLoadingMcs && _availableMcs.isNotEmpty)
-          //   Padding(
-          //     padding: const EdgeInsets.only(top: 4),
-          //     child: Text(
-          //       '${_availableMcs.length} MCs loaded from server',
-          //       style: TextStyle(fontSize: 12, color: Colors.green[600]),
-          //     ),
-          //   ),
         ],
       );
     }
@@ -555,7 +570,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       _controllers[field.name] = TextEditingController();
     }
 
-    // Text area for long text fields
+    // Text area
     if (field.type.toLowerCase() == 'textarea' ||
         fieldLabel.contains('comment') ||
         fieldLabel.contains('note') ||
@@ -567,6 +582,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
           border: Border.all(color: const Color(0xFFE0E0E0)),
         ),
         child: TextFormField(
+          key: ValueKey('textarea_${field.name}'), // 🔥 ADD UNIQUE KEY
           controller: _controllers[field.name],
           maxLines: 4,
           validator: field.required
@@ -590,8 +606,9 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       );
     }
 
-    // Regular text field for everything else (including members attended, who visited, etc.)
+    // Regular text field
     return CustomTextField(
+      key: ValueKey('text_${field.name}'), // 🔥 ADD UNIQUE KEY
       hintText: 'Enter ${field.label.toLowerCase()}',
       controller: _controllers[field.name],
       keyboardType: _getKeyboardType(field.type),
@@ -648,34 +665,24 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     });
 
     try {
-      // Collect form data
       final Map<String, dynamic> formData = {};
       for (var entry in _controllers.entries) {
         formData[entry.key] = entry.value.text;
       }
 
-      // Add stream platform selection
       if (_selectedStreamOption != null) {
         formData['mcStreamPlatform'] = _selectedStreamOption;
       }
 
-      // Add MC information to the submission data
       formData['smallGroupName'] = _selectedMc!['name'];
-      formData['mcName'] = _selectedMc!['name']; // Alternative field name
-      formData['groupName'] = _selectedMc!['name']; // Another alternative
-      formData['mcHostHome'] = _selectedMc!['name']; // Host info if needed
+      formData['smallGroupId'] = _selectedMc!['id'];
 
-      // Add date if selected
       if (_selectedDate != null) {
-        formData['gatheringDate'] = _selectedDate!.toIso8601String();
+        formData['date'] = _selectedDate!.toIso8601String();
       }
 
       print('🚀 Submitting MC report: $formData');
-      print('📍 MC ID: ${_selectedMc!['id']}');
-      print('📍 MC Name: ${_selectedMc!['name']}');
-      print('📋 Report ID: ${widget.reportId}');
 
-      // Submit report using the service
       final submission = await ReportsService.submitReport(
         groupId: _selectedMc!['id'],
         reportId: widget.reportId ?? 1,
@@ -683,20 +690,16 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       );
 
       if (mounted) {
-        // Add the new submission to the reports list
         final newSubmissionData = {
           'id': submission.id,
           'reportId': widget.reportId ?? 1,
           'groupId': _selectedMc!['id'],
-          'smallGroupName': _selectedMc!['name'], // Primary field for MC name
-          'mcName': _selectedMc!['name'], // Alternative field
-          'groupName': _selectedMc!['name'], // Another alternative
+          'groupName': _selectedMc!['name'],
           'submittedAt': DateTime.now().toIso8601String(),
           'submittedBy': {'name': 'Current User'},
           'data': formData,
         };
 
-        // Add to the beginning of the MC's reports list (most recent first)
         final mcId = _selectedMc!['id'];
         if (_mcReports.containsKey(mcId)) {
           _mcReports[mcId]!.insert(0, newSubmissionData);
@@ -704,7 +707,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
           _mcReports[mcId] = [newSubmissionData];
         }
 
-        // Sort the list to ensure newest first
         _mcReports[mcId]!.sort((a, b) {
           final dateA =
               DateTime.tryParse(a['submittedAt']?.toString() ?? '') ??
@@ -712,10 +714,11 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
           final dateB =
               DateTime.tryParse(b['submittedAt']?.toString() ?? '') ??
               DateTime(1970);
-          return dateB.compareTo(dateA); // Newest first
+          return dateB.compareTo(dateA);
         });
 
-        setState(() {}); // Refresh the UI to show the new submission
+        setState(() {});
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('MC report submitted successfully!'),
@@ -723,7 +726,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
           ),
         );
 
-        // Navigate back to reports screen
         Navigator.pop(context);
       }
     } catch (e) {

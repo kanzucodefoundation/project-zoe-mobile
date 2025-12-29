@@ -42,8 +42,11 @@ class _McReportsScreenState extends State<McReportsScreen> {
   @override
   void initState() {
     super.initState();
-    // _loadReportData();
-    _loadAvailableMcs();
+    _init();
+  }
+
+  Future<void> _init() async {
+    await Future.wait([_loadReportData(), _loadAvailableMcs()]);
   }
 
   /// Load available MCs from server
@@ -118,6 +121,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
         }
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = 'Error loading report data: ${e.toString()}';
         _isLoading = false;
@@ -142,7 +146,11 @@ class _McReportsScreenState extends State<McReportsScreen> {
         }
       } else if (key == 'smallGroupName') {
         _selectedMcName = value?.toString();
-        print('✅ Pre-filled MC name: $_selectedMcName');
+        _selectedMcId = data['smallGroupId']?.toString();
+        _selectedOption = data['mcStreamPlatform']?.toString();
+        debugPrint(
+          '✅ Pre-filled MC name: $_selectedMcName MC id: $_selectedMcId and Platform : $_selectedOption',
+        );
       } else if (value != null && value.toString().isNotEmpty) {
         // For MC reports, we need to map to field IDs
         // Try to find the field by name first, then use a fallback
@@ -572,7 +580,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
     } else if (fieldType == 'select') {
       final availableOptions = field.options as List<dynamic>? ?? [];
 
-      return Container(
+      input = Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey.shade300),
