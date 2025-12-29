@@ -101,7 +101,24 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
   /// Load reports for all available MCs
   Future<void> _loadReportsForAllMcs() async {
     for (final mc in _availableMcs) {
-      try {} catch (e) {
+      try {
+        final reports = await ReportsService.getReportDetailsByGroupId(
+          mc['id'],
+        );
+
+        // Sort reports by date (newest first)
+        reports.sort((a, b) {
+          final dateA =
+              DateTime.tryParse(a['submittedAt']?.toString() ?? '') ??
+              DateTime(1970);
+          final dateB =
+              DateTime.tryParse(b['submittedAt']?.toString() ?? '') ??
+              DateTime(1970);
+          return dateB.compareTo(dateA); // Newest first
+        });
+
+        _mcReports[mc['id']] = reports;
+      } catch (e) {
         _mcReports[mc['id']] = [];
       }
     }
@@ -223,9 +240,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       ),
     );
   }
-
-
-
 
   Widget _buildReportHeader() {
     return Container(
@@ -592,9 +606,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     );
   }
 
-
-
-
   TextInputType _getKeyboardType(String type) {
     switch (type.toLowerCase()) {
       case 'number':
@@ -613,6 +624,22 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
 
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all required fields'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedMc == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select an MC'),
+          backgroundColor: Colors.orange,
+        ),
+      );
       return;
     }
 
@@ -632,24 +659,63 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         formData['mcStreamPlatform'] = _selectedStreamOption;
       }
 
-      // Add MC and report metadata
-      if (_selectedMc != null) {
-        formData['mcId'] = _selectedMc!['id'];
-        formData['mcName'] = _selectedMc!['name'];
-      }
+      // Add MC information to the submission data
+      formData['smallGroupName'] = _selectedMc!['name'];
+      formData['mcName'] = _selectedMc!['name']; // Alternative field name
+      formData['groupName'] = _selectedMc!['name']; // Another alternative
+      formData['mcHostHome'] = _selectedMc!['name']; // Host info if needed
+
+      // Add date if selected
       if (_selectedDate != null) {
         formData['gatheringDate'] = _selectedDate!.toIso8601String();
       }
-      formData['reportId'] = widget.reportId;
-      formData['submittedAt'] = DateTime.now().toIso8601String();
 
-      // TODO: Implement actual submission logic
-      // await ReportsService.submitMcReport(formData);
+      print('🚀 Submitting MC report: $formData');
+      print('📍 MC ID: ${_selectedMc!['id']}');
+      print('📍 MC Name: ${_selectedMc!['name']}');
+      print('📋 Report ID: ${widget.reportId}');
 
-      // Simulate submission delay
-      await Future.delayed(const Duration(seconds: 2));
+      // Submit report using the service
+      final submission = await ReportsService.submitReport(
+        groupId: _selectedMc!['id'],
+        reportId: widget.reportId ?? 1,
+        data: formData,
+      );
 
       if (mounted) {
+        // Add the new submission to the reports list
+        final newSubmissionData = {
+          'id': submission.id,
+          'reportId': widget.reportId ?? 1,
+          'groupId': _selectedMc!['id'],
+          'smallGroupName': _selectedMc!['name'], // Primary field for MC name
+          'mcName': _selectedMc!['name'], // Alternative field
+          'groupName': _selectedMc!['name'], // Another alternative
+          'submittedAt': DateTime.now().toIso8601String(),
+          'submittedBy': {'name': 'Current User'},
+          'data': formData,
+        };
+
+        // Add to the beginning of the MC's reports list (most recent first)
+        final mcId = _selectedMc!['id'];
+        if (_mcReports.containsKey(mcId)) {
+          _mcReports[mcId]!.insert(0, newSubmissionData);
+        } else {
+          _mcReports[mcId] = [newSubmissionData];
+        }
+
+        // Sort the list to ensure newest first
+        _mcReports[mcId]!.sort((a, b) {
+          final dateA =
+              DateTime.tryParse(a['submittedAt']?.toString() ?? '') ??
+              DateTime(1970);
+          final dateB =
+              DateTime.tryParse(b['submittedAt']?.toString() ?? '') ??
+              DateTime(1970);
+          return dateB.compareTo(dateA); // Newest first
+        });
+
+        setState(() {}); // Refresh the UI to show the new submission
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('MC report submitted successfully!'),
@@ -657,15 +723,8 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
           ),
         );
 
-        // Clear form
-        for (var controller in _controllers.values) {
-          controller.clear();
-        }
-        setState(() {
-          _selectedMc = null;
-          _selectedDate = null;
-          _selectedStreamOption = null; // Clear stream selection
-        });
+        // Navigate back to reports screen
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {

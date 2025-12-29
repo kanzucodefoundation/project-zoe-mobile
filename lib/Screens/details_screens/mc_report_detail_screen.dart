@@ -475,6 +475,70 @@ class _McReportDetailScreenState extends State<McReportDetailScreen> {
     }
   }
 
+  String _formatFieldLabel(String fieldKey) {
+    // Handle common field name formats and convert them to readable labels
+    final Map<String, String> fieldLabels = {
+      'mcStreamPlatform': 'Stream Platform',
+      'gatheringDate': 'Gathering Date',
+      'smallGroupName': 'MC Name',
+      'mcName': 'MC Name',
+      'groupName': 'Group Name',
+      'mcHostHome': 'Host Home',
+      'hostHome': 'Host Home',
+      'smallGroupNumberOfMembers': 'Total Members',
+      'totalMembers': 'Total Members',
+      'smallGroupAttendanceCount': 'Attendance Count',
+      'attendance': 'Attendance',
+      'attendeesNames': 'Attendees Names',
+      'visitors': 'Visitors',
+      'highlights': 'Highlights',
+      'testimonies': 'Testimonies',
+      'prayerRequests': 'Prayer Requests',
+      'streamingMethod': 'Streaming Method',
+    };
+
+    // Return mapped label if exists, otherwise format the key
+    if (fieldLabels.containsKey(fieldKey)) {
+      return fieldLabels[fieldKey]!;
+    }
+
+    // Convert camelCase to Title Case
+    return fieldKey
+        .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}')
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) => word.isEmpty ? '' : '${word[0].toUpperCase()}${word.substring(1)}')
+        .join(' ')
+        .trim();
+  }
+
+  bool _isLongField(String fieldKey, dynamic value) {
+    // Determine if field should be displayed as long text based on key or value length
+    final longFieldKeys = [
+      'attendeesNames',
+      'visitors', 
+      'highlights',
+      'testimonies',
+      'prayerRequests',
+      'notes',
+      'comments',
+      'description',
+      'summary'
+    ];
+
+    // Check if it's a known long field
+    if (longFieldKeys.any((key) => fieldKey.toLowerCase().contains(key.toLowerCase()))) {
+      return true;
+    }
+
+    // Check if value is long text (more than 50 characters)
+    if (value is String && value.length > 50) {
+      return true;
+    }
+
+    return false;
+  }
+
   Color _getStatusColorForReport(String status) {
     switch (status.toLowerCase()) {
       case 'completed':
@@ -637,6 +701,33 @@ class _McReportDetailScreenState extends State<McReportDetailScreen> {
                         ),
                       if (data['date'] != null)
                         _buildDetailRow('Date', data['date']),
+                    ]),
+                    const SizedBox(height: 20),
+                    _buildDetailSection('Form Fields', [
+                      ...data.entries
+                          .where((entry) => 
+                              // Exclude technical/system fields but show all form fields
+                              ![
+                                'id',
+                                'reportId', 
+                                'createdAt',
+                                'updatedAt',
+                                'status',
+                                'template'
+                              ].contains(entry.key) &&
+                              entry.value != null &&
+                              entry.value.toString().isNotEmpty
+                          )
+                          .map((entry) {
+                            final fieldLabel = _formatFieldLabel(entry.key);
+                            final isLongField = _isLongField(entry.key, entry.value);
+                            return _buildDetailRow(
+                              fieldLabel, 
+                              entry.value,
+                              isLong: isLongField,
+                            );
+                          })
+                          .toList(),
                     ]),
                     if (_hasAdditionalData(data)) ...[
                       const SizedBox(height: 20),
