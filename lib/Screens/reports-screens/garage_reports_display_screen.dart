@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../components/text_field.dart';
 import '../../components/submit_button.dart';
 import '../../components/custom_date_picker.dart';
+import '../../widgets/custom_toast.dart';
 // import '../../components/dropdown.dart';
 
 /// Garage Reports Display Screen - Shows Garage report template and submissions
@@ -711,22 +712,12 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please fill in all required fields');
       return;
     }
 
     if (_selectedLocationId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select the location'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please select the location');
       return;
     }
 
@@ -765,12 +756,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       // await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Report submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ToastHelper.showSuccess(context, 'Report submitted successfully! 🎉');
 
         // Navigate back to reports screen
         Navigator.pop(context);
@@ -786,11 +772,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error submitting report: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
+        ToastHelper.showError(
+          context,
+          'Error submitting report: ${e.toString()}',
         );
       }
     } finally {

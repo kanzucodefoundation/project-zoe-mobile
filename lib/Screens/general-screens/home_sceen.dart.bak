@@ -33,19 +33,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return RefreshIndicator(
       onRefresh: () async {
         if (!mounted) return;
-
+        
         final reportProvider = context.read<ReportProvider>();
         final dashboardProvider = context.read<DashboardProvider>();
         final scaffoldContext = context;
-
+        
         try {
           await reportProvider.refreshReports();
           await dashboardProvider.loadDashboardSummary();
           if (mounted) {
-            ToastHelper.showInfo(
-              scaffoldContext,
-              '✨ Data refreshed successfully',
-            );
+            ToastHelper.showInfo(scaffoldContext, '✨ Data refreshed successfully');
           }
         } catch (e) {
           if (mounted) {
@@ -270,12 +267,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       }
                     : () {
-                        ToastHelper.showInfo(context, '$title coming soon');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('$title coming soon'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
                       })
               : () {
-                  ToastHelper.showWarning(
-                    context,
-                    'You do not have permission to access this report',
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'You do not have permission to access this report',
+                      ),
+                      duration: Duration(seconds: 2),
+                    ),
                   );
                 },
         ),
@@ -366,31 +372,20 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.red.shade600,
+                color: Colors.grey.shade700,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              dashboardProvider.errorMessage?.toLowerCase().contains(
-                            'network',
-                          ) ==
-                          true ||
-                      dashboardProvider.errorMessage?.toLowerCase().contains(
-                            'connection',
-                          ) ==
-                          true ||
-                      dashboardProvider.errorMessage?.toLowerCase().contains(
-                            'internet',
-                          ) ==
-                          true
+              dashboardProvider.errorMessage?.toLowerCase().contains('network') == true ||
+              dashboardProvider.errorMessage?.toLowerCase().contains('connection') == true ||
+              dashboardProvider.errorMessage?.toLowerCase().contains('internet') == true
                   ? 'Please check your internet connection and try again'
-                  : dashboardProvider.errorMessage ??
-                        'Something went wrong. Please try again.',
-              textAlign: TextAlign.center,
+                  : dashboardProvider.errorMessage ?? 'Something went wrong. Please try again.',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
+                color: Colors.red.shade600,
               ),
             ),
             const SizedBox(height: 24),
@@ -402,6 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: Colors.black,
                 foregroundColor: Colors.white,
               ),
+            ),
             ),
           ],
         ),

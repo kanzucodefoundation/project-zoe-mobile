@@ -150,7 +150,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
                       : provider.error != null
                       ? SliverFillRemaining(
                           child: Center(
-                            child: Column(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -168,31 +170,18 @@ class _ContactsScreenState extends State<ContactsScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                  ),
-                                  child: Text(
-                                    provider.error!.toLowerCase().contains(
-                                              'network',
-                                            ) ||
-                                            provider.error!
-                                                .toLowerCase()
-                                                .contains('connection') ||
-                                            provider.error!
-                                                .toLowerCase()
-                                                .contains('internet') ||
-                                            provider.error!
-                                                .toLowerCase()
-                                                .contains('timeout')
-                                        ? 'Please check your internet connection and try again'
-                                        : provider.error!,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey.shade700,
-                                    ),
+                                Text(
+                                  provider.error!.toLowerCase().contains('network') ||
+                                  provider.error!.toLowerCase().contains('connection') ||
+                                  provider.error!.toLowerCase().contains('internet') ||
+                                  provider.error!.toLowerCase().contains('timeout')
+                                      ? 'Please check your internet connection and try again'
+                                      : provider.error!,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.red.shade600,
                                   ),
                                 ),
                                 const SizedBox(height: 24),
@@ -234,6 +223,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                             index,
                           ) {
                             final contact = provider.contacts[index];
+                            
 
                             return ContactTile(
                               shepherdName: contact.name,
@@ -241,6 +231,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                               shepherdAvatar: contact.avatar ?? '',
                               buttonText: 'View',
                               onButtonPressed: () {
+                                
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

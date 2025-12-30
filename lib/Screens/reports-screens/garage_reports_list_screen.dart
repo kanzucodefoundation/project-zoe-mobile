@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_toast.dart';
 import 'package:project_zoe/services/reports_service.dart';
 import 'package:provider/provider.dart';
 
@@ -166,7 +167,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
             Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
             const SizedBox(height: 16),
             Text(
-              'Error Loading Reports',
+              'Unable to load reports',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -175,9 +176,28 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _error!,
+              _error!.toLowerCase().contains('network') ||
+                      _error!.toLowerCase().contains('connection') ||
+                      _error!.toLowerCase().contains('internet') ||
+                      _error!.toLowerCase().contains('timeout')
+                  ? 'Please check your internet connection and try again'
+                  : _error!,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _loadReportSubmissions,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),

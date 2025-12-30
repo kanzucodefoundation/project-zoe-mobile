@@ -79,7 +79,7 @@ class ContactsProvider with ChangeNotifier {
   /// Clear current contact details
   void clearContactDetails() {
     _currentContactDetails = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Refresh contacts list
@@ -108,7 +108,7 @@ class ContactsProvider with ChangeNotifier {
       // Comment out debug print for production
       // print('👥 ContactsProvider: Successfully created contact ${newContact.firstName} ${newContact.lastName}');
 
-      notifyListeners();
+      _safeNotifyListeners();
       return newContact;
     } catch (e) {
       // Comment out debug print for production
@@ -123,13 +123,20 @@ class ContactsProvider with ChangeNotifier {
   /// Private helper to set loading state
   void _setLoading(bool loading) {
     _isLoading = loading;
-    notifyListeners();
+    _safeNotifyListeners();
+  }
+
+  /// Safe notify listeners to avoid build during frame issues
+  void _safeNotifyListeners() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   /// Clear error
   void clearError() {
     _error = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   /// Get contact form fields from server
@@ -151,7 +158,7 @@ class ContactsProvider with ChangeNotifier {
       // Comment out debug print for production
       // print('👥 ContactsProvider: Error loading form fields: $e');
       _error = 'Failed to load form fields: $e';
-      notifyListeners();
+      _safeNotifyListeners();
       rethrow;
     }
   }

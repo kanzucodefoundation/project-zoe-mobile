@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_toast.dart';
 import 'package:provider/provider.dart';
 import '../../components/text_field.dart';
 import '../../components/submit_button.dart';
@@ -183,23 +184,16 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
       } else {
         // Show error message
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(contactsProvider.error ?? 'Failed to save contact'),
-              backgroundColor: Colors.red,
-            ),
+          ToastHelper.showSmartError(
+            context,
+            contactsProvider.error ?? 'Failed to save contact',
           );
         }
       }
     } catch (e) {
       // Show error message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastHelper.showSmartError(context, 'Error: ${e.toString()}');
       }
     } finally {
       if (mounted) {

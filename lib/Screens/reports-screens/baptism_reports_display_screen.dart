@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../components/submit_button.dart';
 import '../../components/custom_date_picker.dart';
+import '../../widgets/custom_toast.dart';
 
 /// Baptism Reports Display Screen - Shows Baptism report template and submissions
 class BaptismReportsScreen extends StatefulWidget {
@@ -574,22 +575,12 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
     // Add null safety check for form state
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please fill in all required fields');
       return;
     }
 
     if (_selectedLocationId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select the location'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please select the location');
       return;
     }
 
@@ -615,20 +606,16 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
         reportId: widget.reportId,
         data: data,
       );
+      final navigator = Navigator.of(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Report submitted successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      ToastHelper.showSuccess(context, 'Report submitted successfully! ✨');
 
       // Navigate back to reports screen
-      Navigator.pop(context);
+      navigator.pop();
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to submit report: $e')));
+      if (mounted) {
+        ToastHelper.showSmartError(context, e, 'Failed to submit report');
+      }
     } finally {
       setState(() {
         _isSubmitting = false;

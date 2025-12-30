@@ -7,6 +7,7 @@ import '../../api/api_client.dart';
 import '../../components/apply_filter_button.dart';
 import '../../components/clear_filter_button.dart';
 import '../../components/edit_report_button.dart';
+import '../../widgets/custom_toast.dart';
 import 'salvation_reports_display_screen.dart';
 
 class SalvationReportsListScreen extends StatefulWidget {
@@ -90,6 +91,12 @@ class _SalvationReportsListScreenState
           _error = e.toString();
           _isLoading = false;
         });
+        // Show smart error toast with network-aware messaging
+        ToastHelper.showSmartError(
+          context,
+          e,
+          'Failed to load salvation reports',
+        );
       }
     }
   }
@@ -375,7 +382,7 @@ class _SalvationReportsListScreenState
             Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
             const SizedBox(height: 16),
             Text(
-              'Error Loading Reports',
+              'Unable to load reports',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -384,19 +391,38 @@ class _SalvationReportsListScreenState
             ),
             const SizedBox(height: 8),
             Text(
-              _error!,
+              _error!.toLowerCase().contains('network') ||
+                      _error!.toLowerCase().contains('connection') ||
+                      _error!.toLowerCase().contains('internet') ||
+                      _error!.toLowerCase().contains('timeout')
+                  ? 'Please check your internet connection and try again'
+                  : _error!,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: _loadReportSubmissions,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: Colors.black,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Retry'),
             ),
+            // const SizedBox(height: 24),
+            // ElevatedButton(
+            //   onPressed: _loadReportSubmissions,
+            //   style: ElevatedButton.styleFrom(
+            //     backgroundColor: Colors.green,
+            //     foregroundColor: Colors.white,
+            //   ),
+            //   child: const Text('Retry'),
+            // ),
           ],
         ),
       ),

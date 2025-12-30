@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_toast.dart';
 import 'package:project_zoe/services/reports_service.dart';
 import 'package:provider/provider.dart';
 import '../../providers/report_provider.dart';
@@ -790,13 +791,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         );
                       })
               : () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'You do not have permission to access this report',
-                      ),
-                      duration: Duration(seconds: 2),
-                    ),
+                  ToastHelper.showWarning(
+                    context,
+                    'You do not have permission to access this report',
                   );
                 },
         ),

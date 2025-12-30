@@ -6,6 +6,7 @@ import '../../components/text_field.dart';
 import '../../components/submit_button.dart';
 import '../../components/dropdown.dart';
 import '../../components/custom_date_picker.dart';
+import '../../widgets/custom_toast.dart';
 import '../details_screens/mc_report_detail_screen.dart';
 
 /// MC Attendance Report Screen - Shows MC report template and submissions
@@ -639,22 +640,12 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
 
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please fill in all required fields');
       return;
     }
 
     if (_selectedMc == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select an MC'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please select an MC');
       return;
     }
 
@@ -717,22 +708,18 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
 
         setState(() {});
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('MC report submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
+        ToastHelper.showSuccess(
+          context,
+          'MC report submitted successfully! 🎉',
         );
 
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error submitting report: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
+        ToastHelper.showError(
+          context,
+          'Error submitting report: ${e.toString()}',
         );
       }
     } finally {
