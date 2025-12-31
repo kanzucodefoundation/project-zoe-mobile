@@ -33,6 +33,7 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
   String? _selectedAgeGroup;
   String? _selectedCivilStatus;
   Group? _selectedGroup;
+  DateTime? _selectedDateOfBirth;
 
   // Available groups from API
   List<Group> _availableGroups = [];
@@ -84,10 +85,13 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
       _controllers['email'] = TextEditingController();
       _controllers['phone'] = TextEditingController();
       _controllers['address'] = TextEditingController();
+      _controllers['placeOfWork'] = TextEditingController();
 
-      // Load available groups from API
+      // Load available groups from API (filtered for Missional Communities only)
       final groupsResponse = await ReportsService.getUserGroups();
-      _availableGroups = groupsResponse.groups;
+      _availableGroups = groupsResponse.groups
+          .where((group) => group.categoryName == 'Missional Community')
+          .toList();
 
       // If we're editing, pre-fill the form
       if (widget.editingContact != null) {
@@ -120,6 +124,18 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
 
     // Handle address - for now use empty since we don't have address in Contact model
     _controllers['address']?.text = '';
+
+    // Handle place of work and date of birth
+    _controllers['placeOfWork']?.text = '';
+
+    // Parse date of birth if available
+    if (contact.dateOfBirth != null && contact.dateOfBirth!.isNotEmpty) {
+      try {
+        _selectedDateOfBirth = DateTime.parse(contact.dateOfBirth!);
+      } catch (e) {
+        _selectedDateOfBirth = null;
+      }
+    }
 
     // Pre-fill dropdown values
     setState(() {
@@ -168,6 +184,20 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
       // Add civil status if selected
       if (_selectedCivilStatus != null) {
         contactData['person']['civilStatus'] = _selectedCivilStatus;
+      }
+
+      // Add place of work if provided
+      if (_controllers['placeOfWork']!.text.trim().isNotEmpty) {
+        contactData['person']['placeOfWork'] = _controllers['placeOfWork']!.text
+            .trim();
+      }
+
+      // Add date of birth if provided
+      if (_selectedDateOfBirth != null) {
+        // Format date as YYYY-MM-DD for API
+        final formattedDate =
+            '${_selectedDateOfBirth!.year}-${_selectedDateOfBirth!.month.toString().padLeft(2, '0')}-${_selectedDateOfBirth!.day.toString().padLeft(2, '0')}';
+        contactData['person']['dateOfBirth'] = formattedDate;
       }
 
       // Add email array if provided
@@ -598,6 +628,21 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
               ),
             ),
 
+            // Place of Work
+            _buildFormField(
+              label: 'Place of Work',
+              child: CustomTextField(
+                controller: _controllers['placeOfWork']!,
+                hintText: 'Enter place of work',
+              ),
+            ),
+
+            // Date of Birth
+            _buildFormField(
+              label: 'Date of Birth',
+              child: _buildDatePickerField(),
+            ),
+
             const SizedBox(height: 24),
             _buildSectionHeader('Group Membership'),
             const SizedBox(height: 16),
@@ -779,5 +824,59 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
         },
       ),
     );
+  }
+
+  Widget _buildDatePickerField() {
+    return GestureDetector(
+      onTap: _selectDateOfBirth,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Text(
+          _selectedDateOfBirth != null
+              ? '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}'
+              : 'Select date of birth',
+          style: TextStyle(
+            fontSize: 16,
+            color: _selectedDateOfBirth != null
+                ? Colors.black87
+                : Colors.grey.shade600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectDateOfBirth() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDateOfBirth ?? DateTime(2000),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.black,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null && pickedDate != _selectedDateOfBirth) {
+      setState(() {
+        _selectedDateOfBirth = pickedDate;
+      });
+    }
   }
 }

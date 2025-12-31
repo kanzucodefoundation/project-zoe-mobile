@@ -15,6 +15,7 @@ class ContactEndpoints {
 
       final response = await _apiClient.dio.get(
         '/crm/contacts',
+        queryParameters: {'limit': 200}, // Increase limit to show all contacts
         // options: Options(
         //   headers: {'X-Church-Name': churchName ?? 'fellowship'},
         // ),
