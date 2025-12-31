@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../components/submit_button.dart';
 import '../../components/custom_date_picker.dart';
 import '../../providers/salvation_reports_provider.dart';
-import '../../tiles/report_submission_tile.dart';
+import '../../widgets/custom_toast.dart';
 
 /// Salvation Reports Display Screen - Shows Salvation report template and submissions
 class SalvationReportsScreen extends StatefulWidget {
@@ -138,7 +138,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
             Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
             const SizedBox(height: 16),
             Text(
-              'Error Loading Report',
+              'Unable to load report',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -149,7 +149,11 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
             Text(
               provider.error!,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.red.shade600,
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -588,32 +592,17 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
   void _submitReport() async {
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please fill in all required fields');
       return;
     }
 
     if (_selectedLocationId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select the Missonal Community'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please select the Missonal Community');
       return;
     }
 
     if (_selectedContextOption == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select the Context option'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please select the Context option');
       return;
     }
 
@@ -642,12 +631,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     try {
       groupId = int.parse(_selectedLocationId ?? '');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid Missional Community selected'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastHelper.showError(context, 'Invalid Missional Community selected');
       return;
     }
 
@@ -659,12 +643,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
 
     if (success) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Salvation report submitted successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ToastHelper.showSuccess(context, 'Salvation report submitted successfully! ✨');
         // Navigate back to reports screen
         Navigator.pop(context);
       }
@@ -678,121 +657,11 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
       });
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to submit report: ${provider.error ?? 'Unknown error'}',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        ToastHelper.showError(
+          context,
+          'Failed to submit report: ${provider.error ?? 'Unknown error'}',
         );
       }
     }
-  }
-
-  Widget _buildSubmissionsSection(SalvationReportsProvider provider) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Recent Submissions',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${provider.submissions.length} submissions found',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (provider.submissions.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.inbox_outlined,
-                      size: 48,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No submissions yet',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Submit your first Salvation report to see it here',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            Column(
-              children: provider.submissions
-                  .take(5)
-                  .map(
-                    (submission) => ReportSubmissionTile(
-                      submission: {
-                        ...submission,
-                        'template': {
-                          'id': provider.reportTemplate!.id,
-                          'name': provider.reportTemplate!.name,
-                          'fields': provider.reportTemplate!.fields!
-                              .map(
-                                (field) => {
-                                  'id': field.id,
-                                  'name': field.name,
-                                  'label': field.label,
-                                  'type': field.type,
-                                },
-                              )
-                              .toList(),
-                        },
-                      },
-                      themeColor: Colors.green,
-                    ),
-                  )
-                  .toList(),
-            ),
-        ],
-      ),
-    );
   }
 }

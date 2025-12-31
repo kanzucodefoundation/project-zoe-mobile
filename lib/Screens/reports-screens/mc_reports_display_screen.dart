@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../components/long_button.dart';
+import '../../widgets/custom_toast.dart';
 
 /// MC Reports Display Screen - Shows MC report template and submissions
 class McReportsScreen extends StatefulWidget {
@@ -75,12 +76,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
         });
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load MCs: ${e.toString()}'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        ToastHelper.showError(context, 'Failed to load MCs: ${e.toString()}');
       }
     }
   }
@@ -154,9 +150,9 @@ class _McReportsScreenState extends State<McReportsScreen> {
         _selectedMcName = value?.toString();
         _selectedMcId = data['smallGroupId']?.toString();
         _selectedOption = data['mcStreamPlatform']?.toString();
-        debugPrint(
-          '✅ Pre-filled MC name: $_selectedMcName id: $_selectedMcId and Platform : $_selectedOption',
-        );
+        // debugPrint(
+        //   '✅ Pre-filled MC name: $_selectedMcName MC id: $_selectedMcId and Platform : $_selectedOption',
+        // );
       } else if (value != null && value.toString().isNotEmpty) {
         // For MC reports, we need to map to field IDs
         // Try to find the field by name first, then use a fallback
@@ -171,9 +167,9 @@ class _McReportsScreenState extends State<McReportsScreen> {
             _controllers[field.id] = TextEditingController();
           }
           _controllers[field.id]!.text = value.toString();
-          print(
-            '✅ Pre-filled MC field ${field.name} (ID: ${field.id}) with: ${value.toString()}',
-          );
+          // print(
+          //   '✅ Pre-filled MC field ${field.name} (ID: ${field.id}) with: ${value.toString()}',
+          // );
         }
       }
     });
@@ -219,7 +215,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
             Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
             const SizedBox(height: 16),
             Text(
-              'Error Loading Report',
+              'Unable to load report',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -230,7 +226,11 @@ class _McReportsScreenState extends State<McReportsScreen> {
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.red.shade600,
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -762,41 +762,21 @@ class _McReportsScreenState extends State<McReportsScreen> {
 
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please fill in all required fields');
       return;
     }
 
     if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select the MC gathering date'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please select the MC gathering date');
       return;
     }
     if (_selectedOption == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a stream platform'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please select a stream platform');
       return;
     }
 
     if (_selectedMcId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a Missional Community'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastHelper.showWarning(context, 'Please select a Missional Community');
       return;
     }
 
@@ -835,12 +815,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
 
       // Validate required fields before submission
       if (_selectedDate == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a date'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastHelper.showError(context, 'Please select a date');
         setState(() {
           _isSubmitting = false;
         });
@@ -848,12 +823,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
       }
 
       if (_selectedMcName == null || _selectedMcName!.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select an MC'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastHelper.showError(context, 'Please select an MC');
         setState(() {
           _isSubmitting = false;
         });
@@ -873,12 +843,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
       await _storeSubmittedData(reportData);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('MC report submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ToastHelper.showSuccess(context, 'MC report submitted successfully! ✨');
         Navigator.pop(context);
 
         for (var controller in _controllers.values) {
@@ -912,13 +877,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$errorMessage: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        ToastHelper.showError(context, '$errorMessage: ${e.toString()}');
       }
     } finally {
       setState(() {

@@ -409,7 +409,7 @@ class ReportsService {
 
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
-        message = 'Connection timeout. Please check your internet connection.';
+        message = 'Connection timeout - server is not responding.';
         break;
       case DioExceptionType.sendTimeout:
         message = 'Request timeout. Please try again.';
@@ -424,7 +424,7 @@ class ReportsService {
         message = 'Request was cancelled';
         break;
       case DioExceptionType.connectionError:
-        message = 'Connection error. Please check your internet connection.';
+        message = 'Server unavailable - unable to connect.';
         break;
       default:
         message = 'Network error occurred';

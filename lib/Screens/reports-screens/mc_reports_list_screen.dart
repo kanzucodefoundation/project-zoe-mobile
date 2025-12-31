@@ -8,6 +8,7 @@ import '../../api/api_client.dart';
 import '../../components/apply_filter_button.dart';
 import '../../components/clear_filter_button.dart';
 import '../../components/edit_report_button.dart';
+import '../../widgets/custom_toast.dart';
 import 'mc_reports_display_screen.dart';
 
 class McReportsListScreen extends StatefulWidget {
@@ -121,6 +122,8 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
           }
           _isLoading = false;
         });
+        // Show smart error toast with network-aware messaging
+        ToastHelper.showSmartError(context, e, 'Failed to load MC reports');
       }
     }
   }
@@ -172,7 +175,7 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
             Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
             const SizedBox(height: 16),
             Text(
-              'Error Loading Reports',
+              'Unable to load reports',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -183,16 +186,21 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: _loadReportSubmissions,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Try Again'),
             ),
           ],
         ),

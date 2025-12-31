@@ -24,17 +24,13 @@ class DashboardService {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return Exception(
-          'Connection timeout. Please check your internet connection.',
-        );
+        return Exception('Connection timeout - server is not responding.');
       case DioExceptionType.badResponse:
         final statusCode = e.response?.statusCode;
         final message = e.response?.data?['message'] ?? 'Server error';
         return Exception('Server error ($statusCode): $message');
       case DioExceptionType.connectionError:
-        return Exception(
-          'Network connection failed. Please check your internet connection.',
-        );
+        return Exception('Server unavailable - unable to connect.');
       case DioExceptionType.cancel:
         return Exception('Request was cancelled');
       default:
