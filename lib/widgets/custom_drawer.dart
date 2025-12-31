@@ -70,7 +70,7 @@ class CustomDrawer extends StatelessWidget {
                   title: 'Manage Users',
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: Navigate to manage users screen
+                    Navigator.pushNamed(context, '/users');
                   },
                 ),
                 _buildDrawerItem(

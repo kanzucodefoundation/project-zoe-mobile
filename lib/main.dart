@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project_zoe/Screens/general-screens/groups.dart';
+import 'package:project_zoe/Screens/general-screens/users.dart';
 import 'package:project_zoe/providers/contacts_provider.dart';
 import 'package:project_zoe/providers/dashboard_provider.dart';
 import 'package:project_zoe/services/notification_service.dart';
@@ -76,7 +77,7 @@ class MyApp extends StatelessWidget {
               const BaptismReportsScreen(reportId: 0),
           '/salvation-reports': (context) =>
               const SalvationReportsScreen(reportId: 0),
-          // '/garage-reports-display': (context) => const GarageReportsScreen(),
+          '/users': (context) => const UsersScreen(),
           '/groups': (context) => const GroupsScreen(),
           '/reports': (context) => ReportsScreen(),
           '/admin': (context) => const AdminScreen(),

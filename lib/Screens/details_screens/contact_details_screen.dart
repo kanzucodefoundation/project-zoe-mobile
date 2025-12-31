@@ -361,7 +361,6 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                     // );
                     if (loadingProgress == null) {
                       // Comment out debug print for production
-                      // print('✅ Avatar loaded successfully: $avatarUrl');
                       return child;
                     }
                     return Container(

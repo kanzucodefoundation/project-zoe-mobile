@@ -284,7 +284,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoTile(IconData icon, String label, String value) {
+  Widget _buildInfoTile(IconData icon, String label, String? value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -305,7 +305,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  value,
+                  value ?? 'Unknown',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

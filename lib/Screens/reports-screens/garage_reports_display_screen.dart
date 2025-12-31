@@ -92,8 +92,6 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     final submission = widget.editingSubmission!;
     final data = submission['data'] as Map<String, dynamic>? ?? {};
 
-    print('🔍 Garage pre-fill data: $data');
-
     if (submission['groupId'] != null) {
       _selectedLocationId = submission['groupId'].toString();
       // debugPrint('✅ Pre-filled salvation locationId: $_selectedLocationId');

@@ -47,7 +47,7 @@ class AuthGuard {
       // );
       await prefs.setString(_userIdKey, user.id.toString());
       await prefs.setString(_userNameKey, user.fullName);
-      await prefs.setString(_userEmailKey, user.email);
+      await prefs.setString(_userEmailKey, user.email ?? '');
       await prefs.setString(_userRoleKey, user.primaryRole);
       await prefs.setString(_userAvaratKey, user.avatar);
       await prefs.setString(_churchNameKey, user.churchName);
