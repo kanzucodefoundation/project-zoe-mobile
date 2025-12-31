@@ -86,7 +86,7 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
     final submission = widget.editingSubmission!;
     final data = submission['data'] as Map<String, dynamic>? ?? {};
 
-    print('🔍 Pre-fill data: $submission');
+    // print('🔍 Pre-fill data: $submission');
 
     if (submission['groupId'] != null) {
       _selectedLocationId = submission['groupId'].toString();
@@ -608,7 +608,7 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
       );
       final navigator = Navigator.of(context);
 
-      ToastHelper.showSuccess(context, 'Report submitted successfully! ✨');
+      ToastHelper.showSuccess(context, 'Baptism report submitted successfully! ✨');
 
       // Navigate back to reports screen
       navigator.pop();

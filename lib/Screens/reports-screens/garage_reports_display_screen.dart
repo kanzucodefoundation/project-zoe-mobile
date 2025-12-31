@@ -377,7 +377,11 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
             // Submit button
             SubmitButton(
-              text: _isSubmitting ? 'Submitting...' : 'Submit Report',
+              text: _isSubmitting
+                  ? 'Submitting...'
+                  : widget.editingSubmission != null
+                  ? 'Update Report'
+                  : 'Submit Report',
               onPressed: _isSubmitting ? () {} : _submitReport,
               backgroundColor: Colors.black,
               textColor: Colors.white,
@@ -756,7 +760,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       // await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
-        ToastHelper.showSuccess(context, 'Report submitted successfully! 🎉');
+        ToastHelper.showSuccess(context, 'Garage report Report submitted successfully! 🎉');
 
         // Navigate back to reports screen
         Navigator.pop(context);
