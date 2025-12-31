@@ -93,7 +93,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       }
     } catch (e) {
       setState(() {
-        _error = 'Failed to load report template: ${e.toString()}';
+        _error = _getCleanErrorMessage(e, 'Failed to load report template');
         _isLoadingMcs = false;
       });
     } finally {
@@ -556,7 +556,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                'No MCs loaded. Check server connection.',
+                'No MCs available.',
                 style: TextStyle(fontSize: 12, color: Colors.red[600]),
               ),
             ),
@@ -719,7 +719,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       if (mounted) {
         ToastHelper.showError(
           context,
-          'Error submitting report: ${e.toString()}',
+          _getCleanErrorMessage(e, 'Error submitting report'),
         );
       }
     } finally {
@@ -741,5 +741,32 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         builder: (context) => McReportDetailScreen(mc: mc, reports: reports),
       ),
     );
+  }
+
+  /// Convert technical error messages to user-friendly ones
+  String _getCleanErrorMessage(dynamic error, String defaultMessage) {
+    final errorString = error.toString().toLowerCase();
+
+    if (errorString.contains('connection refused') ||
+        errorString.contains('connection error')) {
+      return 'Server is unavailable. Please try again later.';
+    } else if (errorString.contains('timeout')) {
+      return 'Request timed out. Please check your connection and try again.';
+    } else if (errorString.contains('host not found') ||
+        errorString.contains('network unreachable')) {
+      return 'No internet connection. Please check your network settings.';
+    } else if (errorString.contains('404') ||
+        errorString.contains('not found')) {
+      return 'Resource not found. Please contact support.';
+    } else if (errorString.contains('500') ||
+        errorString.contains('server error')) {
+      return 'Server error. Please try again later.';
+    } else if (errorString.contains('empty reply') ||
+        errorString.contains('connection closed') ||
+        errorString.contains('no data received')) {
+      return 'Server did not respond. This feature may not be implemented yet.';
+    }
+
+    return defaultMessage;
   }
 }

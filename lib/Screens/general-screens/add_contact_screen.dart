@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/contacts_provider.dart';
 import '../../models/contacts.dart';
 import '../../models/contact_form_field.dart';
+import '../../api/base_url.dart';
 
 /// Contact Form Screen - Allows users to add new contacts
 class AddPeopleScreen extends StatefulWidget {
@@ -158,6 +159,8 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
         );
       } else {
         // Create new contact
+        print('🔄 Creating contact with data: $contactData');
+        print('🔄 Using church name: $churchName');
         result = await contactsProvider.createContact(
           contactData,
           churchName: churchName,
@@ -167,33 +170,46 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
       if (result != null) {
         // Show success message
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                widget.editingContact != null
-                    ? 'Contact updated successfully!'
-                    : 'Contact created successfully!',
-              ),
-              backgroundColor: Colors.green,
-            ),
+          ToastHelper.showSuccess(
+            context,
+            widget.editingContact != null
+                ? 'Contact updated successfully!'
+                : 'Contact created successfully!',
           );
 
           // Navigate back to contacts list
           Navigator.of(context).pop();
         }
       } else {
-        // Show error message
+        // Show specific error message from provider
         if (mounted) {
-          ToastHelper.showSmartError(
-            context,
-            contactsProvider.error ?? 'Failed to save contact',
-          );
+          final errorMessage =
+              contactsProvider.error ?? 'Failed to save contact';
+          print('❌ Contact creation failed: $errorMessage');
+
+          // Show a more specific error instead of using smart error detection
+          ToastHelper.showError(context, errorMessage);
         }
       }
     } catch (e) {
-      // Show error message
+      // Show error message with detailed information
+      print('❌ Exception during contact creation: $e');
       if (mounted) {
-        ToastHelper.showSmartError(context, 'Error: ${e.toString()}');
+        // Show the actual error instead of using smart error detection
+        String errorMessage = 'Failed to create contact';
+
+        if (e.toString().contains('Failed to create contact')) {
+          errorMessage =
+              'Server error: Unable to create contact. Please check if the server is running.';
+        } else if (e.toString().contains('SocketException') ||
+            e.toString().contains('Connection refused')) {
+          errorMessage =
+              'Connection error: Cannot reach the server at ${BaseUrl.baseUrl}';
+        } else {
+          errorMessage = 'Error: ${e.toString()}';
+        }
+
+        ToastHelper.showError(context, errorMessage);
       }
     } finally {
       if (mounted) {

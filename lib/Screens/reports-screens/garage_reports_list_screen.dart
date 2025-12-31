@@ -176,12 +176,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _error!.toLowerCase().contains('network') ||
-                      _error!.toLowerCase().contains('connection') ||
-                      _error!.toLowerCase().contains('internet') ||
-                      _error!.toLowerCase().contains('timeout')
-                  ? 'Please check your internet connection and try again'
-                  : _error!,
+              _error!,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,

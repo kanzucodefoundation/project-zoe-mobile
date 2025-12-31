@@ -147,12 +147,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              provider.error!.toLowerCase().contains('network') ||
-                      provider.error!.toLowerCase().contains('connection') ||
-                      provider.error!.toLowerCase().contains('internet') ||
-                      provider.error!.toLowerCase().contains('timeout')
-                  ? 'Please check your internet connection and try again'
-                  : provider.error!,
+              provider.error!,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,

@@ -173,20 +173,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                                     horizontal: 20,
                                   ),
                                   child: Text(
-                                    provider.error!.toLowerCase().contains(
-                                              'network',
-                                            ) ||
-                                            provider.error!
-                                                .toLowerCase()
-                                                .contains('connection') ||
-                                            provider.error!
-                                                .toLowerCase()
-                                                .contains('internet') ||
-                                            provider.error!
-                                                .toLowerCase()
-                                                .contains('timeout')
-                                        ? 'Please check your internet connection and try again'
-                                        : provider.error!,
+                                    provider.error!,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 16,

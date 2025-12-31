@@ -218,28 +218,64 @@ class ToastHelper {
   ]) {
     final errorString = error.toString().toLowerCase();
 
-    if (errorString.contains('network') ||
-        errorString.contains('connection') ||
-        errorString.contains('timeout') ||
-        errorString.contains('unreachable') ||
-        errorString.contains('dns') ||
-        errorString.contains('socket')) {
+    // Check for server availability issues first (more specific)
+    if (errorString.contains('connection refused') ||
+        errorString.contains('connection closed') ||
+        errorString.contains('empty reply from server') ||
+        errorString.contains('server not available') ||
+        errorString.contains('failed to connect') ||
+        errorString.contains('econnrefused')) {
+      showError(
+        context,
+        '🔧 Server is not responding. Please contact support or try again later.',
+      );
+    }
+    // Check for actual network connectivity issues
+    else if (errorString.contains('no internet connection') ||
+        errorString.contains('network unreachable') ||
+        errorString.contains('dns resolution failed') ||
+        errorString.contains('socketexception: network is unreachable') ||
+        errorString.contains('no address associated with hostname')) {
       showNetworkError(context);
-    } else if (errorString.contains('unauthorized') ||
+    }
+    // Check for timeout issues (could be server or network)
+    else if (errorString.contains('timeout') ||
+        errorString.contains('request timeout') ||
+        errorString.contains('connection timeout')) {
+      showError(
+        context,
+        '⏱️ Request timed out. Check your connection or try again later.',
+      );
+    }
+    // Authentication errors
+    else if (errorString.contains('unauthorized') ||
         errorString.contains('authentication') ||
         errorString.contains('login') ||
         errorString.contains('token')) {
       showAuthError(context);
-    } else if (errorString.contains('server error') ||
+    }
+    // Server errors
+    else if (errorString.contains('server error') ||
         errorString.contains('500') ||
         errorString.contains('internal server')) {
       showError(
         context,
         '🔧 Server is temporarily unavailable. Please try again later.',
       );
-    } else if (errorString.contains('not found') ||
-        errorString.contains('404')) {
+    }
+    // Not found errors
+    else if (errorString.contains('not found') || errorString.contains('404')) {
       showError(context, '🔍 Requested data not found.');
+    }
+    // Generic network-related errors (last resort)
+    else if (errorString.contains('network') ||
+        errorString.contains('connection') ||
+        errorString.contains('unreachable') ||
+        errorString.contains('socket')) {
+      showError(
+        context,
+        '🌐 Connection issue detected. Please check server status or try again later.',
+      );
     } else {
       // Generic error with clean message
       final displayMessage =

@@ -371,21 +371,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              dashboardProvider.errorMessage?.toLowerCase().contains(
-                            'network',
-                          ) ==
-                          true ||
-                      dashboardProvider.errorMessage?.toLowerCase().contains(
-                            'connection',
-                          ) ==
-                          true ||
-                      dashboardProvider.errorMessage?.toLowerCase().contains(
-                            'internet',
-                          ) ==
-                          true
-                  ? 'Please check your internet connection and try again'
-                  : dashboardProvider.errorMessage ??
-                        'Something went wrong. Please try again.',
+              dashboardProvider.errorMessage ??
+                  'Something went wrong. Please try again.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
