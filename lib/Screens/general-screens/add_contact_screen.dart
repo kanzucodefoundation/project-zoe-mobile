@@ -6,7 +6,8 @@ import '../../components/submit_button.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/contacts_provider.dart';
 import '../../models/contacts.dart';
-import '../../models/contact_form_field.dart';
+import '../../models/group.dart';
+import '../../services/reports_service.dart';
 import '../../api/base_url.dart';
 
 /// Contact Form Screen - Allows users to add new contacts
@@ -20,23 +21,45 @@ class AddPeopleScreen extends StatefulWidget {
 }
 
 class _AddPeopleScreenState extends State<AddPeopleScreen> {
-  List<ContactFormField>? _formFields;
-  bool _isLoading = true;
-  String? _error;
-
   // Form related
   final _formKey = GlobalKey<FormState>();
   final Map<String, TextEditingController> _controllers = {};
   bool _isSubmitting = false;
+  bool _isLoading = true;
+  String? _error;
 
   // Dropdown values
   String? _selectedGender;
   String? _selectedAgeGroup;
+  String? _selectedCivilStatus;
+  Group? _selectedGroup;
+
+  // Available groups from API
+  List<Group> _availableGroups = [];
+
+  // Dropdown options
+  final List<String> _genderOptions = ['Male', 'Female'];
+  final List<String> _ageGroupOptions = [
+    '0-5',
+    '6-9',
+    '10-12',
+    '13-19',
+    '20-30',
+    '31-40',
+    '41-50',
+    '50+',
+  ];
+  final List<String> _civilStatusOptions = [
+    'Married',
+    'Single',
+    'Dating',
+    'Other',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadFormFields();
+    _initializeForm();
   }
 
   @override
@@ -48,43 +71,35 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
     super.dispose();
   }
 
-  Future<void> _loadFormFields() async {
+  Future<void> _initializeForm() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final contactsProvider = Provider.of<ContactsProvider>(
-        context,
-        listen: false,
-      );
+      // Initialize text controllers
+      _controllers['firstName'] = TextEditingController();
+      _controllers['lastName'] = TextEditingController();
+      _controllers['email'] = TextEditingController();
+      _controllers['phone'] = TextEditingController();
+      _controllers['address'] = TextEditingController();
 
-      // Load contact form fields from server
-      final fields = await contactsProvider.getContactFormFields(
-        churchName: authProvider.user?.churchName ?? 'fellowship',
-      );
-
-      setState(() {
-        _formFields = fields;
-        _isLoading = false;
-      });
-
-      // Initialize controllers for each field
-      for (var field in fields) {
-        if (field.type != 'dropdown') {
-          _controllers[field.name] = TextEditingController();
-        }
-      }
+      // Load available groups from API
+      final groupsResponse = await ReportsService.getUserGroups();
+      _availableGroups = groupsResponse.groups;
 
       // If we're editing, pre-fill the form
       if (widget.editingContact != null) {
         _preFillFormForEditing();
       }
+
+      setState(() {
+        _isLoading = false;
+      });
     } catch (e) {
       setState(() {
-        _error = 'Error loading form fields: ${e.toString()}';
+        _error = 'Error loading form data: ${e.toString()}';
         _isLoading = false;
       });
     }
@@ -94,23 +109,32 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
     final contact = widget.editingContact!;
 
     // Pre-fill text controllers
-    if (_controllers['firstName'] != null) {
-      _controllers['firstName']!.text = contact.firstName;
-    }
-    if (_controllers['lastName'] != null) {
-      _controllers['lastName']!.text = contact.lastName;
-    }
-    if (_controllers['email'] != null) {
-      _controllers['email']!.text = contact.email ?? '';
-    }
-    if (_controllers['phone'] != null) {
-      _controllers['phone']!.text = contact.phone ?? '';
-    }
+    _controllers['firstName']?.text = contact.firstName;
+    _controllers['lastName']?.text = contact.lastName;
+
+    // Handle email - get primary email from emails array if available
+    _controllers['email']?.text = contact.email ?? '';
+
+    // Handle phone - get primary phone from phones array if available
+    _controllers['phone']?.text = contact.phone ?? '';
+
+    // Handle address - for now use empty since we don't have address in Contact model
+    _controllers['address']?.text = '';
 
     // Pre-fill dropdown values
     setState(() {
       _selectedGender = contact.gender;
       _selectedAgeGroup = contact.ageGroup;
+      _selectedCivilStatus = null; // Civil status not in current Contact model
+
+      // Find group by name if available
+      try {
+        _selectedGroup = _availableGroups.firstWhere(
+          (group) => group.name == contact.primaryGroup?.name,
+        );
+      } catch (e) {
+        _selectedGroup = null;
+      }
     });
   }
 
@@ -130,22 +154,63 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
         listen: false,
       );
 
-      // Prepare contact data
-      final contactData = <String, dynamic>{};
+      // Prepare contact data in the API's expected format
+      final contactData = <String, dynamic>{
+        'category': 'Person',
+        'person': {
+          'firstName': _controllers['firstName']!.text.trim(),
+          'lastName': _controllers['lastName']!.text.trim(),
+          'gender': _selectedGender,
+          'ageGroup': _selectedAgeGroup,
+        },
+      };
 
-      // Add text field values
-      _controllers.forEach((key, controller) {
-        if (controller.text.trim().isNotEmpty) {
-          contactData[key] = controller.text.trim();
-        }
-      });
-
-      // Add dropdown values
-      if (_selectedGender != null) contactData['gender'] = _selectedGender;
-      if (_selectedAgeGroup != null) {
-        contactData['ageGroup'] = _selectedAgeGroup;
+      // Add civil status if selected
+      if (_selectedCivilStatus != null) {
+        contactData['person']['civilStatus'] = _selectedCivilStatus;
       }
-      contactData['isActive'] = true;
+
+      // Add email array if provided
+      if (_controllers['email']!.text.trim().isNotEmpty) {
+        contactData['emails'] = [
+          {
+            'category': 'Personal',
+            'value': _controllers['email']!.text.trim(),
+            'isPrimary': true,
+          },
+        ];
+      }
+
+      // Add phone array if provided
+      if (_controllers['phone']!.text.trim().isNotEmpty) {
+        contactData['phones'] = [
+          {
+            'category': 'Mobile',
+            'value': _controllers['phone']!.text.trim(),
+            'isPrimary': true,
+          },
+        ];
+      }
+
+      // Add address array if provided
+      if (_controllers['address']!.text.trim().isNotEmpty) {
+        // For simplicity, treat the address as district in Uganda
+        contactData['addresses'] = [
+          {
+            'category': 'Home',
+            'country': 'Uganda',
+            'district': _controllers['address']!.text.trim(),
+            'isPrimary': true,
+          },
+        ];
+      }
+
+      // Add group membership if selected
+      if (_selectedGroup != null) {
+        contactData['groupMemberships'] = [
+          {'groupId': _selectedGroup!.id, 'role': 'Member'},
+        ];
+      }
 
       final churchName = authProvider.user?.churchName ?? 'fellowship';
 
@@ -177,8 +242,8 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
                 : 'Contact created successfully!',
           );
 
-          // Navigate back to contacts list
-          Navigator.of(context).pop();
+          // Navigate back to contacts list with success result
+          Navigator.of(context).pop(true);
         }
       } else {
         // Show specific error message from provider
@@ -186,16 +251,13 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
           final errorMessage =
               contactsProvider.error ?? 'Failed to save contact';
           print('❌ Contact creation failed: $errorMessage');
-
-          // Show a more specific error instead of using smart error detection
           ToastHelper.showError(context, errorMessage);
         }
       }
     } catch (e) {
-      // Show error message with detailed information
+      // Show error message
       print('❌ Exception during contact creation: $e');
       if (mounted) {
-        // Show the actual error instead of using smart error detection
         String errorMessage = 'Failed to create contact';
 
         if (e.toString().contains('Failed to create contact')) {
@@ -285,7 +347,7 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: _loadFormFields,
+              onPressed: _initializeForm,
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
@@ -416,11 +478,137 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Generate form fields from server data
-            if (_formFields != null)
-              ...(_formFields!.map((field) => _buildFormFieldWidget(field))),
+            // Personal Information Section
+            _buildSectionHeader('Personal Information'),
+            const SizedBox(height: 16),
+
+            // First Name (Required)
+            _buildFormField(
+              label: 'First Name *',
+              child: CustomTextField(
+                controller: _controllers['firstName']!,
+                hintText: 'Enter first name',
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'First name is required';
+                  }
+                  return null;
+                },
+              ),
+            ),
+
+            // Last Name (Required)
+            _buildFormField(
+              label: 'Last Name *',
+              child: CustomTextField(
+                controller: _controllers['lastName']!,
+                hintText: 'Enter last name',
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Last name is required';
+                  }
+                  return null;
+                },
+              ),
+            ),
+
+            // Gender (Required)
+            _buildFormField(
+              label: 'Gender *',
+              child: _buildDropdown(
+                value: _selectedGender,
+                items: _genderOptions,
+                hint: 'Select gender',
+                onChanged: (value) => setState(() => _selectedGender = value),
+                validator: (value) {
+                  if (value == null) return 'Gender is required';
+                  return null;
+                },
+              ),
+            ),
+
+            // Age Group (Required)
+            _buildFormField(
+              label: 'Age Group *',
+              child: _buildDropdown(
+                value: _selectedAgeGroup,
+                items: _ageGroupOptions,
+                hint: 'Select age group',
+                onChanged: (value) => setState(() => _selectedAgeGroup = value),
+                validator: (value) {
+                  if (value == null) return 'Age group is required';
+                  return null;
+                },
+              ),
+            ),
+
+            // Civil Status
+            _buildFormField(
+              label: 'Civil Status',
+              child: _buildDropdown(
+                value: _selectedCivilStatus,
+                items: _civilStatusOptions,
+                hint: 'Select civil status',
+                onChanged: (value) =>
+                    setState(() => _selectedCivilStatus = value),
+              ),
+            ),
 
             const SizedBox(height: 24),
+            _buildSectionHeader('Contact Information'),
+            const SizedBox(height: 16),
+
+            // Email
+            _buildFormField(
+              label: 'Email',
+              child: CustomTextField(
+                controller: _controllers['email']!,
+                hintText: 'Enter email address',
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(value)) {
+                      return 'Enter a valid email address';
+                    }
+                  }
+                  return null;
+                },
+              ),
+            ),
+
+            // Phone
+            _buildFormField(
+              label: 'Phone',
+              child: CustomTextField(
+                controller: _controllers['phone']!,
+                hintText: 'Enter phone number',
+                keyboardType: TextInputType.phone,
+              ),
+            ),
+
+            // Address
+            _buildFormField(
+              label: 'Address',
+              child: CustomTextField(
+                controller: _controllers['address']!,
+                hintText: 'Enter address',
+                maxLines: 2,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+            _buildSectionHeader('Group Membership'),
+            const SizedBox(height: 16),
+
+            // Group Membership
+            _buildFormField(
+              label: 'Primary Group',
+              child: _buildGroupDropdown(),
+            ),
+
+            const SizedBox(height: 32),
 
             // Submit button
             SubmitButton(
@@ -441,27 +629,53 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
     );
   }
 
-  Widget _buildFormFieldWidget(ContactFormField field) {
+  Widget _buildSectionHeader(String title) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.blue.shade600,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormField({required String label, required Widget child}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Field label (consistent with report forms)
           Row(
             children: [
               Container(
                 width: 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: field.required ? Colors.red : Colors.grey,
+                  color: label.contains('*') ? Colors.red : Colors.grey,
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  field.label,
+                  label,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -472,145 +686,98 @@ class _AddPeopleScreenState extends State<AddPeopleScreen> {
             ],
           ),
           const SizedBox(height: 8),
-
-          // Input field based on type
-          _buildInputForField(field),
+          child,
         ],
       ),
     );
   }
 
-  Widget _buildInputForField(ContactFormField field) {
-    switch (field.type) {
-      case 'email':
-        return CustomTextField(
-          controller: _controllers[field.name]!,
-          hintText: field.placeholder ?? 'Enter ${field.label.toLowerCase()}',
-          keyboardType: TextInputType.emailAddress,
-          validator: (value) {
-            if (field.required && (value == null || value.isEmpty)) {
-              return '${field.label} is required';
-            }
-            if (value != null && value.isNotEmpty) {
-              if (!RegExp(
-                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-              ).hasMatch(value)) {
-                return 'Enter a valid email address';
-              }
-            }
-            return null;
-          },
-        );
-      case 'phone':
-        return CustomTextField(
-          controller: _controllers[field.name]!,
-          hintText: field.placeholder ?? 'Enter ${field.label.toLowerCase()}',
-          keyboardType: TextInputType.phone,
-          validator: (value) {
-            if (field.required && (value == null || value.isEmpty)) {
-              return '${field.label} is required';
-            }
-            return null;
-          },
-        );
-      case 'dropdown':
-        if (field.name == 'gender') {
-          return Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(25),
-              border: Border.all(color: const Color(0xFFE0E0E0)),
+  Widget _buildDropdown({
+    required String? value,
+    required List<String> items,
+    required String hint,
+    required ValueChanged<String?> onChanged,
+    String? Function(String?)? validator,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+      ),
+      child: DropdownButtonFormField<String>(
+        initialValue: value,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 15,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+        ),
+        items: items.map((String option) {
+          return DropdownMenuItem<String>(value: option, child: Text(option));
+        }).toList(),
+        onChanged: onChanged,
+        validator: validator,
+      ),
+    );
+  }
+
+  Widget _buildGroupDropdown() {
+    if (_availableGroups.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+          color: Colors.grey.shade50,
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.grey.shade500, size: 20),
+            const SizedBox(width: 12),
+            Text(
+              'No groups available',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
             ),
-            child: DropdownButtonFormField<String>(
-              initialValue: _selectedGender,
-              decoration: InputDecoration(
-                hintText:
-                    field.placeholder ?? 'Select ${field.label.toLowerCase()}',
-                hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 15,
-                ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-              ),
-              items: (field.options ?? ['Male', 'Female', 'Other']).map((
-                String value,
-              ) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedGender = newValue;
-                });
-              },
-              validator: (value) {
-                if (field.required && value == null) {
-                  return '${field.label} is required';
-                }
-                return null;
-              },
-            ),
-          );
-        } else if (field.name == 'ageGroup') {
-          return Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(25),
-              border: Border.all(color: const Color(0xFFE0E0E0)),
-            ),
-            child: DropdownButtonFormField<String>(
-              initialValue: _selectedAgeGroup,
-              decoration: InputDecoration(
-                hintText:
-                    field.placeholder ?? 'Select ${field.label.toLowerCase()}',
-                hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 15,
-                ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-              ),
-              items:
-                  (field.options ??
-                          ['Child', 'Youth', 'Young Adult', 'Adult', 'Senior'])
-                      .map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      })
-                      .toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedAgeGroup = newValue;
-                });
-              },
-              validator: (value) {
-                if (field.required && value == null) {
-                  return '${field.label} is required';
-                }
-                return null;
-              },
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      default:
-        return CustomTextField(
-          controller: _controllers[field.name]!,
-          hintText: field.placeholder ?? 'Enter ${field.label.toLowerCase()}',
-          validator: (value) {
-            if (field.required && (value == null || value.isEmpty)) {
-              return '${field.label} is required';
-            }
-            return null;
-          },
-        );
+          ],
+        ),
+      );
     }
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+      ),
+      child: DropdownButtonFormField<Group>(
+        initialValue: _selectedGroup,
+        decoration: InputDecoration(
+          hintText: 'Select primary group (optional)',
+          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 15,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+        ),
+        items: _availableGroups.map((Group group) {
+          return DropdownMenuItem<Group>(
+            value: group,
+            child: Text(group.name, overflow: TextOverflow.ellipsis),
+          );
+        }).toList(),
+        onChanged: (Group? newValue) {
+          setState(() {
+            _selectedGroup = newValue;
+          });
+        },
+      ),
+    );
   }
 }

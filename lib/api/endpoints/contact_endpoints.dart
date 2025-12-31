@@ -127,7 +127,15 @@ class ContactEndpoints {
         final responseData = response.data;
         // Comment out debug print for production
         // print('📞 API: Created contact data: $responseData');
-        return Contact.fromJson(responseData);
+
+        // Handle the new API response format that wraps the contact in a response object
+        if (responseData is Map<String, dynamic> &&
+            responseData.containsKey('contact')) {
+          return Contact.fromJson(responseData['contact']);
+        } else {
+          // Fallback to direct parsing if response format is different
+          return Contact.fromJson(responseData);
+        }
       } else {
         throw Exception('Failed to create contact: ${response.statusCode}');
       }

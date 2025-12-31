@@ -93,14 +93,25 @@ class _ContactsScreenState extends State<ContactsScreen> {
                             width: double.infinity,
                             height: 50,
                             child: ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
+                              onPressed: () async {
+                                // Navigate to add contact screen
+                                final result = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         const AddPeopleScreen(),
                                   ),
                                 );
+
+                                // Refresh contacts list if a contact was created successfully
+                                if (result == true) {
+                                  final churchName =
+                                      authProvider.user?.churchName ??
+                                      'fellowship';
+                                  provider.refreshContacts(
+                                    churchName: churchName,
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.black,

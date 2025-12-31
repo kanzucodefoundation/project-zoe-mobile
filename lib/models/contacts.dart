@@ -35,11 +35,33 @@ class Contact {
     // print('Contact.fromJson: Processing contact ${json['id']}');
     // print('Contact.fromJson: Avatar URL: ${json['avatar']}');
 
+    // Handle both old and new API response formats
+    String firstName = json['firstName'] as String? ?? '';
+    String lastName = json['lastName'] as String? ?? '';
+    String fullName = json['name'] as String? ?? '';
+
+    // If firstName/lastName are missing but fullName exists, split it
+    if ((firstName.isEmpty || lastName.isEmpty) && fullName.isNotEmpty) {
+      final parts = fullName.split(' ');
+      if (parts.length >= 2) {
+        firstName = firstName.isEmpty ? parts.first : firstName;
+        lastName = lastName.isEmpty ? parts.skip(1).join(' ') : lastName;
+      } else if (parts.length == 1) {
+        firstName = firstName.isEmpty ? parts.first : firstName;
+        lastName = lastName.isEmpty ? '' : lastName;
+      }
+    }
+
+    // Ensure fullName is set
+    if (fullName.isEmpty) {
+      fullName = '$firstName $lastName'.trim();
+    }
+
     return Contact(
       id: json['id'] as int,
-      name: json['name'] as String,
-      firstName: json['firstName'] as String,
-      lastName: json['lastName'] as String,
+      name: fullName,
+      firstName: firstName,
+      lastName: lastName,
       avatar: json['avatar'] as String?,
       email: json['email'] as String?,
       phone: json['phone'] as String?,
