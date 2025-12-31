@@ -49,19 +49,19 @@ class AuthScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 80),
-                        const Text(
-                          "Don't wait.",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Get lost experience now!',
-                          style: TextStyle(color: Colors.white70, fontSize: 16),
-                        ),
+                        // const Text(
+                        //   "A Church Relationship Management System",
+                        //   style: TextStyle(
+                        //     color: Colors.white,
+                        //     fontSize: 24,
+                        //     fontWeight: FontWeight.w500,
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 8),
+                        // const Text(
+                        //   'A Church Relationship Management System',
+                        //   style: TextStyle(color: Colors.white70, fontSize: 16),
+                        // ),
                       ],
                     ),
                   ),
