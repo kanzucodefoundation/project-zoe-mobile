@@ -48,7 +48,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     final submission = widget.editingSubmission!;
     final data = submission['data'] as Map<String, dynamic>? ?? {};
 
-    debugPrint('🔍 Salvation pre-fill data: $data');
+    // debugPrint('🔍 Salvation pre-fill data: $data');
 
     if (submission['groupId'] != null) {
       _selectedLocationId = submission['groupId'].toString();
@@ -661,7 +661,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Report submitted successfully'),
+            content: Text('Salvation report submitted successfully'),
             backgroundColor: Colors.green,
           ),
         );

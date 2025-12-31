@@ -447,6 +447,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
         report['submittedAt']?.toString().split('T')[0] ?? 'No Date';
     final reportData = report['data'] ?? {};
     final attendance = reportData['totalAttendance']?.toString() ?? '0';
+    final location = report['groupName'] ?? 'Main Location';
     final serviceName = reportData['serviceType'] ?? 'Sunday Service';
     final sermonTopic = reportData['sermonTopic'] ?? 'Sunday Topic';
     final submittedBy = report['submittedBy']['name'] ?? 'Unknown Person';
@@ -502,7 +503,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            serviceName,
+                            '$location - $serviceName',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

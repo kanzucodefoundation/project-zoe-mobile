@@ -85,7 +85,7 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
     final submission = widget.editingSubmission!;
     final data = submission['data'] as Map<String, dynamic>? ?? {};
 
-    print('🔍 Pre-fill data: $submission');
+    // print('🔍 Pre-fill data: $submission');
 
     if (submission['groupId'] != null) {
       _selectedLocationId = submission['groupId'].toString();
@@ -618,7 +618,7 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Report submitted successfully'),
+          content: Text('Baptism report submitted successfully'),
           backgroundColor: Colors.green,
         ),
       );

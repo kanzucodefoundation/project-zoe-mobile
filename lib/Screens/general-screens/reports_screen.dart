@@ -159,19 +159,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   // Submit Reports Section
                   _buildSubmitReportsSection(),
 
-                  const SizedBox(height: 16),
+                  // const SizedBox(height: 16),
 
                   // Submitted Reports List (commented out)
                   // _buildSubmittedReportsSection(),
-                  const SizedBox(height: 16),
+                  // const SizedBox(height: 16),
 
                   // MC Report Submissions Status (commented out)
                   // _buildMcSubmissionsSection(reportProvider),
-                  const SizedBox(height: 24),
+                  // const SizedBox(height: 24),
 
                   // Small Groups Section
-                  _buildSmallGroupsSection(),
-
+                  // _buildSmallGroupsSection(),
                   const SizedBox(height: 100), // Space for FAB
                 ],
               ),

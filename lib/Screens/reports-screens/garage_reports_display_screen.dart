@@ -376,7 +376,11 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
             // Submit button
             SubmitButton(
-              text: _isSubmitting ? 'Submitting...' : 'Submit Report',
+              text: _isSubmitting
+                  ? 'Submitting...'
+                  : widget.editingSubmission != null
+                  ? 'Update Report'
+                  : 'Submit Report',
               onPressed: _isSubmitting ? () {} : _submitReport,
               backgroundColor: Colors.black,
               textColor: Colors.white,
@@ -767,7 +771,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Report submitted successfully!'),
+            content: Text('Garage report submitted successfully!'),
             backgroundColor: Colors.green,
           ),
         );

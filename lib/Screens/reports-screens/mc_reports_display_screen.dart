@@ -52,10 +52,16 @@ class _McReportsScreenState extends State<McReportsScreen> {
   /// Load available MCs from server
   Future<void> _loadAvailableMcs() async {
     try {
-      // final groups = await ReportsService.getMyGroups();
+      final mCgroups = await ReportsService.getMyGroups();
+      //? Get MCs of logged in user.
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final List<Map<String, dynamic>> groups = authProvider
+      final List<Map<String, dynamic>> groupsHigher = authProvider
           .getGroupsFromHierarchy('fellowship');
+
+      final groups = authProvider.isMcShepherdRole ? mCgroups : groupsHigher;
+
+      debugPrint('✅✅✅✅ Loaded ${groups.toList()} MCs for user');
+
       if (mounted) {
         setState(() {
           _availableMcs = groups;
@@ -133,7 +139,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
     final submission = widget.editingSubmission!;
     final data = submission['data'] as Map<String, dynamic>? ?? {};
 
-    print('🔍 MC pre-fill data: $data');
+    // print('🔍 MC pre-fill data: $data');
 
     // Pre-fill text controllers
     data.forEach((key, value) {
@@ -149,7 +155,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
         _selectedMcId = data['smallGroupId']?.toString();
         _selectedOption = data['mcStreamPlatform']?.toString();
         debugPrint(
-          '✅ Pre-filled MC name: $_selectedMcName MC id: $_selectedMcId and Platform : $_selectedOption',
+          '✅ Pre-filled MC name: $_selectedMcName id: $_selectedMcId and Platform : $_selectedOption',
         );
       } else if (value != null && value.toString().isNotEmpty) {
         // For MC reports, we need to map to field IDs
@@ -518,6 +524,11 @@ class _McReportsScreenState extends State<McReportsScreen> {
       );
     } else if (field.name.toLowerCase().contains('smallgroupname') ||
         field.name.toLowerCase() == 'smallgroupname') {
+      bool isValidSelectedMc() {
+        if (_selectedMcId == null) return false;
+        return _availableMcs.any((mc) => mc['id']?.toString() == _selectedMcId);
+      }
+
       input = Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -544,7 +555,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
             : DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   isExpanded: true,
-                  value: _selectedMcId,
+                  value: isValidSelectedMc() ? _selectedMcId : null,
                   hint: Text(
                     'Select MC',
                     style: TextStyle(color: Colors.grey.shade600),
