@@ -202,7 +202,7 @@ class AuthProvider extends ChangeNotifier {
       } else if (errorString.contains('network') ||
           errorString.contains('connection') ||
           errorString.contains('timeout')) {
-        _error = 'Network error. Please check your internet connection.';
+        _error = e.toString();
       } else if (errorString.contains('server error') ||
           errorString.contains('500')) {
         _error = 'Server error. Please try again later.';

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_toast.dart';
 import 'package:project_zoe/services/notification_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -47,7 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         setState(() {
                           _weeklyRemindersEnabled = false;
                         });
-                        _showSnackBar('All notifications cancelled');
+                        _showToast('All notifications cancelled');
                       }
                     },
                     activeThumbColor: Colors.green,
@@ -70,12 +71,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             if (value) {
                               notificationService
                                   .scheduleMcReportReminderWeekly();
-                              _showSnackBar(
+                              _showToast(
                                 'Weekly reminders scheduled for Wednesdays at 9 AM',
                               );
                             } else {
                               notificationService.cancelMcReportReminder();
-                              _showSnackBar('Weekly reminders cancelled');
+                              _showToast('Weekly reminders cancelled');
                             }
                           }
                         : null,
@@ -105,7 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             body:
                                 'Don\'t forget to submit your daily report. Tap here to continue.',
                           );
-                          _showSnackBar('Test notification sent');
+                          _showToast('Test notification sent');
                         }
                       : null,
                   enabled: _notificationsEnabled,
@@ -122,7 +123,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ? () {
                           notificationService
                               .scheduleReportReminderIn2Minutes();
-                          _showSnackBar(
+                          _showToast(
                             'Test reminder set for 2 minutes from now',
                           );
                         }
@@ -224,9 +225,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
-    );
+  void _showToast(String message) {
+    ToastHelper.showInfo(context, message);
   }
 }

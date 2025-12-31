@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_toast.dart';
 import 'package:provider/provider.dart';
 import '../../providers/contacts_provider.dart';
 import '../../models/contacts.dart';
@@ -71,59 +72,44 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
           if (provider.error != null) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.error_outline_rounded,
-                        size: 40,
-                        color: Colors.red[400],
-                      ),
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red.shade400,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     Text(
-                      'Error Loading Contact',
+                      'Unable to load contact',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.red[700],
+                        color: Colors.red.shade700,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       provider.error!,
-                      style: const TextStyle(
-                        color: Colors.black54,
+                      style: TextStyle(
                         fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red.shade600,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        provider.loadContactDetails(widget.contactId);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black87,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                      onPressed: () =>
+                          provider.loadContactDetails(widget.contactId),
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Try Again'),
+                      label: const Text('Retry'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                      ),
                     ),
                   ],
                 ),

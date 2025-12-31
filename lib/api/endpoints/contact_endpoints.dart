@@ -202,7 +202,17 @@ class ContactEndpoints {
       }
     } catch (e) {
       // Comment out debug print for production
-      // print('📞 API: Error creating contact: $e');
+      print('📞 API: Error creating contact: $e');
+
+      // Handle specific DioExceptions for better error messages
+      if (e.toString().contains(
+            'Connection closed before full header was received',
+          ) ||
+          e.toString().contains('Empty reply from server')) {
+        throw Exception(
+          'Empty reply from server - The POST /crm/contacts endpoint is not implemented on the mock server',
+        );
+      }
       rethrow;
     }
   }
