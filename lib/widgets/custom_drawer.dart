@@ -65,13 +65,16 @@ class CustomDrawer extends StatelessWidget {
                     Navigator.pushNamed(context, '/reports');
                   },
                 ),
-                _buildDrawerItem(
-                  icon: Icons.people,
-                  title: 'Manage Users',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/users');
-                  },
+                Visibility(
+                  visible: auth.hasRole('RoleAdmin'),
+                  child: _buildDrawerItem(
+                    icon: Icons.people,
+                    title: 'Manage Users',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/users');
+                    },
+                  ),
                 ),
                 _buildDrawerItem(
                   icon: Icons.group,
