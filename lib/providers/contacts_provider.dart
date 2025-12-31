@@ -4,7 +4,6 @@ import 'package:project_zoe/models/user_details.dart';
 import '../models/contacts.dart';
 import '../models/contact_form_field.dart';
 import '../api/endpoints/contact_endpoints.dart';
-import '../api/base_url.dart';
 
 class ContactsProvider with ChangeNotifier {
   List<Contact> _contacts = [];
@@ -47,7 +46,7 @@ class ContactsProvider with ChangeNotifier {
     } catch (e) {
       // Comment out debug print for production
       // print('👥 ContactsProvider: Error loading contacts: $e');
-      _error = _getCleanErrorMessage(e, 'Failed to load contacts');
+      _error = 'Failed to load contacts: $e';
       _contacts = [];
     } finally {
       _setLoading(false);
@@ -101,7 +100,7 @@ class ContactsProvider with ChangeNotifier {
     } catch (e) {
       // Comment out debug print for production
       // print('👤 ContactsProvider: Error loading contact details: $e');
-      _error = _getCleanErrorMessage(e, 'Failed to load contact details');
+      _error = 'Failed to load contact details: $e';
       _currentContactDetails = null;
     } finally {
       _setLoading(false);
@@ -130,7 +129,7 @@ class ContactsProvider with ChangeNotifier {
   /// Clear current contact details
   void clearContactDetails() {
     _currentContactDetails = null;
-    _safeNotifyListeners();
+    notifyListeners();
   }
 
   /// Refresh contacts list
@@ -159,12 +158,12 @@ class ContactsProvider with ChangeNotifier {
       // Comment out debug print for production
       // print('👥 ContactsProvider: Successfully created contact ${newContact.firstName} ${newContact.lastName}');
 
-      _safeNotifyListeners();
+      notifyListeners();
       return newContact;
     } catch (e) {
       // Comment out debug print for production
-      print('👥 ContactsProvider: Error creating contact: $e');
-      _error = _getCleanErrorMessage(e, 'Failed to create contact');
+      // print('👥 ContactsProvider: Error creating contact: $e');
+      _error = 'Failed to create contact: $e';
       return null;
     } finally {
       _setLoading(false);
@@ -174,20 +173,13 @@ class ContactsProvider with ChangeNotifier {
   /// Private helper to set loading state
   void _setLoading(bool loading) {
     _isLoading = loading;
-    _safeNotifyListeners();
-  }
-
-  /// Safe notify listeners to avoid build during frame issues
-  void _safeNotifyListeners() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
+    notifyListeners();
   }
 
   /// Clear error
   void clearError() {
     _error = null;
-    _safeNotifyListeners();
+    notifyListeners();
   }
 
   /// Get contact form fields from server
@@ -209,7 +201,7 @@ class ContactsProvider with ChangeNotifier {
       // Comment out debug print for production
       // print('👥 ContactsProvider: Error loading form fields: $e');
       _error = 'Failed to load form fields: $e';
-      _safeNotifyListeners();
+      notifyListeners();
       rethrow;
     }
   }
@@ -246,36 +238,9 @@ class ContactsProvider with ChangeNotifier {
     } catch (e) {
       // Comment out debug print for production
       // print('👥 ContactsProvider: Error updating contact: $e');
-      _error = _getCleanErrorMessage(e, 'Failed to update contact');
+      _error = 'Failed to update contact: $e';
       _setLoading(false);
       return null;
     }
-  }
-
-  /// Convert technical error messages to user-friendly ones
-  String _getCleanErrorMessage(dynamic error, String defaultMessage) {
-    final errorString = error.toString().toLowerCase();
-
-    if (errorString.contains('connection refused') ||
-        errorString.contains('connection error')) {
-      return 'Server is unavailable. Please try again later.';
-    } else if (errorString.contains('timeout')) {
-      return 'Request timed out. Please check your connection and try again.';
-    } else if (errorString.contains('host not found') ||
-        errorString.contains('network unreachable')) {
-      return 'No internet connection. Please check your network settings.';
-    } else if (errorString.contains('404') ||
-        errorString.contains('not found')) {
-      return 'Resource not found. Please contact support.';
-    } else if (errorString.contains('500') ||
-        errorString.contains('server error')) {
-      return 'Server error. Please try again later.';
-    } else if (errorString.contains('empty reply') ||
-        errorString.contains('connection closed') ||
-        errorString.contains('no data received')) {
-      return 'Server did not respond. This feature may not be implemented yet.';
-    }
-
-    return defaultMessage;
   }
 }
