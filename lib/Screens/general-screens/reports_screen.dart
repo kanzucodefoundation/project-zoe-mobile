@@ -4,7 +4,6 @@ import 'package:project_zoe/services/reports_service.dart';
 import 'package:provider/provider.dart';
 import '../../providers/report_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../models/group.dart';
 import '../../components/report_card.dart';
 import '../reports-screens/mc_attendance_report_screen.dart';
 import '../reports-screens/garage_reports_display_screen.dart';
@@ -12,7 +11,6 @@ import '../reports-screens/mc_reports_list_screen.dart';
 import '../reports-screens/garage_reports_list_screen.dart';
 import '../reports-screens/baptism_reports_list_screen.dart';
 import '../reports-screens/salvation_reports_list_screen.dart';
-import '../details_screens/group_details_screen.dart';
 import '../reports-screens/baptism_reports_display_screen.dart';
 import '../reports-screens/salvation_reports_display_screen.dart';
 
@@ -26,12 +24,7 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen> {
   List<Map<String, dynamic>> _reportCategories = [];
-  GroupsResponse? _groupsResponse;
-  bool _isLoadingCategories = true;
-  bool _isLoadingGroups = true;
-  bool _showAllGroups = false;
   bool _showAllReportTypes = false;
-  String? _selectedCategory;
   bool _hasInitialized = false; // 🔥 ADD INITIALIZATION FLAG
 
   @override
@@ -44,7 +37,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     if (_hasInitialized) return; // 🔥 PREVENT MULTIPLE CALLS
     _hasInitialized = true;
 
-    await Future.wait([_loadReportCategories(), _loadSmallGroups()]);
+    await _loadReportCategories();
   }
 
   // 🔥 ADD MANUAL REFRESH METHOD
@@ -64,7 +57,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
       if (mounted) {
         setState(() {
           _reportCategories = categories;
-          _isLoadingCategories = false;
         });
         debugPrint(
           '🎯 State updated - categories count: ${_reportCategories.length}',
@@ -73,38 +65,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     } catch (e) {
       debugPrint('❌ Error loading categories: $e');
       if (mounted) {
-        setState(() {
-          _isLoadingCategories = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _loadSmallGroups() async {
-    if (!mounted) return; // 🔥 CHECK MOUNTED
-
-    try {
-      debugPrint('🔄 Starting to load user groups...');
-      final groupsResponse = await ReportsService.getUserGroups();
-      debugPrint(
-        '✅ Groups loaded successfully: ${groupsResponse.groups.length} groups',
-      );
-
-      if (mounted) {
-        setState(() {
-          _groupsResponse = groupsResponse;
-          _isLoadingGroups = false;
-        });
-        debugPrint(
-          '🎯 State updated - groups count: ${_groupsResponse!.groups.length}',
-        );
-      }
-    } catch (e) {
-      debugPrint('❌ Error loading groups: $e');
-      if (mounted) {
-        setState(() {
-          _isLoadingGroups = false;
-        });
+        // Error occurred while loading categories
       }
     }
   }
@@ -160,19 +121,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   // Submit Reports Section
                   _buildSubmitReportsSection(),
 
-                  const SizedBox(height: 16),
+                  // const SizedBox(height: 16),
 
                   // Submitted Reports List (commented out)
                   // _buildSubmittedReportsSection(),
-                  const SizedBox(height: 16),
+                  // const SizedBox(height: 16),
 
                   // MC Report Submissions Status (commented out)
                   // _buildMcSubmissionsSection(reportProvider),
-                  const SizedBox(height: 24),
+                  // const SizedBox(height: 24),
 
                   // Small Groups Section
-                  _buildSmallGroupsSection(),
-
+                  // _buildSmallGroupsSection(),
                   const SizedBox(height: 100), // Space for FAB
                 ],
               ),
@@ -180,285 +140,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildCategoryDropdown() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Filter by Category',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (_isLoadingCategories)
-            const Center(child: CircularProgressIndicator())
-          else
-            DropdownButtonFormField<String>(
-              key: const ValueKey('category_dropdown'), // 🔥 ADD KEY
-              decoration: InputDecoration(
-                hintText: 'Select a report category',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
-              ),
-              value: _selectedCategory,
-              items: [
-                const DropdownMenuItem<String>(
-                  value: null,
-                  child: Text('All Categories'),
-                ),
-                ..._reportCategories.map((category) {
-                  return DropdownMenuItem<String>(
-                    value: category['id'].toString(),
-                    child: Text(category['name']),
-                  );
-                }),
-              ],
-              onChanged: (value) {
-                if (mounted) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                }
-              },
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSmallGroupsSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'My Groups',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Groups you are part of',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-              if (_groupsResponse != null && _groupsResponse!.groups.length > 5)
-                TextButton(
-                  onPressed: () {
-                    if (mounted) {
-                      setState(() {
-                        _showAllGroups = !_showAllGroups;
-                      });
-                    }
-                  },
-                  child: Text(
-                    _showAllGroups ? 'Show Less' : 'Show All',
-                    style: const TextStyle(color: Colors.blue),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          if (_isLoadingGroups)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: CircularProgressIndicator(),
-              ),
-            )
-          else if (_groupsResponse == null || _groupsResponse!.groups.isEmpty)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: Text(
-                  'No groups found',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-            )
-          else ...[
-            // Display groups with limit
-            ...(_showAllGroups
-                    ? _groupsResponse!.groups
-                    : _groupsResponse!.groups.take(5))
-                .map((group) {
-                  return Container(
-                    key: ValueKey('group_${group.id}'), // 🔥 ADD KEY
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.green.withValues(alpha: 0.1),
-                        child: const Icon(
-                          Icons.group,
-                          color: Colors.green,
-                          size: 20,
-                        ),
-                      ),
-                      title: Text(
-                        group.name,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(group.categoryName),
-                          if (group.role != null)
-                            Text(
-                              'Role: ${group.role}',
-                              style: const TextStyle(
-                                color: Colors.blue,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                        ],
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${group.activeMembers}/${group.memberCount}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const Text(
-                            'members',
-                            style: TextStyle(fontSize: 10, color: Colors.grey),
-                          ),
-                          const Icon(Icons.arrow_forward_ios, size: 12),
-                        ],
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => GroupDetailsScreen(
-                              groupId: group.id,
-                              groupName: group.name,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                }),
-
-            // Summary info
-            if (_groupsResponse!.summary.totalGroups > 0) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Column(
-                      children: [
-                        Text(
-                          '${_groupsResponse!.summary.totalGroups}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        const Text(
-                          'Total Groups',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      width: 1,
-                      height: 30,
-                      color: Colors.blue.withValues(alpha: 0.3),
-                    ),
-                    Column(
-                      children: [
-                        Text(
-                          '${_groupsResponse!.summary.totalMembers}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        const Text(
-                          'Total Members',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ],
-      ),
     );
   }
 

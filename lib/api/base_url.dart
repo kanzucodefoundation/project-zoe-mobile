@@ -8,7 +8,6 @@ class BaseUrl {
       'http://10.110.34.203:3001';
   // 'http://10.254.115.203:3001';
   // 'http://192.168.1.180:3001';
-  // 'http://10.110.34.203:3001';
 
   /// Get base URL for API endpoints
   static String get apiUrl => '$baseUrl/api';

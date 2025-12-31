@@ -1,3 +1,6 @@
+import 'package:project_zoe/models/user.dart';
+import 'package:project_zoe/models/user_details.dart';
+
 import '../api_client.dart';
 import '../../models/contacts.dart';
 import '../../models/contact_form_field.dart';
@@ -63,6 +66,54 @@ class ContactEndpoints {
     }
   }
 
+  /// Get all contacts from CRM
+  /// Endpoint: GET /api/users
+  static Future<List<User>> getAllUsers() async {
+    try {
+      final response = await _apiClient.dio.get('/users');
+
+      // Comment out debug print for production
+      // print('📞 API: Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        // Comment out debug print for production
+        // print('📞 API: Response data type: ${responseData.runtimeType}');
+
+        List<dynamic> contactsJson;
+
+        if (responseData is Map<String, dynamic> &&
+            responseData.containsKey('users')) {
+          contactsJson = responseData['users'] as List<dynamic>;
+          // Comment out debug print for production
+          // print('📞 API: Found ${contactsJson.length} contacts in response');
+        } else if (responseData is List<dynamic>) {
+          contactsJson = responseData;
+          // Comment out debug print for production
+          // print(
+          //   '📞 API: Direct array response with ${contactsJson.length} contacts',
+          // );
+        } else {
+          throw Exception('Unexpected response format: $responseData');
+        }
+
+        print(
+          '💚💚 ContactsEndpoint: First user avatar: ${contactsJson.first}',
+        );
+
+        return contactsJson.map((json) {
+          return User.fromSimpleJson(json);
+        }).toList();
+      } else {
+        throw Exception('Failed to load contacts: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Comment out debug print for production
+      // print('📞 API: Error fetching contacts: $e');
+      rethrow;
+    }
+  }
+
   /// Get contact details by ID
   /// Endpoint: GET /api/crm/contacts/{id}
   static Future<ContactDetails> getContactDetails(
@@ -97,6 +148,24 @@ class ContactEndpoints {
     } catch (e) {
       // Comment out debug print for production
       // print('📞 API: Error fetching contact details: $e');
+      rethrow;
+    }
+  }
+
+  /// Endpoint: GET /api/users/{id}
+  static Future<UserDetails> getUserDetails(int contactId) async {
+    try {
+      final response = await _apiClient.dio.get('/users/$contactId');
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        return UserDetails.fromJson(responseData);
+      } else {
+        throw Exception(
+          'Failed to load contact details: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
       rethrow;
     }
   }

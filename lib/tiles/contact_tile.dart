@@ -57,7 +57,6 @@ class ContactTile extends StatelessWidget {
       headers: {'User-Agent': 'Mozilla/5.0 (compatible; FlutterApp/1.0)'},
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) {
-          print('✅ Avatar loaded successfully for $shepherdName: $url');
           return child;
         }
         print(

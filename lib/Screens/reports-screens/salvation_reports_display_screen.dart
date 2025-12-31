@@ -48,7 +48,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     final submission = widget.editingSubmission!;
     final data = submission['data'] as Map<String, dynamic>? ?? {};
 
-    debugPrint('🔍 Salvation pre-fill data: $data');
+    // debugPrint('🔍 Salvation pre-fill data: $data');
 
     if (submission['groupId'] != null) {
       _selectedLocationId = submission['groupId'].toString();
@@ -643,7 +643,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
 
     if (success) {
       if (mounted) {
-        ToastHelper.showSuccess(context, 'Report submitted successfully! ✨');
+        ToastHelper.showSuccess(context, 'Salvation report submitted successfully! ✨');
         // Navigate back to reports screen
         Navigator.pop(context);
       }
