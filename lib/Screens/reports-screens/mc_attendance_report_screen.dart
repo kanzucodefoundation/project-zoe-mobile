@@ -7,7 +7,6 @@ import '../../components/submit_button.dart';
 import '../../components/dropdown.dart';
 import '../../components/custom_date_picker.dart';
 import '../../widgets/custom_toast.dart';
-import '../details_screens/mc_report_detail_screen.dart';
 
 /// MC Attendance Report Screen - Shows MC report template and submissions
 class McAttendanceReportScreen extends StatefulWidget {
@@ -354,7 +353,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         .toList();
 
     // 🔥 SORT FIELDS BY ORDER
-    visibleFields.sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
+    visibleFields.sort((a, b) => a.order.compareTo(b.order));
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -729,18 +728,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         });
       }
     }
-  }
-
-  void _navigateToMcReportDetail(Map<String, dynamic> mc) {
-    final mcId = mc['id'] as int;
-    final reports = _mcReports[mcId] ?? [];
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => McReportDetailScreen(mc: mc, reports: reports),
-      ),
-    );
   }
 
   /// Convert technical error messages to user-friendly ones

@@ -7,6 +7,7 @@ class CustomTextField extends StatefulWidget {
   final TextEditingController? controller;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
+  final int? maxLines;
 
   const CustomTextField({
     super.key,
@@ -16,6 +17,7 @@ class CustomTextField extends StatefulWidget {
     this.controller,
     this.validator,
     this.keyboardType,
+    this.maxLines = 1,
   });
 
   @override
@@ -38,6 +40,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       obscureText: _obscure,
       validator: widget.validator,
       keyboardType: widget.keyboardType,
+      maxLines: widget.obscureText ? 1 : widget.maxLines,
       style: const TextStyle(color: Colors.black, fontSize: 16),
       decoration: InputDecoration(
         hintText: widget.hintText,

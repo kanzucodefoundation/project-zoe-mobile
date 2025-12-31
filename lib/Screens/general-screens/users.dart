@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../providers/contacts_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../tiles/contact_tile.dart';
-import '../details_screens/contact_details_screen.dart';
 import 'add_contact_screen.dart';
 
 class UsersScreen extends StatefulWidget {
@@ -23,10 +22,10 @@ class _UsersScreenState extends State<UsersScreen> {
         final provider = ContactsProvider();
         // Load Users with church name from auth provider after creation
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          final authProvider = Provider.of<AuthProvider>(
-            context,
-            listen: false,
-          );
+          // final authProvider = Provider.of<AuthProvider>(
+          //   context,
+          //   listen: false,
+          // );
           // final churchName = authProvider.user?.churchName ?? 'fellowship';
           provider.loadUsers();
         });

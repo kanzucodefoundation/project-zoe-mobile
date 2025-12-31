@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/contacts_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../models/contacts.dart';
 import '../../tiles/contact_tile.dart';
 import '../details_screens/contact_details_screen.dart';
 import 'add_contact_screen.dart';
@@ -18,6 +19,16 @@ class ContactsScreen extends StatefulWidget {
 typedef PeopleScreen = ContactsScreen;
 
 class _ContactsScreenState extends State<ContactsScreen> {
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -44,15 +55,51 @@ class _ContactsScreenState extends State<ContactsScreen> {
             appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
-              title: const Text(
-                'Contacts',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
+              title: _isSearching
+                  ? TextField(
+                      controller: _searchController,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: 'Search contacts...',
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 18,
+                        ),
+                      ),
+                      style: const TextStyle(color: Colors.black, fontSize: 18),
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                    )
+                  : const Text(
+                      'Contacts',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    _isSearching ? Icons.close : Icons.search,
+                    color: Colors.black,
+                    size: 24,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isSearching = !_isSearching;
+                      if (!_isSearching) {
+                        _searchController.clear();
+                        _searchQuery = '';
+                      }
+                    });
+                  },
                 ),
-              ),
-              centerTitle: true,
+              ],
             ),
             body: RefreshIndicator(
               onRefresh: () async {
@@ -69,19 +116,19 @@ class _ContactsScreenState extends State<ContactsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Contacts',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
-                            ),
-                          ),
+                          // const Text(
+                          //   'Contacts',
+                          //   style: TextStyle(
+                          //     fontSize: 24,
+                          //     fontWeight: FontWeight.w700,
+                          //     color: Colors.black,
+                          //   ),
+                          // ),
                           const SizedBox(height: 8),
                           Text(
                             'Manage and view church contacts',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 18,
                               color: Colors.grey.shade600,
                               fontWeight: FontWeight.w400,
                             ),
@@ -93,14 +140,25 @@ class _ContactsScreenState extends State<ContactsScreen> {
                             width: double.infinity,
                             height: 50,
                             child: ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
+                              onPressed: () async {
+                                // Navigate to add contact screen
+                                final result = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         const AddPeopleScreen(),
                                   ),
                                 );
+
+                                // Refresh contacts list if a contact was created successfully
+                                if (result == true) {
+                                  final churchName =
+                                      authProvider.user?.churchName ??
+                                      'fellowship';
+                                  provider.refreshContacts(
+                                    churchName: churchName,
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.black,
@@ -128,7 +186,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
                           // Contacts Count
                           Text(
-                            'Contacts (${provider.contacts.length})',
+                            'Contacts (${_getFilteredContacts(provider.contacts).length})',
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -203,12 +261,14 @@ class _ContactsScreenState extends State<ContactsScreen> {
                             ),
                           ),
                         )
-                      : provider.contacts.isEmpty
-                      ? const SliverFillRemaining(
+                      : _getFilteredContacts(provider.contacts).isEmpty
+                      ? SliverFillRemaining(
                           child: Center(
                             child: Text(
-                              'No contacts found',
-                              style: TextStyle(
+                              _searchQuery.isNotEmpty
+                                  ? 'No contacts found matching "$_searchQuery"'
+                                  : 'No contacts found',
+                              style: const TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey,
                               ),
@@ -216,33 +276,38 @@ class _ContactsScreenState extends State<ContactsScreen> {
                           ),
                         )
                       : SliverList(
-                          delegate: SliverChildBuilderDelegate((
-                            context,
-                            index,
-                          ) {
-                            final contact = provider.contacts[index];
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final filteredContacts = _getFilteredContacts(
+                                provider.contacts,
+                              );
+                              final contact = filteredContacts[index];
 
-                            return ContactTile(
-                              shepherdName: contact.name,
-                              shepherdEmail: contact.email ?? 'No email',
-                              shepherdAvatar: contact.avatar ?? '',
-                              buttonText: 'View',
-                              onButtonPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        ChangeNotifierProvider.value(
-                                          value: provider,
-                                          child: ContactDetailsScreen(
-                                            contactId: contact.id,
+                              return ContactTile(
+                                shepherdName: contact.name,
+                                shepherdEmail: contact.email ?? 'No email',
+                                shepherdAvatar: contact.avatar ?? '',
+                                buttonText: 'View',
+                                onButtonPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ChangeNotifierProvider(
+                                            create: (_) => ContactsProvider(),
+                                            child: ContactDetailsScreen(
+                                              contactId: contact.id,
+                                            ),
                                           ),
-                                        ),
-                                  ),
-                                );
-                              },
-                            );
-                          }, childCount: provider.contacts.length),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                            childCount: _getFilteredContacts(
+                              provider.contacts,
+                            ).length,
+                          ),
                         ),
                 ],
               ),
@@ -251,5 +316,23 @@ class _ContactsScreenState extends State<ContactsScreen> {
         },
       ),
     );
+  }
+
+  /// Filter contacts based on search query
+  List<Contact> _getFilteredContacts(List<Contact> contacts) {
+    if (_searchQuery.isEmpty) {
+      return contacts;
+    }
+
+    final query = _searchQuery.toLowerCase();
+    return contacts.where((contact) {
+      final name = contact.name.toLowerCase();
+      final email = (contact.email ?? '').toLowerCase();
+      final phone = (contact.phone ?? '').toLowerCase();
+
+      return name.contains(query) ||
+          email.contains(query) ||
+          phone.contains(query);
+    }).toList();
   }
 }
