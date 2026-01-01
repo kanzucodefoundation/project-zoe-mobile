@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:project_zoe/Screens/general-screens/members_screen_enhanced.dart';
-import 'custom_app_bar.dart';
-import 'custom_drawer.dart';
-import 'beautiful_bottom_nav.dart';
+import 'enhanced_bottom_nav.dart';
 import '../Screens/general-screens/home_screen_enhanced.dart';
 import '../Screens/general-screens/reports_screen_enhanced.dart';
+import '../Screens/general-screens/profile_screen_enhanced.dart';
+import '../core/theme/theme.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -14,43 +14,30 @@ class MainScaffold extends StatefulWidget {
 }
 
 class _MainScaffoldState extends State<MainScaffold> {
-  int _currentIndex = 1; // Default to Dashboard
+  int _currentIndex = 0; // Default to Home
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: _currentIndex == 1 ? CustomAppBar(title: _getTitle()) : null,
-      drawer: _currentIndex == 1 ? const CustomDrawer() : null,
+      backgroundColor: AppColors.scaffoldBackground,
       body: _getBody(),
-      bottomNavigationBar: BeautifulBottomNavBar(
+      bottomNavigationBar: EnhancedBottomNavBar(
         selectedIndex: _currentIndex,
         onTabChange: _onNavTap,
       ),
     );
   }
 
-  String _getTitle() {
-    switch (_currentIndex) {
-      case 0:
-        return 'Reports';
-      case 1:
-        return 'Dashboard';
-      case 2:
-        return 'Members';
-      default:
-        return 'Dashboard';
-    }
-  }
-
   Widget _getBody() {
     switch (_currentIndex) {
       case 0:
-        return const EnhancedReportsScreen();
-      case 1:
         return const EnhancedHomeScreen();
+      case 1:
+        return const EnhancedReportsScreen();
       case 2:
         return const EnhancedMembersScreen();
+      case 3:
+        return const EnhancedProfileScreen();
       default:
         return const EnhancedHomeScreen();
     }
