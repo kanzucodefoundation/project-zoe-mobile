@@ -222,12 +222,13 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   ),
                 ),
               ),
+              // First Row
               Row(
                 children: [
                   Expanded(
                     child: ZoeStatCard(
                       value: memberCount.toString(),
-                      label: 'Total Members',
+                      label: 'Total',
                       icon: Icons.people,
                       valueColor: AppColors.primaryText,
                     ),
@@ -236,18 +237,32 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   Expanded(
                     child: ZoeStatCard(
                       value: attendance.toString(),
-                      label: 'Last Attendance',
+                      label: 'Last At',
                       icon: Icons.event,
                       valueColor: AppColors.primaryGreen,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              // Second Row
+              Row(
+                children: [
+                  Expanded(
+                    child: ZoeStatCard(
+                      value: newMembers.toString(),
+                      label: 'New',
+                      icon: Icons.person_add,
+                      valueColor: AppColors.primaryText,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.statCardSpacing),
                   Expanded(
                     child: ZoeStatCard(
-                      value: (salvations > 0) ? salvations.toString() : newMembers.toString(),
-                      label: (salvations > 0) ? 'Salvations' : 'New This Month',
-                      icon: (salvations > 0) ? Icons.favorite : Icons.person_add,
-                      valueColor: (salvations > 0) ? AppColors.harvestGold : AppColors.primaryText,
+                      value: salvations.toString(),
+                      label: 'Salvations',
+                      icon: Icons.favorite,
+                      valueColor: AppColors.harvestGold,
                     ),
                   ),
                 ],
@@ -417,20 +432,20 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                       },
                     ),
                   ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: ZoeButton.secondary(
-                  label: 'Add Member',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AddContactScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: ZoeButton.secondary(
+                      label: 'Add Member',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddContactScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             ],

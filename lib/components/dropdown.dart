@@ -36,7 +36,6 @@ class _DropdownState extends State<Dropdown> {
       decoration: InputDecoration(
         hintText: widget.hintText,
         hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
-        hintMaxLines: 2, // Allow hint text to wrap to 2 lines
 
         // Prefix icon
         prefixIcon: widget.prefixIcon != null

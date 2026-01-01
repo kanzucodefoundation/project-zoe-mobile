@@ -460,7 +460,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       // 🔥 USE KEY TO PREVENT REBUILD LOOPS
       return Dropdown(
         key: ValueKey('stream_${field.name}'), // 🔥 ADD UNIQUE KEY
-        hintText: 'Select ${field.label}',
+        hintText: field.label.length > 20 ? 'Select option' : 'Select ${field.label}',
         items: dropdownItems,
         getDisplayText: (item) => item['name'] ?? 'Unknown Option',
         value: _selectedStreamOption != null
@@ -491,7 +491,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     if (fieldName.contains('date') || fieldLabel.contains('date')) {
       return CustomDatePicker(
         key: ValueKey('date_${field.name}'), // 🔥 ADD UNIQUE KEY
-        hintText: 'Select ${field.label.toLowerCase()}',
+        hintText: field.label.length > 15 ? 'Select date' : 'Select ${field.label.toLowerCase()}',
         prefixIcon: Icons.calendar_today,
         selectedDate: _selectedDate,
         onDateSelected: (date) {
@@ -521,7 +521,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         children: [
           Dropdown(
             key: ValueKey('mc_${field.name}'), // 🔥 ADD UNIQUE KEY
-            hintText: 'Select ${field.label}',
+            hintText: field.label.length > 20 ? 'Select MC' : 'Select ${field.label}',
             prefixIcon: Icons.church,
             items: _availableMcs,
             getDisplayText: (mc) => mc['name'] ?? 'Unknown MC',
