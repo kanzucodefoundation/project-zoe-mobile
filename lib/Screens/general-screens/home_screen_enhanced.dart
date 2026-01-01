@@ -67,10 +67,11 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
             }
           }
         },
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               // Welcome Section with brand colors
               _buildWelcomeSection(auth),
               
@@ -89,13 +90,18 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildWelcomeSection(AuthProvider auth) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xl),
-      margin: const EdgeInsets.all(AppSpacing.screenPadding),
+      margin: const EdgeInsets.fromLTRB(
+        AppSpacing.screenPadding,
+        AppSpacing.sm, // Reduced top margin since we now have SafeArea
+        AppSpacing.screenPadding,
+        AppSpacing.screenPadding,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -386,8 +392,10 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 child: ZoeButton.primary(
                   label: 'Submit Report',
                   onPressed: () {
-                    // Navigate to reports screen or show report selection
-                    ToastHelper.showInfo(context, 'Opening reports...');
+                    // Navigate to the Reports tab in the main scaffold
+                    // Since this is inside a tab view, we need to find the parent scaffold
+                    // and update the tab index. For now, let's provide user feedback.
+                    ToastHelper.showInfo(context, 'Tap "Reports" tab below to submit reports');
                   },
                 ),
               ),

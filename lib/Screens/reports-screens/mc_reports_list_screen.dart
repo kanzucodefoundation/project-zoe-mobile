@@ -407,10 +407,11 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     _buildInfoChip('Host: $host', Colors.green),
-                    const SizedBox(width: 8),
                     _buildInfoChip('Submitted by: $submittedBy', Colors.blue),
                   ],
                 ),

@@ -314,29 +314,21 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
         ZoeCard(
           child: Column(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: ZoeInput(
-                      label: 'First Name *',
-                      controller: _controllers['firstName'],
-                      validator: (value) => value?.isEmpty == true
-                          ? 'First name is required'
-                          : null,
-                      prefixIcon: Icon(Icons.person, color: AppColors.secondaryText),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ZoeInput(
-                      label: 'Last Name *',
-                      controller: _controllers['lastName'],
-                      validator: (value) => value?.isEmpty == true
-                          ? 'Last name is required'
-                          : null,
-                    ),
-                  ),
-                ],
+              ZoeInput(
+                label: 'First Name *',
+                controller: _controllers['firstName'],
+                validator: (value) => value?.isEmpty == true
+                    ? 'First name is required'
+                    : null,
+                prefixIcon: Icon(Icons.person, color: AppColors.secondaryText),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              ZoeInput(
+                label: 'Last Name *',
+                controller: _controllers['lastName'],
+                validator: (value) => value?.isEmpty == true
+                    ? 'Last name is required'
+                    : null,
               ),
               const SizedBox(height: AppSpacing.lg),
               ZoeDropdown<String>(

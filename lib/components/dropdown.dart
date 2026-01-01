@@ -93,6 +93,8 @@ class _DropdownState extends State<Dropdown> {
                     child: Text(
                       widget.getDisplayText(item),
                       style: const TextStyle(color: Colors.black),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 )

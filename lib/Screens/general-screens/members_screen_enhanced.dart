@@ -142,8 +142,9 @@ class _EnhancedMembersScreenState extends State<EnhancedMembersScreen> {
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         '${contacts.length}',
-                        style: AppTextStyles.statsNumber.copyWith(
+                        style: AppTextStyles.h2.copyWith(
                           color: AppColors.primaryText,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       Text(
@@ -173,8 +174,9 @@ class _EnhancedMembersScreenState extends State<EnhancedMembersScreen> {
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         '${(contacts.length * 0.85).round()}',
-                        style: AppTextStyles.statsNumber.copyWith(
+                        style: AppTextStyles.h2.copyWith(
                           color: AppColors.primaryText,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       Text(
@@ -204,8 +206,9 @@ class _EnhancedMembersScreenState extends State<EnhancedMembersScreen> {
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         '3',
-                        style: AppTextStyles.statsNumber.copyWith(
+                        style: AppTextStyles.h2.copyWith(
                           color: AppColors.primaryText,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       Text(

@@ -558,13 +558,18 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Submitted by: $submittedBy',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
+                    Expanded(
+                      child: Text(
+                        'Submitted by: $submittedBy',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
                       'Attendance: $attendance',
                       style: TextStyle(

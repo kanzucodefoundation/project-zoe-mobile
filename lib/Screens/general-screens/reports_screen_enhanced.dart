@@ -158,7 +158,7 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
           crossAxisCount: 2,
           mainAxisSpacing: AppSpacing.md,
           crossAxisSpacing: AppSpacing.md,
-          childAspectRatio: 1.1,
+          childAspectRatio: 0.85, // Made taller to accommodate content
         ),
         itemBuilder: (_, index) => ZoeCard(
           child: Center(
@@ -256,7 +256,7 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
         crossAxisCount: 2,
         mainAxisSpacing: AppSpacing.md,
         crossAxisSpacing: AppSpacing.md,
-        childAspectRatio: 1.1,
+        childAspectRatio: 0.85, // Made taller to accommodate content
       ),
       itemBuilder: (_, index) => _buildReportCard(reportItems[index]),
     );
@@ -265,6 +265,7 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
   Widget _buildReportCard(_ReportItem item) {
     return ZoeCard(
       onTap: item.onTap,
+      padding: const EdgeInsets.all(AppSpacing.md), // Consistent padding
       backgroundColor: item.status == ReportStatus.noPermission
           ? AppColors.softBorders.withOpacity(0.3)
           : AppColors.cardBackground,
@@ -272,58 +273,65 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(AppSpacing.sm), // Reduced padding
             decoration: BoxDecoration(
               color: item.iconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppSpacing.md),
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
             ),
             child: Icon(
               item.icon,
-              size: AppSpacing.iconLg,
+              size: AppSpacing.iconMd, // Slightly smaller icon
               color: item.iconColor,
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            item.title,
-            style: AppTextStyles.label.copyWith(
-              color: item.status == ReportStatus.noPermission
-                  ? AppColors.secondaryText
-                  : AppColors.primaryText,
-              fontWeight: FontWeight.w600,
+          const SizedBox(height: AppSpacing.sm), // Reduced spacing
+          Flexible(
+            child: Text(
+              item.title,
+              style: AppTextStyles.label.copyWith(
+                color: item.status == ReportStatus.noPermission
+                    ? AppColors.secondaryText
+                    : AppColors.primaryText,
+                fontWeight: FontWeight.w600,
+                fontSize: 13, // Slightly smaller font
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: AppSpacing.xs),
-          Text(
-            item.description,
-            style: AppTextStyles.caption.copyWith(
-              color: item.status == ReportStatus.noPermission
-                  ? AppColors.secondaryText
-                  : AppColors.secondaryText,
+          Flexible(
+            child: Text(
+              item.description,
+              style: AppTextStyles.caption.copyWith(
+                color: item.status == ReportStatus.noPermission
+                    ? AppColors.secondaryText
+                    : AppColors.secondaryText,
+                fontSize: 11, // Smaller font for description
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2, // Allow 2 lines for description
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
           if (item.status == ReportStatus.submitted) ...[
             const SizedBox(height: AppSpacing.xs),
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.sm,
-                vertical: AppSpacing.xs,
+                vertical: 2,
               ),
               decoration: BoxDecoration(
                 color: AppColors.success.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppSpacing.sm),
+                borderRadius: BorderRadius.circular(AppSpacing.xs),
               ),
               child: Text(
                 'Submitted',
                 style: AppTextStyles.small.copyWith(
                   color: AppColors.success,
                   fontWeight: FontWeight.w600,
+                  fontSize: 10,
                 ),
               ),
             ),

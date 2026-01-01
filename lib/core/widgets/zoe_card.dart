@@ -74,9 +74,11 @@ class ZoeStatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ZoeCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.statCardPadding),
-      child: SizedBox(
-        height: AppSpacing.statCardHeight,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm, // Reduced vertical padding
+      ),
+      child: IntrinsicHeight( // Use intrinsic height instead of fixed height
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -97,7 +99,7 @@ class ZoeStatCard extends StatelessWidget {
                     value,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           color: valueColor ?? AppColors.primaryText,
-                          fontSize: 28,
+                          fontSize: 24, // Reduced font size slightly
                           fontWeight: FontWeight.w600,
                         ),
                     textAlign: TextAlign.center,
@@ -111,7 +113,7 @@ class ZoeStatCard extends StatelessWidget {
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.secondaryText,
-                    fontSize: 13,
+                    fontSize: 12, // Slightly smaller font
                   ),
               textAlign: TextAlign.center,
               maxLines: 2,
