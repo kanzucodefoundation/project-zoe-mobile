@@ -5,7 +5,7 @@ class BaseUrl {
       // 'https://staging-projectzoe.kanzucodefoundation.org/server';
       // Alternative URLs for development:
       // 'http://localhost:3001';
-      'http://10.110.34.203:3001';
+      'https://99acf11ccaa2.ngrok-free.app';
   // 'http://10.254.115.203:3001';
   // 'http://192.168.1.180:3001';
 

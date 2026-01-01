@@ -11,6 +11,8 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+.env
+.fvmrc
 
 # IntelliJ related
 *.iml
@@ -59,3 +61,6 @@ build/
 # Android
 android/.gradle/
 android/build/
+
+# FVM Version Cache
+.fvm/

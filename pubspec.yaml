@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-
+  flutter_dotenv: ^6.0.0
   # State management
   provider: ^6.1.2
   equatable: ^2.0.7
@@ -45,6 +45,7 @@ flutter:
 
   assets:
     - assets/images/background.jpg
+    - .env   
 flutter_launcher_icons:
   android: true
   ios: true

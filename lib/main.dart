@@ -17,6 +17,7 @@ import 'Screens/general-screens/admin_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
 import 'Screens/general-screens/settings_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +26,9 @@ void main() async {
   ApiClient().initialize();
   //Initialize Notification Service
   await notificationService.initNotification();
-
+  // Load the .env file
+  await dotenv.load(fileName: ".env");
+  
   runApp(const MyApp());
 }
 
