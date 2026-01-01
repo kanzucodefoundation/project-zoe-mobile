@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:project_zoe/Screens/general-screens/members.dart';
+import 'package:project_zoe/Screens/general-screens/members_screen_enhanced.dart';
 import 'custom_app_bar.dart';
 import 'custom_drawer.dart';
 import 'beautiful_bottom_nav.dart';
 import '../Screens/general-screens/home_screen_enhanced.dart';
-import '../Screens/general-screens/reports_screen.dart';
+import '../Screens/general-screens/reports_screen_enhanced.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -46,11 +46,11 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget _getBody() {
     switch (_currentIndex) {
       case 0:
-        return ReportsScreen();
+        return const EnhancedReportsScreen();
       case 1:
         return const EnhancedHomeScreen();
       case 2:
-        return const MembersScreen();
+        return const EnhancedMembersScreen();
       default:
         return const EnhancedHomeScreen();
     }
