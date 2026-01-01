@@ -81,9 +81,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
               // Pending Actions Section
               _buildPendingActionsSection(auth),
               
-              // Quick Actions Section
-              _buildQuickActionsSection(),
-              
               // Bottom padding for navigation bar
               const SizedBox(height: AppSpacing.xxxl * 3),
             ],
@@ -216,7 +213,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: Text(
-                  'Your Fellowship Stats',
+                  'This Week\'s Stats',
                   style: AppTextStyles.h3.copyWith(
                     color: AppColors.primaryText,
                   ),
@@ -228,7 +225,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   Expanded(
                     child: ZoeStatCard(
                       value: memberCount.toString(),
-                      label: 'Total',
+                      label: 'Members',
                       icon: Icons.people,
                       valueColor: AppColors.primaryText,
                     ),
@@ -237,7 +234,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   Expanded(
                     child: ZoeStatCard(
                       value: attendance.toString(),
-                      label: 'Last At',
+                      label: 'Attendance',
                       icon: Icons.event,
                       valueColor: AppColors.primaryGreen,
                     ),
@@ -251,7 +248,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   Expanded(
                     child: ZoeStatCard(
                       value: newMembers.toString(),
-                      label: 'New',
+                      label: 'New Members',
                       icon: Icons.person_add,
                       valueColor: AppColors.primaryText,
                     ),
@@ -388,72 +385,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
   }
 
-  Widget _buildQuickActionsSection() {
-    return Consumer2<ReportProvider, AuthProvider>(
-      builder: (context, reportProvider, authProvider, child) {
-        return Padding(
-          padding: const EdgeInsets.all(AppSpacing.screenPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Quick Actions',
-                style: AppTextStyles.h3.copyWith(
-                  color: AppColors.primaryText,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Row(
-                children: [
-                  Expanded(
-                    child: ZoeButton.primary(
-                      label: 'Submit Fellowship Report',
-                      onPressed: () {
-                        // Navigate to fellowship attendance report
-                        final mcReportId = reportProvider.titleAndId
-                            .firstWhere(
-                              (report) => report['title']?.toString().toLowerCase().contains('attendance') ?? false,
-                              orElse: () => {'id': 0},
-                            )['id'];
-                        
-                        if (mcReportId != 0 && authProvider.isMcShepherdPermissions) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => McAttendanceReportScreen(reportId: mcReportId),
-                            ),
-                          );
-                        } else {
-                          ToastHelper.showWarning(
-                            context, 
-                            'Fellowship reports not available or insufficient permissions'
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ZoeButton.secondary(
-                      label: 'Add Member',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AddContactScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   String _getFirstName(String fullName) {
     if (fullName.isEmpty) return 'User';
