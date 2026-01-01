@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project_zoe/Screens/general-screens/contacts.dart';
+import 'package:project_zoe/Screens/general-screens/members.dart';
 import 'custom_app_bar.dart';
 import 'custom_drawer.dart';
 import 'beautiful_bottom_nav.dart';
@@ -37,7 +37,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       case 1:
         return 'Dashboard';
       case 2:
-        return 'Admin';
+        return 'Members';
       default:
         return 'Dashboard';
     }
@@ -50,7 +50,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       case 1:
         return const HomeScreen();
       case 2:
-        return const ContactsScreen();
+        return const MembersScreen();
       default:
         return const HomeScreen();
     }

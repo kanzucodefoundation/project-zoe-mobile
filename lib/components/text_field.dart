@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import '../core/widgets/zoe_input.dart';
+import '../core/theme/app_colors.dart';
 
+/// Custom text field component - now uses Project Zoe design system
+/// Maintains backwards compatibility while using brand colors
 class CustomTextField extends StatefulWidget {
   final String hintText;
   final IconData? prefixIcon;
@@ -35,58 +39,42 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    // For password fields with visibility toggle
+    if (widget.obscureText) {
+      return ZoeInput(
+        label: '', // No label since hintText is used
+        hint: widget.hintText,
+        controller: widget.controller,
+        validator: widget.validator,
+        keyboardType: widget.keyboardType,
+        obscureText: _obscure,
+        maxLines: 1,
+        prefixIcon: widget.prefixIcon != null
+            ? Icon(widget.prefixIcon, color: AppColors.secondaryText)
+            : null,
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscure ? Icons.visibility_off : Icons.visibility,
+            color: AppColors.secondaryText,
+          ),
+          onPressed: () {
+            setState(() => _obscure = !_obscure);
+          },
+        ),
+      );
+    }
+
+    // For regular text fields
+    return ZoeInput(
+      label: '', // No label since hintText is used
+      hint: widget.hintText,
       controller: widget.controller,
-      obscureText: _obscure,
       validator: widget.validator,
       keyboardType: widget.keyboardType,
-      maxLines: widget.obscureText ? 1 : widget.maxLines,
-      style: const TextStyle(color: Colors.black, fontSize: 16),
-      decoration: InputDecoration(
-        hintText: widget.hintText,
-        hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
-
-        // Prefix icon
-        prefixIcon: widget.prefixIcon != null
-            ? Icon(widget.prefixIcon, color: Colors.grey[500], size: 20)
-            : null,
-
-        // 👁️ ***Eye Icon Toggle (only if obscureText == true)***
-        suffixIcon: widget.obscureText
-            ? IconButton(
-                icon: Icon(
-                  _obscure ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.grey[500],
-                ),
-                onPressed: () {
-                  setState(() => _obscure = !_obscure);
-                },
-              )
-            : null,
-
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.black, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.red, width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
+      maxLines: widget.maxLines,
+      prefixIcon: widget.prefixIcon != null
+          ? Icon(widget.prefixIcon, color: AppColors.secondaryText)
+          : null,
     );
   }
 }

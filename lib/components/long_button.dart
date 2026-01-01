@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../core/widgets/zoe_button.dart';
 
+/// Long button component - now uses Project Zoe design system
+/// Maintains backwards compatibility while using brand colors
 class LongButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
@@ -14,46 +17,19 @@ class LongButton extends StatelessWidget {
     required this.text,
     required this.onPressed,
     this.isLoading = false,
-    this.backgroundColor,
-    this.textColor,
+    this.backgroundColor, // Ignored - always uses brand colors
+    this.textColor, // Ignored - always uses brand colors
     this.height = 50,
     this.borderRadius = 8,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return ZoeButton.primary(
+      label: text,
+      onPressed: onPressed,
+      isLoading: isLoading,
       width: double.infinity,
-      height: height,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? Colors.black,
-          foregroundColor: textColor ?? Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius!),
-          ),
-          disabledBackgroundColor: Colors.grey.shade400,
-        ),
-        child: isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Text(
-                text,
-                style: TextStyle(
-                  color: textColor ?? Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-      ),
     );
   }
 }

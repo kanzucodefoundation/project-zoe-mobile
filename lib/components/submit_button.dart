@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../core/widgets/zoe_button.dart';
 
+/// Submit button component - now uses Project Zoe design system
+/// Maintains backwards compatibility while using brand colors
 class SubmitButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
@@ -15,8 +18,8 @@ class SubmitButton extends StatelessWidget {
     required this.text,
     required this.onPressed,
     this.isOutlined = false,
-    this.backgroundColor,
-    this.textColor,
+    this.backgroundColor, // Ignored - always uses brand colors
+    this.textColor, // Ignored - always uses brand colors
     this.width,
     this.height = 50,
     this.borderRadius = 25,
@@ -24,47 +27,17 @@ class SubmitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    if (isOutlined) {
+      return ZoeButton.secondary(
+        label: text,
+        onPressed: onPressed,
+        width: width ?? double.infinity,
+      );
+    }
+    return ZoeButton.primary(
+      label: text,
+      onPressed: onPressed,
       width: width ?? double.infinity,
-      height: height,
-      child: isOutlined
-          ? OutlinedButton(
-              onPressed: onPressed,
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: textColor ?? Colors.white, width: 1.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(borderRadius!),
-                ),
-                backgroundColor: Colors.transparent,
-              ),
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: textColor ?? Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            )
-          : ElevatedButton(
-              onPressed: onPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: backgroundColor ?? Colors.black,
-                foregroundColor: textColor ?? Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(borderRadius!),
-                ),
-              ),
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: textColor ?? Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
     );
   }
 }
