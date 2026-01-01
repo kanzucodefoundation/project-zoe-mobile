@@ -19,6 +19,10 @@ import 'auth/register_screen.dart';
 import 'Screens/general-screens/settings_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+// Project Zoe Design System
+import 'core/theme/theme.dart';
+import 'core/screens/design_system_demo.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -54,21 +58,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Project Zoe',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple,
-            surface: const Color(0xFFFFFFFF), // Pure white
-            // ignore: deprecated_member_use
-            background: const Color(0xFFFFFFFF), // Pure white
-          ),
-          useMaterial3: true,
-          scaffoldBackgroundColor: const Color(0xFFFFFFFF), // Pure white
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFFFFFFFF), // Pure white
-            surfaceTintColor: Colors.transparent, // Remove Material 3 tint
-            elevation: 0,
-          ),
-        ),
+        theme: AppTheme.lightTheme,
         home: const AppWrapper(),
         routes: {
           '/login': (context) => const LoginScreen(),
@@ -85,6 +75,7 @@ class MyApp extends StatelessWidget {
           '/reports': (context) => ReportsScreen(),
           '/admin': (context) => const AdminScreen(),
           '/settings': (context) => const SettingsScreen(),
+          '/design-system-demo': (context) => const DesignSystemDemo(),
         },
       ),
     );
