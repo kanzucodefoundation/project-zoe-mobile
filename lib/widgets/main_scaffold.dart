@@ -3,7 +3,7 @@ import 'package:project_zoe/Screens/general-screens/members.dart';
 import 'custom_app_bar.dart';
 import 'custom_drawer.dart';
 import 'beautiful_bottom_nav.dart';
-import '../Screens/general-screens/home_sceen.dart';
+import '../Screens/general-screens/home_screen_enhanced.dart';
 import '../Screens/general-screens/reports_screen.dart';
 
 class MainScaffold extends StatefulWidget {
@@ -48,11 +48,11 @@ class _MainScaffoldState extends State<MainScaffold> {
       case 0:
         return ReportsScreen();
       case 1:
-        return const HomeScreen();
+        return const EnhancedHomeScreen();
       case 2:
         return const MembersScreen();
       default:
-        return const HomeScreen();
+        return const EnhancedHomeScreen();
     }
   }
 

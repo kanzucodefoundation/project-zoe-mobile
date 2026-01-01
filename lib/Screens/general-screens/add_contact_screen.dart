@@ -11,16 +11,16 @@ import '../../services/reports_service.dart';
 import '../../api/base_url.dart';
 
 /// Contact Form Screen - Allows users to add new contacts
-class AddPeopleScreen extends StatefulWidget {
+class AddContactScreen extends StatefulWidget {
   final Contact? editingContact;
 
-  const AddPeopleScreen({super.key, this.editingContact});
+  const AddContactScreen({super.key, this.editingContact});
 
   @override
-  State<AddPeopleScreen> createState() => _AddPeopleScreenState();
+  State<AddContactScreen> createState() => _AddContactScreenState();
 }
 
-class _AddPeopleScreenState extends State<AddPeopleScreen> {
+class _AddContactScreenState extends State<AddContactScreen> {
   // Form related
   final _formKey = GlobalKey<FormState>();
   final Map<String, TextEditingController> _controllers = {};

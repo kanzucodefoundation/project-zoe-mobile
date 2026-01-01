@@ -93,7 +93,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        const AddPeopleScreen(),
+                                        const AddContactScreen(),
                                   ),
                                 );
                               },
