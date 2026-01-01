@@ -340,21 +340,8 @@ class _EnhancedMembersScreenState extends State<EnhancedMembersScreen> {
                       ),
                     ],
                   ),
-                if (contact.email?.isNotEmpty == true)
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.email,
-                        size: AppSpacing.iconSm,
-                        color: AppColors.secondaryText,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        contact.email!,
-                        style: AppTextStyles.caption,
-                      ),
-                    ],
-                  ),
+                // Email removed from list view to prevent overflow
+                // Email is now only shown in the member detail view
               ],
             ),
           ),

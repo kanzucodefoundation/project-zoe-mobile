@@ -374,31 +374,49 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   }
 
   Widget _buildQuickActionsSection() {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.screenPadding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Quick Actions',
-            style: AppTextStyles.h3.copyWith(
-              color: AppColors.primaryText,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
+    return Consumer2<ReportProvider, AuthProvider>(
+      builder: (context, reportProvider, authProvider, child) {
+        return Padding(
+          padding: const EdgeInsets.all(AppSpacing.screenPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: ZoeButton.primary(
-                  label: 'Submit Report',
-                  onPressed: () {
-                    // Navigate to the Reports tab in the main scaffold
-                    // Since this is inside a tab view, we need to find the parent scaffold
-                    // and update the tab index. For now, let's provide user feedback.
-                    ToastHelper.showInfo(context, 'Tap "Reports" tab below to submit reports');
-                  },
+              Text(
+                'Quick Actions',
+                style: AppTextStyles.h3.copyWith(
+                  color: AppColors.primaryText,
                 ),
               ),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  Expanded(
+                    child: ZoeButton.primary(
+                      label: 'Submit Fellowship Report',
+                      onPressed: () {
+                        // Navigate to fellowship attendance report
+                        final mcReportId = reportProvider.titleAndId
+                            .firstWhere(
+                              (report) => report['title']?.toString().toLowerCase().contains('attendance') ?? false,
+                              orElse: () => {'id': 0},
+                            )['id'];
+                        
+                        if (mcReportId != 0 && authProvider.isMcShepherdPermissions) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => McAttendanceReportScreen(reportId: mcReportId),
+                            ),
+                          );
+                        } else {
+                          ToastHelper.showWarning(
+                            context, 
+                            'Fellowship reports not available or insufficient permissions'
+                          );
+                        }
+                      },
+                    ),
+                  ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: ZoeButton.secondary(
@@ -413,10 +431,12 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   },
                 ),
               ),
+                ],
+              ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
