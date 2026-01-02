@@ -27,12 +27,12 @@ class UserGroup {
     return UserGroup(
       id: json['id'] as int,
       name: json['name'] as String,
-      type: json['type'] as String,
-      categoryId: json['categoryId'] as int,
-      categoryName: json['categoryName'] as String,
-      role: json['role'] as String,
+      type: json['type'] as String? ?? 'group', // Default type if missing
+      categoryId: (json['categoryId'] as int?) ?? 0, // Handle null categoryId
+      categoryName: (json['categoryName'] as String?) ?? '', // Handle null categoryName
+      role: (json['role'] as String?) ?? '', // Handle null role
       parentId: json['parentId'] as int?,
-      memberCount: json['memberCount'] as int,
+      memberCount: (json['memberCount'] as int?) ?? 0, // Handle null memberCount
     );
   }
 
@@ -116,15 +116,15 @@ class UserHierarchy {
 
   factory UserHierarchy.fromJson(Map<String, dynamic> json) {
     return UserHierarchy(
-      myGroups: (json['myGroups'] as List<dynamic>)
-          .map((group) => UserGroup.fromJson(group as Map<String, dynamic>))
-          .toList(),
-      canManageGroupIds: (json['canManageGroupIds'] as List<dynamic>)
-          .map((id) => id as int)
-          .toList(),
-      canViewGroupIds: (json['canViewGroupIds'] as List<dynamic>)
-          .map((id) => id as int)
-          .toList(),
+      myGroups: (json['myGroups'] as List<dynamic>?)
+          ?.map((group) => UserGroup.fromJson(group as Map<String, dynamic>))
+          .toList() ?? const [],
+      canManageGroupIds: (json['canManageGroupIds'] as List<dynamic>?)
+          ?.map((id) => id as int)
+          .toList() ?? const [],
+      canViewGroupIds: (json['canViewGroupIds'] as List<dynamic>?)
+          ?.map((id) => id as int)
+          .toList() ?? const [],
     );
   }
 
@@ -334,7 +334,7 @@ class User {
       username: json['username'] as String,
       email: json['email'] as String?,
       fullName: json['fullName'] as String,
-      avatar: json['avatar'] as String,
+      avatar: (json['avatar'] as String?) ?? '', // Handle null avatar
       isActive: json['isActive'] as bool,
       roles: (json['roles'] as List<dynamic>)
           .map((role) => role as String)
@@ -360,7 +360,7 @@ class User {
       username: json['username'] as String,
       email: json['email'] as String?,
       fullName: json['fullName'] as String,
-      avatar: json['avatar'] as String,
+      avatar: (json['avatar'] as String?) ?? '', // Handle null avatar
       isActive: json['isActive'] as bool,
       roles: (json['roles'] as List<dynamic>)
           .map((role) => role as String)
@@ -443,15 +443,15 @@ class AuthResponse {
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
-    final hierarchy = UserHierarchy.fromJson(
-      json['hierarchy'] as Map<String, dynamic>,
-    );
+    final hierarchy = json.containsKey('hierarchy') 
+        ? UserHierarchy.fromJson(json['hierarchy'] as Map<String, dynamic>)
+        : const UserHierarchy.empty();
     final user = User.fromJson(json['user'] as Map<String, dynamic>, hierarchy);
 
     return AuthResponse(
       token: json['token'] as String,
-      refreshToken: json['refreshToken'] as String,
-      expiresIn: json['expiresIn'] as int,
+      refreshToken: (json['refreshToken'] as String?) ?? '', // Handle missing refreshToken
+      expiresIn: (json['expiresIn'] as int?) ?? 3600, // Default 1 hour if missing
       user: user,
     );
   }

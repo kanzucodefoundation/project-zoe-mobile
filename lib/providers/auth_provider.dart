@@ -238,7 +238,7 @@ class AuthProvider extends ChangeNotifier {
       return [];
     }
 
-    final canManageIds = _user!.hierarchy.canManageGroupIds;
+    final canManageIds = _user!.hierarchy.canManageGroupIds ?? [];
 
     final groups = _user!.hierarchy.myGroups
         .where((group) => group.type == type && canManageIds.contains(group.id))
