@@ -340,34 +340,6 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Location selection with label
-            Row(
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    'Location',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _buildLocationPicker(authProvider),
-            const SizedBox(height: 20),
-
             // Generate form fields
             ...visibleFields.map(
               (field) => _buildTemplateFieldWithInput(field),
@@ -921,17 +893,15 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       return;
     }
 
-    // Check dynamic selections or fallback to legacy location selection
-    String? locationId = _selectedLocationId;
-    if (_dynamicSelections.isNotEmpty) {
-      final selectedGroup = _dynamicSelections.values.first;
-      locationId = selectedGroup['id'].toString();
-    }
-    
-    if (locationId == null) {
-      ToastHelper.showWarning(context, 'Please select the location');
+    // Check if we have dynamic group selections
+    if (_dynamicSelections.isEmpty) {
+      ToastHelper.showWarning(context, 'Please complete all required fields');
       return;
     }
+
+    // Get groupId from dynamic selections
+    final selectedGroup = _dynamicSelections.values.first;
+    final locationId = selectedGroup['id'].toString();
 
     setState(() {
       _isSubmitting = true;

@@ -337,33 +337,6 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Location selection with label
-            Row(
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    'Location',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _buildLocationPicker(authProvider),
-            const SizedBox(height: 20),
             ...visibleFields.map(
               (field) => _buildTemplateFieldWithInput(field),
             ),
@@ -782,8 +755,9 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
       return;
     }
 
-    if (_selectedLocationId == null) {
-      ToastHelper.showWarning(context, 'Please select the location');
+    // Check if we have dynamic group selections
+    if (_dynamicSelections.isEmpty) {
+      ToastHelper.showWarning(context, 'Please complete all required fields');
       return;
     }
 
@@ -800,12 +774,32 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
       _isSubmitting = true;
     });
 
+    // Add dynamic field selections to form data
+    for (var entry in _dynamicSelections.entries) {
+      final fieldName = entry.key;
+      final selection = entry.value;
+      
+      if (selection != null) {
+        // For name fields, store the name; for ID fields, store the ID
+        if (fieldName.toLowerCase().contains('name')) {
+          data[fieldName] = selection['name'];
+        } else if (fieldName.toLowerCase().contains('id')) {
+          data[fieldName] = selection['id'];
+        } else {
+          // Default: assume it wants the name
+          data[fieldName] = selection['name'];
+        }
+      }
+    }
+
     try {
+      // Get groupId from dynamic selections
+      final selectedGroup = _dynamicSelections.values.first;
+      final groupId = selectedGroup['id'] as int;
+
       // Using report service to submit
       await ReportsService.submitReport(
-        groupId: int.parse(
-          _selectedLocationId!,
-        ), // Safe to use ! here after null check above
+        groupId: groupId,
         reportId: widget.reportId,
         data: data,
       );

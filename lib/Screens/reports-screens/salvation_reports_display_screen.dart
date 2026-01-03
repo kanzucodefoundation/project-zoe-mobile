@@ -330,33 +330,6 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Missional Community selection with label
-            Row(
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    'Missional Community',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _buildLocationPicker(authProvider),
-            const SizedBox(height: 20),
             ...visibleFields.map(
               (field) => _buildTemplateFieldWithInput(field),
             ),
@@ -800,8 +773,9 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
       return;
     }
 
-    if (_selectedLocationId == null) {
-      ToastHelper.showWarning(context, 'Please select the Missonal Community');
+    // Check if we have dynamic group selections
+    if (_dynamicSelections.isEmpty) {
+      ToastHelper.showWarning(context, 'Please complete all required fields');
       return;
     }
 
@@ -825,19 +799,32 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
       data['salvationContext'] = _selectedContextOption;
     }
 
+    // Add dynamic field selections to form data
+    for (var entry in _dynamicSelections.entries) {
+      final fieldName = entry.key;
+      final selection = entry.value;
+      
+      if (selection != null) {
+        // For name fields, store the name; for ID fields, store the ID
+        if (fieldName.toLowerCase().contains('name')) {
+          data[fieldName] = selection['name'];
+        } else if (fieldName.toLowerCase().contains('id')) {
+          data[fieldName] = selection['id'];
+        } else {
+          // Default: assume it wants the name
+          data[fieldName] = selection['name'];
+        }
+      }
+    }
+
     final provider = Provider.of<SalvationReportsProvider>(
       context,
       listen: false,
     );
 
-    // Parse location ID safely
-    int? groupId;
-    try {
-      groupId = int.parse(_selectedLocationId ?? '');
-    } catch (e) {
-      ToastHelper.showError(context, 'Invalid Missional Community selected');
-      return;
-    }
+    // Get groupId from dynamic selections
+    final selectedGroup = _dynamicSelections.values.first;
+    final groupId = selectedGroup['id'] as int;
 
     final success = await provider.submitReport(
       groupId: groupId,
