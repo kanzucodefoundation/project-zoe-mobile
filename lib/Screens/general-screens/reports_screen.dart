@@ -37,7 +37,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     if (_hasInitialized) return; // 🔥 PREVENT MULTIPLE CALLS
     _hasInitialized = true;
 
-    await _loadReportCategories();
+    _loadReportCategories();
   }
 
   // 🔥 ADD MANUAL REFRESH METHOD
@@ -46,13 +46,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
     await _loadInitialData();
   }
 
-  Future<void> _loadReportCategories() async {
+  void _loadReportCategories() {
     if (!mounted) return; // 🔥 CHECK MOUNTED
 
     try {
-      debugPrint('🔄 Starting to load report categories...');
-      final categories = await ReportsService.getReportCategories();
-      debugPrint('✅ Categories loaded successfully: $categories');
+      debugPrint('🔄 Starting to extract report categories...');
+      final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+      final categories = ReportsService.getReportCategoriesFromReports(reportProvider.reports);
+      debugPrint('✅ Categories extracted successfully: $categories');
 
       if (mounted) {
         setState(() {
@@ -63,9 +64,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
         );
       }
     } catch (e) {
-      debugPrint('❌ Error loading categories: $e');
+      debugPrint('❌ Error extracting categories: $e');
       if (mounted) {
-        // Error occurred while loading categories
+        // Error occurred while extracting categories
       }
     }
   }

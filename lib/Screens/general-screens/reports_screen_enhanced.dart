@@ -36,7 +36,7 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
   Future<void> _loadInitialData() async {
     if (_hasInitialized) return;
     _hasInitialized = true;
-    await _loadReportCategories();
+    _loadReportCategories();
   }
 
   Future<void> _refreshData() async {
@@ -44,11 +44,12 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
     await _loadInitialData();
   }
 
-  Future<void> _loadReportCategories() async {
+  void _loadReportCategories() {
     if (!mounted) return;
 
     try {
-      final categories = await ReportsService.getReportCategories();
+      final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+      final categories = ReportsService.getReportCategoriesFromReports(reportProvider.reports);
       if (mounted) {
         setState(() {
           _reportCategories = categories;
@@ -56,7 +57,7 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ToastHelper.showError(context, 'Failed to load report categories');
+        ToastHelper.showError(context, 'Failed to extract report categories');
       }
     }
   }

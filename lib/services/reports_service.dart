@@ -236,55 +236,25 @@ class ReportsService {
     }
   }
 
-  /// Get report categories from server
-  static Future<List<Map<String, dynamic>>> getReportCategories() async {
-    try {
-      debugPrint('🔍 Fetching categories from /reports/category...');
-      final response = await _dio.get('/reports/category');
-      debugPrint('✅ Categories response received: ${response.data}');
-      // debugPrint('📊 Response type: ${response.data.runtimeType}');
-
-      // Based on your test data, server returns array directly
-      if (response.data is List) {
-        debugPrint('📋 Response is a List');
-        final List<dynamic> categoriesData = response.data;
-        final result = categoriesData
-            .map(
-              (category) => {
-                'id': category['id'],
-                'name': category['name'] ?? 'Unknown Category',
-              },
-            )
-            .toList();
-        debugPrint('🎯 Final categories result: $result');
-        return result;
-      } else if (response.data is Map && response.data['categories'] != null) {
-        // debugPrint('📋 Response is a Map with categories property');
-        final List<dynamic> categoriesData = response.data['categories'];
-        final result = categoriesData
-            .map(
-              (category) => {
-                'id': category['id'],
-                'name': category['name'] ?? 'Unknown Category',
-              },
-            )
-            .toList();
-        // debugPrint('🎯 Final categories result: $result');
-        return result;
+  /// Extract report categories from reports data
+  static List<Map<String, dynamic>> getReportCategoriesFromReports(List<Report> reports) {
+    debugPrint('🏷️ Extracting categories from ${reports.length} reports...');
+    
+    final Map<int, Map<String, dynamic>> categoriesMap = {};
+    
+    for (final report in reports) {
+      final categoryId = report.targetGroupCategory.id;
+      if (!categoriesMap.containsKey(categoryId)) {
+        categoriesMap[categoryId] = {
+          'id': categoryId,
+          'name': report.targetGroupCategory.name,
+        };
       }
-
-      debugPrint('⚠️ No categories found in server response');
-      return [];
-    } on DioException catch (e) {
-      debugPrint('❌ DioException fetching categories: ${e.toString()}');
-      debugPrint('💥 Error response: ${e.response?.data}');
-      debugPrint('🔢 Status code: ${e.response?.statusCode}');
-
-      throw _handleDioException(e);
-    } catch (e) {
-      debugPrint('💀 Unexpected error fetching categories: ${e.toString()}');
-      throw Exception('Failed to fetch categories: ${e.toString()}');
     }
+    
+    final categories = categoriesMap.values.toList();
+    debugPrint('✅ Extracted ${categories.length} unique categories: $categories');
+    return categories;
   }
 
   /// Submit Report with correct payload structure
@@ -353,13 +323,19 @@ class ReportsService {
 
       // Handle different response formats
       List<dynamic> reportsData;
+      debugPrint('API call for reports returned data');
       if (response.data is List) {
         // Direct array response
+        debugPrint('API call for reports: List returned');
         reportsData = response.data;
+        debugPrint(jsonEncode(reportsData));
       } else if (response.data is Map && response.data['reports'] != null) {
         // Wrapped in reports property
+        debugPrint('API call for reports: Map returned');
         reportsData = response.data['reports'];
+        debugPrint(jsonEncode(reportsData));
       } else {
+        debugPrint('API call for reports: NOTHING returned');
         return [];
       }
 
