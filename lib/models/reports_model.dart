@@ -26,7 +26,7 @@ class ReportField {
   final String label;
   final bool required;
   final bool hidden;
-  final List<String>? options;
+  final List<dynamic>? options;
   final int order;
 
   ReportField({
@@ -49,7 +49,7 @@ class ReportField {
       required: json['required'] as bool,
       hidden: json['hidden'] as bool,
       options: json['options'] != null
-          ? List<String>.from(json['options'] as List)
+          ? List<dynamic>.from(json['options'] as List)
           : null,
       order: json['order'] as int? ?? 0,
     );

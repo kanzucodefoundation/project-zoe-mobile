@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:project_zoe/models/group.dart';
 import 'package:project_zoe/models/report_submission.dart';
 import 'package:project_zoe/models/report_submissions_response%20.dart';
+import 'package:project_zoe/providers/auth_provider.dart';
 import '../api/api_client.dart';
 import '../api/endpoints/report_endpoints.dart';
 import '../models/report.dart';
@@ -406,6 +407,58 @@ class ReportsService {
       throw _handleDioException(e);
     } catch (e) {
       throw Exception('Failed to fetch report: ${e.toString()}');
+    }
+  }
+
+  /// Get all groups by category for tenant (admin level)
+  static Future<List<Map<String, dynamic>>> getAllGroupsByCategory(String categoryName) async {
+    try {
+      debugPrint('🔍 Fetching all groups for category: $categoryName');
+      final response = await _dio.get('/groups/categories/$categoryName');
+      debugPrint('✅ All groups response: ${response.data}');
+      
+      if (response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      }
+      
+      return [];
+    } on DioException catch (e) {
+      debugPrint('❌ Error fetching all groups by category: ${e.toString()}');
+      return [];
+    } catch (e) {
+      debugPrint('💀 Unexpected error: ${e.toString()}');
+      return [];
+    }
+  }
+
+  /// Resolve dynamic group selector from field options
+  static Future<List<Map<String, dynamic>>> resolveDynamicGroupSelector(
+    Map<String, dynamic> selectorConfig,
+    AuthProvider authProvider,
+  ) async {
+    final type = selectorConfig['type']?.toString();
+    final scope = selectorConfig['scope']?.toString();
+    final groupCategory = selectorConfig['group_category']?.toString();
+
+    if (type != 'dynamic_group_selector' || groupCategory == null) {
+      debugPrint('⚠️ Invalid dynamic group selector config: $selectorConfig');
+      return [];
+    }
+
+    try {
+      if (scope == 'user') {
+        // Use hierarchy with exact category name from backend
+        return authProvider.getGroupsFromHierarchy(groupCategory);
+      } else if (scope == 'tenant') {
+        // Fetch all groups of this category for the tenant
+        return await getAllGroupsByCategory(groupCategory);
+      } else {
+        debugPrint('⚠️ Unknown scope: $scope');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('💀 Error resolving dynamic group selector: $e');
+      return [];
     }
   }
 

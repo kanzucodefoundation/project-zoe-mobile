@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:project_zoe/models/report.dart';
 import 'package:project_zoe/models/reports_model.dart';
 import 'package:project_zoe/services/reports_service.dart';
+import 'package:project_zoe/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 import '../../components/text_field.dart';
 import '../../components/submit_button.dart';
 import '../../components/dropdown.dart';
@@ -28,6 +30,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
   // Form related
   final _formKey = GlobalKey<FormState>();
   final Map<String, TextEditingController> _controllers = {};
+  final Map<String, dynamic> _dynamicSelections = {}; // Store dynamic field selections
   Map<String, dynamic>? _selectedMc;
   DateTime? _selectedDate;
   String? _selectedStreamOption;
@@ -63,10 +66,19 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     try {
       // Load MC report template
       if (widget.reportId != null) {
+        debugPrint('🔍 Loading report template for ID: ${widget.reportId}');
         final templateData = await ReportsService.getReportById(
           widget.reportId!,
         );
-        _reportTemplate = Report.fromJson(templateData.toJson());
+        debugPrint('✅ Template data loaded, parsing to Report model...');
+        debugPrint('Template data type: ${templateData.runtimeType}');
+        try {
+          _reportTemplate = Report.fromJson(templateData.toJson());
+          debugPrint('✅ Report template parsed successfully');
+        } catch (parseError) {
+          debugPrint('💀 Report.fromJson failed: $parseError');
+          rethrow;
+        }
       }
 
       // Load available MCs with proper loading state
@@ -91,6 +103,8 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         // Don't fail the entire screen, just continue without MC data
       }
     } catch (e) {
+      debugPrint('💀 ERROR in _loadMcData: $e');
+      debugPrint('💀 Stack trace: ${StackTrace.current}');
       setState(() {
         _error = _getCleanErrorMessage(e, 'Failed to load report template');
         _isLoadingMcs = false;
@@ -512,55 +526,14 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       );
     }
 
-    // MC Name dropdown
-    if ((field.name == 'smallGroupName') &&
-        !fieldLabel.contains('attended') &&
-        !fieldLabel.contains('visit')) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Dropdown(
-            key: ValueKey('mc_${field.name}'), // 🔥 ADD UNIQUE KEY
-            hintText: field.label.length > 20 ? 'Select MC' : 'Select ${field.label}',
-            prefixIcon: Icons.church,
-            items: _availableMcs,
-            getDisplayText: (mc) => mc['name'] ?? 'Unknown MC',
-            value: _selectedMc,
-            onChanged: (selectedMc) {
-              if (mounted) {
-                setState(() {
-                  _selectedMc = selectedMc;
-                });
-              }
-            },
-            validator: field.required
-                ? (value) {
-                    if (value == null) {
-                      return 'Please select ${field.label}';
-                    }
-                    return null;
-                  }
-                : null,
-            isLoading: _isLoadingMcs,
-          ),
-          if (_isLoadingMcs)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                'Loading MCs from server...',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
-            ),
-          if (!_isLoadingMcs && _availableMcs.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                'No MCs available.',
-                style: TextStyle(fontSize: 12, color: Colors.red[600]),
-              ),
-            ),
-        ],
-      );
+    // Check if this is a dynamic group selector field
+    if (field.type.toLowerCase() == 'select' && 
+        field.options != null && 
+        field.options!.isNotEmpty &&
+        field.options![0] is Map<String, dynamic> &&
+        (field.options![0] as Map<String, dynamic>)['type'] == 'dynamic_group_selector') {
+      
+      return _buildDynamicGroupSelector(field);
     }
 
     // Initialize controller if not exists
@@ -621,6 +594,136 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     );
   }
 
+  /// Build dynamic group selector dropdown
+  Widget _buildDynamicGroupSelector(ReportField field) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _resolveDynamicGroupOptions(field),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade600),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Loading ${field.label.toLowerCase()}...',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              border: Border.all(color: Colors.red.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red.shade600, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Error loading ${field.label.toLowerCase()}',
+                    style: TextStyle(color: Colors.red.shade600, fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final options = snapshot.data ?? [];
+        
+        // Get current selection for this field
+        final currentSelection = _dynamicSelections[field.name];
+        final selectedItem = currentSelection != null 
+            ? options.cast<Map<String, dynamic>?>().firstWhere(
+                (item) => item != null && item['id'] == currentSelection['id'],
+                orElse: () => null,
+              )
+            : null;
+
+        return Dropdown(
+          key: ValueKey('dynamic_${field.name}'),
+          hintText: options.isEmpty 
+              ? 'No ${field.label.toLowerCase()} available'
+              : 'Select ${field.label.toLowerCase()}',
+          prefixIcon: Icons.group,
+          items: options,
+          getDisplayText: (option) => option['name'] ?? 'Unknown',
+          value: selectedItem,
+          onChanged: options.isEmpty ? null : (selected) {
+            if (mounted) {
+              setState(() {
+                _dynamicSelections[field.name] = selected;
+              });
+            }
+          },
+          validator: field.required
+              ? (value) {
+                  if (value == null) {
+                    return 'Please select ${field.label}';
+                  }
+                  return null;
+                }
+              : null,
+        );
+      },
+    );
+  }
+
+  /// Resolve dynamic group options from field configuration
+  Future<List<Map<String, dynamic>>> _resolveDynamicGroupOptions(ReportField field) async {
+    try {
+      debugPrint('🔍 Resolving options for field: ${field.name}');
+      debugPrint('🔍 Field options: ${field.options}');
+      
+      if (field.options == null || field.options!.isEmpty) {
+        debugPrint('⚠️ Field has no options');
+        return [];
+      }
+
+      if (field.options![0] is! Map<String, dynamic>) {
+        debugPrint('⚠️ First option is not a Map: ${field.options![0].runtimeType}');
+        return [];
+      }
+
+      final selectorConfig = field.options![0] as Map<String, dynamic>;
+      debugPrint('🔍 Selector config: $selectorConfig');
+      
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      final result = await ReportsService.resolveDynamicGroupSelector(
+        selectorConfig, 
+        authProvider,
+      );
+      
+      debugPrint('✅ Resolved ${result.length} options for field ${field.name}');
+      return result;
+    } catch (e) {
+      debugPrint('💀 Error resolving dynamic group options for ${field.name}: $e');
+      debugPrint('💀 Stack trace: ${StackTrace.current}');
+      return [];
+    }
+  }
+
   TextInputType _getKeyboardType(String type) {
     switch (type.toLowerCase()) {
       case 'number':
@@ -643,8 +746,9 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       return;
     }
 
-    if (_selectedMc == null) {
-      ToastHelper.showWarning(context, 'Please select an MC');
+    // Check if we have any required dynamic field selections
+    if (_dynamicSelections.isEmpty) {
+      ToastHelper.showWarning(context, 'Please complete all required fields');
       return;
     }
 
@@ -662,8 +766,23 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         formData['mcStreamPlatform'] = _selectedStreamOption;
       }
 
-      formData['smallGroupName'] = _selectedMc!['name'];
-      formData['smallGroupId'] = _selectedMc!['id'];
+      // Add dynamic field selections to form data
+      for (var entry in _dynamicSelections.entries) {
+        final fieldName = entry.key;
+        final selection = entry.value;
+        
+        if (selection != null) {
+          // For name fields, store the name; for ID fields, store the ID
+          if (fieldName.toLowerCase().contains('name')) {
+            formData[fieldName] = selection['name'];
+          } else if (fieldName.toLowerCase().contains('id')) {
+            formData[fieldName] = selection['id'];
+          } else {
+            // Default: assume it wants the name
+            formData[fieldName] = selection['name'];
+          }
+        }
+      }
 
       if (_selectedDate != null) {
         formData['date'] = _selectedDate!.toIso8601String();
@@ -671,24 +790,28 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
 
       print('🚀 Submitting MC report: $formData');
 
+      // Get groupId from dynamic selections
+      final groupId = _dynamicSelections.values.first['id'] as int;
+      
       final submission = await ReportsService.submitReport(
-        groupId: _selectedMc!['id'],
+        groupId: groupId,
         reportId: widget.reportId ?? 1,
         data: formData,
       );
 
       if (mounted) {
+        final selectedGroup = _dynamicSelections.values.first;
         final newSubmissionData = {
           'id': submission.id,
           'reportId': widget.reportId ?? 1,
-          'groupId': _selectedMc!['id'],
-          'groupName': _selectedMc!['name'],
+          'groupId': selectedGroup['id'],
+          'groupName': selectedGroup['name'],
           'submittedAt': DateTime.now().toIso8601String(),
           'submittedBy': {'name': 'Current User'},
           'data': formData,
         };
 
-        final mcId = _selectedMc!['id'];
+        final mcId = selectedGroup['id'];
         if (_mcReports.containsKey(mcId)) {
           _mcReports[mcId]!.insert(0, newSubmissionData);
         } else {
