@@ -66,11 +66,12 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       debugPrint('📡 Server submissions: ${serverSubmissions.submissions}');
 
       // Also try the general submitted reports endpoint
-      final submittedReports = await ReportsService.getAllSubmittedReports();
+      // Skip getAllSubmittedReports since main submissions API is working
+      final submittedReports = <Map<String, dynamic>>[];
       debugPrint('📊 Submitted reports: ${submittedReports.length}');
 
       // Load template for field label mapping
-      final templateData = await ReportsService.getReportById(1);
+      final templateData = await ReportsService.getReportById(widget.reportId);
       final template = {
         'id': templateData.id,
         'name': templateData.name,

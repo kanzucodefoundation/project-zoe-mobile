@@ -57,7 +57,7 @@ class _SalvationReportsListScreenState
         reportId: widget.reportId,
       );
 
-      final templateData = await ReportsService.getReportById(4);
+      final templateData = await ReportsService.getReportById(widget.reportId);
 
       final template = {
         'id': templateData.id,

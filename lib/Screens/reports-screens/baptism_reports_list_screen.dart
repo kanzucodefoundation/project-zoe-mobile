@@ -57,7 +57,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
       );
 
       // Also get the template to include field labels
-      final templateData = await ReportsService.getReportById(3);
+      final templateData = await ReportsService.getReportById(widget.reportId);
       final template = {
         'id': templateData.id,
         'name': templateData.name,

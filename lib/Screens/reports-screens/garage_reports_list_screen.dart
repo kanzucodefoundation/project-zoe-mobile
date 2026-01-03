@@ -56,7 +56,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
       );
 
       // Also get the template to include field labels
-      final templateData = await ReportsService.getReportById(2);
+      final templateData = await ReportsService.getReportById(widget.reportId);
       final template = {
         'id': templateData.id,
         'name': templateData.name,
