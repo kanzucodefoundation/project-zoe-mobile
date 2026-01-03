@@ -154,6 +154,8 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _error != null
           ? _buildErrorView()
+          : _reportSubmissions.isEmpty
+          ? _buildEmptyState()
           : _buildReportsList(),
     );
   }
@@ -194,6 +196,35 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
                 backgroundColor: Colors.black,
                 foregroundColor: Colors.white,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.church, size: 64, color: Colors.orange.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'No Service Reports Found',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No service reports have been submitted yet.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
           ],
         ),

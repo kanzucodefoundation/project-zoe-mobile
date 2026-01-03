@@ -161,6 +161,8 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _error != null
           ? _buildErrorView()
+          : _reportSubmissions.isEmpty
+          ? _buildEmptyState()
           : _buildReportsList(),
     );
   }
@@ -201,6 +203,35 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
                 backgroundColor: Colors.black,
                 foregroundColor: Colors.white,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.water_drop, size: 64, color: Colors.blue.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'No Baptism Reports Found',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No baptism reports have been submitted yet.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
           ],
         ),
