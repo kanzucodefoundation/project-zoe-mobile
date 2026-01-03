@@ -440,6 +440,8 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
           fontWeight: FontWeight.w500,
           color: color.withValues(alpha: 0.8),
         ),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
       ),
     );
   }

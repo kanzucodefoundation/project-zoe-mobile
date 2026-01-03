@@ -73,6 +73,8 @@ class ReportSubmissionTile extends StatelessWidget {
                           color: Colors.grey.shade600,
                           fontSize: 14,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                       if (submission['count'] != null ||
                           submission['salvationCount'] != null)
@@ -83,6 +85,8 @@ class ReportSubmissionTile extends StatelessWidget {
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                     ],
                   ),
