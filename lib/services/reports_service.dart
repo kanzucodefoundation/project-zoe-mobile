@@ -284,8 +284,27 @@ class ReportsService {
         data: jsonEncode(reportPayload),
       );
 
-      // debugPrint('✅ Report submitted successfully: ${response.data}');
-      return ReportSubmission.fromJson(response.data as Map<String, dynamic>);
+      // Handle current API response: {"data":{"reportId":9,"submissionId":233,"submittedAt":"...","submittedBy":"..."},"status":200,"message":"..."}
+      final apiResponse = response.data as Map<String, dynamic>;
+      final submissionData = apiResponse['data'] as Map<String, dynamic>;
+      
+      // Map to ReportSubmission format (only submission.id is actually used by the app)
+      final mappedData = {
+        'id': submissionData['submissionId'],
+        'reportId': submissionData['reportId'], 
+        'reportName': '', // Placeholder - not used
+        'groupId': groupId,
+        'groupName': '', // Placeholder - not used  
+        'submittedAt': submissionData['submittedAt'],
+        'submittedBy': {
+          'id': 0, // Placeholder - API only returns email
+          'name': submissionData['submittedBy'],
+        },
+        'data': {}, // Placeholder - not used after submission
+        'canEdit': false, // Placeholder - not used
+      };
+      
+      return ReportSubmission.fromJson(mappedData);
     } on DioException catch (e) {
       debugPrint('❌ Report Submission Error:');
       debugPrint('📍 URL: ${ReportEndpoints.reportsSubmit}');
