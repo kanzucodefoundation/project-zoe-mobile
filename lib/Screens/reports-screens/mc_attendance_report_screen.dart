@@ -31,6 +31,7 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, dynamic> _dynamicSelections = {}; // Store dynamic field selections
+  final Map<String, Future<List<Map<String, dynamic>>>> _dynamicOptionsFutures = {}; // Cache futures
   Map<String, dynamic>? _selectedMc;
   DateTime? _selectedDate;
   String? _selectedStreamOption;
@@ -596,8 +597,13 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
 
   /// Build dynamic group selector dropdown
   Widget _buildDynamicGroupSelector(ReportField field) {
+    // Cache the future to prevent infinite loops
+    if (!_dynamicOptionsFutures.containsKey(field.name)) {
+      _dynamicOptionsFutures[field.name] = _resolveDynamicGroupOptions(field);
+    }
+    
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _resolveDynamicGroupOptions(field),
+      future: _dynamicOptionsFutures[field.name]!,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(

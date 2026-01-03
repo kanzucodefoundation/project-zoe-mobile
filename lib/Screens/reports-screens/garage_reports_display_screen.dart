@@ -34,6 +34,8 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   // Form related
   final _formKey = GlobalKey<FormState>();
   final Map<String, TextEditingController> _controllers = {};
+  final Map<String, dynamic> _dynamicSelections = {}; // Store dynamic field selections
+  final Map<String, Future<List<Map<String, dynamic>>>> _dynamicOptionsFutures = {}; // Cache futures
   DateTime? _selectedDate;
   bool _isSubmitting = false;
 
@@ -432,6 +434,16 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     final fieldName = field.name.toLowerCase();
     final fieldLabel = field.label.toLowerCase();
 
+    // Check if this is a dynamic group selector field
+    if (field.type.toLowerCase() == 'select' && 
+        field.options != null && 
+        field.options!.isNotEmpty &&
+        field.options![0] is Map<String, dynamic> &&
+        (field.options![0] as Map<String, dynamic>)['type'] == 'dynamic_group_selector') {
+      
+      return _buildDynamicGroupSelector(field);
+    }
+
     // Service Type dropdown
     if (fieldLabel.contains('service type') ||
         fieldName.contains('servicetype')) {
@@ -647,6 +659,167 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   //   );
   // }
 
+  /// Build dynamic group selector dropdown
+  Widget _buildDynamicGroupSelector(ReportField field) {
+    // Cache the future to prevent infinite loops
+    if (!_dynamicOptionsFutures.containsKey(field.name)) {
+      _dynamicOptionsFutures[field.name] = _resolveDynamicGroupOptions(field);
+    }
+    
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _dynamicOptionsFutures[field.name]!,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade600),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Loading ${field.label.toLowerCase()}...',
+                  style: TextStyle(color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              border: Border.all(color: Colors.red.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red.shade600, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Error loading ${field.label.toLowerCase()}',
+                    style: TextStyle(color: Colors.red.shade600, fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final options = snapshot.data ?? [];
+        
+        // Get current selection for this field
+        final currentSelection = _dynamicSelections[field.name];
+        final selectedItem = currentSelection != null 
+            ? options.cast<Map<String, dynamic>?>().firstWhere(
+                (item) => item != null && item['id'] == currentSelection['id'],
+                orElse: () => null,
+              )
+            : null;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(25),
+          ),
+          child: DropdownButtonFormField<Map<String, dynamic>>(
+            decoration: InputDecoration(
+              hintText: options.isEmpty 
+                  ? 'No ${field.label.toLowerCase()} available'
+                  : 'Select ${field.label.toLowerCase()}',
+              hintStyle: TextStyle(
+                color: options.isEmpty ? Colors.red : Colors.grey[500], 
+                fontSize: 16
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 16,
+              ),
+            ),
+            value: selectedItem,
+            validator: field.required
+                ? (value) {
+                    if (value == null) {
+                      return 'Please select ${field.label}';
+                    }
+                    return null;
+                  }
+                : null,
+            items: options.map((option) {
+              return DropdownMenuItem<Map<String, dynamic>>(
+                value: option,
+                child: Text(
+                  option['name']?.toString() ?? 'Unknown',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              );
+            }).toList(),
+            onChanged: options.isEmpty ? null : (selected) {
+              if (mounted) {
+                setState(() {
+                  _dynamicSelections[field.name] = selected;
+                });
+              }
+            },
+            icon: options.isEmpty 
+                ? Icon(Icons.error_outline, color: Colors.red.shade400)
+                : const Icon(Icons.arrow_drop_down),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Resolve dynamic group options from field configuration
+  Future<List<Map<String, dynamic>>> _resolveDynamicGroupOptions(ReportField field) async {
+    try {
+      debugPrint('🔍 Resolving options for field: ${field.name}');
+      debugPrint('🔍 Field options: ${field.options}');
+      
+      if (field.options == null || field.options!.isEmpty) {
+        debugPrint('⚠️ Field has no options');
+        return [];
+      }
+
+      if (field.options![0] is! Map<String, dynamic>) {
+        debugPrint('⚠️ First option is not a Map: ${field.options![0].runtimeType}');
+        return [];
+      }
+
+      final selectorConfig = field.options![0] as Map<String, dynamic>;
+      debugPrint('🔍 Selector config: $selectorConfig');
+      
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      final result = await ReportsService.resolveDynamicGroupSelector(
+        selectorConfig, 
+        authProvider,
+      );
+      
+      debugPrint('✅ Resolved ${result.length} options for field ${field.name}');
+      return result;
+    } catch (e) {
+      debugPrint('💀 Error resolving dynamic group options for ${field.name}: $e');
+      debugPrint('💀 Stack trace: ${StackTrace.current}');
+      return [];
+    }
+  }
+
   Widget _buildLocationPicker(AuthProvider authProvider) {
     final List<Map<String, dynamic>> availableLocations = authProvider
         .getGroupsFromHierarchy('location');
@@ -718,7 +891,14 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
       return;
     }
 
-    if (_selectedLocationId == null) {
+    // Check dynamic selections or fallback to legacy location selection
+    String? locationId = _selectedLocationId;
+    if (_dynamicSelections.isNotEmpty) {
+      final selectedGroup = _dynamicSelections.values.first;
+      locationId = selectedGroup['id'].toString();
+    }
+    
+    if (locationId == null) {
       ToastHelper.showWarning(context, 'Please select the location');
       return;
     }
@@ -744,13 +924,29 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         formData['serviceType'] = _selectedServiceType;
       }
 
+      // Add dynamic field selections to form data
+      for (var entry in _dynamicSelections.entries) {
+        final fieldName = entry.key;
+        final selection = entry.value;
+        
+        if (selection != null) {
+          // For name fields, store the name; for ID fields, store the ID
+          if (fieldName.toLowerCase().contains('name')) {
+            formData[fieldName] = selection['name'];
+          } else if (fieldName.toLowerCase().contains('id')) {
+            formData[fieldName] = selection['id'];
+          } else {
+            // Default: assume it wants the name
+            formData[fieldName] = selection['name'];
+          }
+        }
+      }
+
       print('🚀 Submitting garage report: $formData');
 
       await ReportsService.submitReport(
         reportId: widget.reportId,
-        groupId: _selectedLocationId != null
-            ? int.parse(_selectedLocationId!)
-            : 0,
+        groupId: int.parse(locationId!),
         data: formData,
       );
 
