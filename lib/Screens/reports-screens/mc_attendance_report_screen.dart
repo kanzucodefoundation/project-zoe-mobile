@@ -683,10 +683,8 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
           key: ValueKey('dynamic_${field.name}'),
           hintText: options.isEmpty 
               ? 'No ${field.label.toLowerCase()} available'
-              : isAutoSelected 
-                  ? '${selectedItem?['name']} (Auto-selected)'
-                  : 'Select ${field.label.toLowerCase()}',
-          prefixIcon: isAutoSelected ? Icons.check_circle : Icons.group,
+              : 'Select ${field.label.toLowerCase()}',
+          prefixIcon: Icons.group,
           items: options,
           getDisplayText: (option) => option['name'] ?? 'Unknown',
           value: selectedItem,

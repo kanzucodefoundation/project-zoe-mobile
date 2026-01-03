@@ -729,17 +729,10 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
             decoration: InputDecoration(
               hintText: options.isEmpty 
                   ? 'No ${field.label.toLowerCase()} available'
-                  : isAutoSelected 
-                      ? '${selectedItem?['name']} (Auto-selected)'
-                      : 'Select ${field.label.toLowerCase()}',
+                  : 'Select ${field.label.toLowerCase()}',
               hintStyle: TextStyle(
-                color: options.isEmpty 
-                    ? Colors.red 
-                    : isAutoSelected 
-                        ? Colors.green.shade700
-                        : Colors.grey[500], 
-                fontSize: 16,
-                fontWeight: isAutoSelected ? FontWeight.w500 : FontWeight.normal,
+                color: options.isEmpty ? Colors.red : Colors.grey[500], 
+                fontSize: 16
               ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
@@ -779,7 +772,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
             icon: options.isEmpty 
                 ? Icon(Icons.error_outline, color: Colors.red.shade400)
                 : isAutoSelected
-                    ? Icon(Icons.check_circle, color: Colors.green.shade600, size: 20)
+                    ? null // No icon when auto-selected to keep it clean
                     : const Icon(Icons.arrow_drop_down),
           ),
         );
