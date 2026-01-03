@@ -11,7 +11,9 @@ import '../../widgets/custom_toast.dart';
 import 'baptism_reports_display_screen.dart';
 
 class BaptismReportsListScreen extends StatefulWidget {
-  const BaptismReportsListScreen({super.key});
+  final int reportId;
+  
+  const BaptismReportsListScreen({super.key, required this.reportId});
 
   @override
   State<BaptismReportsListScreen> createState() =>
@@ -51,7 +53,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
 
       // Get baptism reports (assuming report ID 3 for baptism)
       final submissions = await ReportsService.getMcReportSubmissions(
-        reportId: 3,
+        reportId: widget.reportId,
       );
 
       // Also get the template to include field labels
@@ -755,7 +757,7 @@ class _BaptismReportsListScreenState extends State<BaptismReportsListScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => BaptismReportsScreen(
-          reportId: submission['reportId'] ?? 3, // Baptism report ID
+          reportId: submission['reportId'] ?? widget.reportId, // Baptism report ID
           editingSubmission: submission, // Pass submission for editing
         ),
       ),

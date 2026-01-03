@@ -10,7 +10,9 @@ import '../../components/edit_report_button.dart';
 import 'garage_reports_display_screen.dart';
 
 class GarageReportsListScreen extends StatefulWidget {
-  const GarageReportsListScreen({super.key});
+  final int reportId;
+  
+  const GarageReportsListScreen({super.key, required this.reportId});
 
   @override
   State<GarageReportsListScreen> createState() =>
@@ -50,7 +52,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
 
       // Get garage reports (assuming report ID 2 for garage)
       final submissions = await ReportsService.getMcReportSubmissions(
-        reportId: 2,
+        reportId: widget.reportId,
       );
 
       // Also get the template to include field labels
@@ -768,7 +770,7 @@ class _GarageReportsListScreenState extends State<GarageReportsListScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => GarageReportsScreen(
-          reportId: submission['reportId'] ?? 2, // Garage report ID
+          reportId: submission['reportId'] ?? widget.reportId, // Garage report ID
           editingSubmission: submission, // Pass submission for editing
         ),
       ),

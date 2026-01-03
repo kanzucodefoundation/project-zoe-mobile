@@ -11,7 +11,9 @@ import '../../widgets/custom_toast.dart';
 import 'salvation_reports_display_screen.dart';
 
 class SalvationReportsListScreen extends StatefulWidget {
-  const SalvationReportsListScreen({super.key});
+  final int reportId;
+  
+  const SalvationReportsListScreen({super.key, required this.reportId});
 
   @override
   State<SalvationReportsListScreen> createState() =>
@@ -52,7 +54,7 @@ class _SalvationReportsListScreenState
 
       // Get salvation reports (assuming report ID 4 for salvation)
       final submissions = await ReportsService.getMcReportSubmissions(
-        reportId: 4,
+        reportId: widget.reportId,
       );
 
       final templateData = await ReportsService.getReportById(4);
@@ -792,7 +794,7 @@ class _SalvationReportsListScreenState
       context,
       MaterialPageRoute(
         builder: (context) => SalvationReportsScreen(
-          reportId: submission['reportId'] ?? 4, // Salvation report ID
+          reportId: submission['reportId'] ?? widget.reportId, // Salvation report ID
           editingSubmission: submission, // Pass submission for editing
         ),
       ),

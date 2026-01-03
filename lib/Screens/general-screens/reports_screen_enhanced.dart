@@ -370,40 +370,70 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
         description: 'View all fellowship reports',
         icon: Icons.people,
         color: AppColors.primaryGreen,
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const McReportsListScreen()),
-        ),
+        onTap: () {
+          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+          final mcReport = reportProvider.reports.firstWhere(
+            (report) => report.name.toLowerCase().contains('mc') || 
+                       report.name.toLowerCase().contains('missional'),
+            orElse: () => reportProvider.reports.first,
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => McReportsListScreen(reportId: mcReport.id)),
+          );
+        },
       ),
       _SubmissionItem(
         title: 'Sunday Services',
         description: 'View all Sunday service reports',
         icon: Icons.church,
         color: AppColors.primaryGreen,
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const GarageReportsListScreen()),
-        ),
+        onTap: () {
+          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+          final garageReport = reportProvider.reports.firstWhere(
+            (report) => report.name.toLowerCase().contains('service') ||
+                       report.name.toLowerCase().contains('sunday'),
+            orElse: () => reportProvider.reports.length > 1 ? reportProvider.reports[1] : reportProvider.reports.first,
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => GarageReportsListScreen(reportId: garageReport.id)),
+          );
+        },
       ),
       _SubmissionItem(
         title: 'Baptisms',
         description: 'View all baptism reports',
         icon: Icons.water_drop,
         color: AppColors.harvestGold,
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const BaptismReportsListScreen()),
-        ),
+        onTap: () {
+          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+          final baptismReport = reportProvider.reports.firstWhere(
+            (report) => report.name.toLowerCase().contains('baptism'),
+            orElse: () => reportProvider.reports.length > 2 ? reportProvider.reports[2] : reportProvider.reports.first,
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => BaptismReportsListScreen(reportId: baptismReport.id)),
+          );
+        },
       ),
       _SubmissionItem(
         title: 'Salvations',
         description: 'View all salvation reports',
         icon: Icons.favorite,
         color: AppColors.harvestGold,
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SalvationReportsListScreen()),
-        ),
+        onTap: () {
+          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+          final salvationReport = reportProvider.reports.firstWhere(
+            (report) => report.name.toLowerCase().contains('salvation'),
+            orElse: () => reportProvider.reports.length > 3 ? reportProvider.reports[3] : reportProvider.reports.first,
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SalvationReportsListScreen(reportId: salvationReport.id)),
+          );
+        },
       ),
     ];
 

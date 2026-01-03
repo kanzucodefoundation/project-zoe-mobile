@@ -152,10 +152,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
         icon: Icons.assignment_turned_in,
         color: Colors.green,
         onTap: () {
+          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+          final mcReport = reportProvider.reports.firstWhere(
+            (report) => report.name.toLowerCase().contains('mc') || 
+                       report.name.toLowerCase().contains('missional'),
+            orElse: () => reportProvider.reports.first,
+          );
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const McReportsListScreen(),
+              builder: (context) => McReportsListScreen(reportId: mcReport.id),
             ),
           );
         },
@@ -167,10 +173,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
         icon: Icons.assignment_turned_in,
         color: Colors.orange,
         onTap: () {
+          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+          final garageReport = reportProvider.reports.firstWhere(
+            (report) => report.name.toLowerCase().contains('service') ||
+                       report.name.toLowerCase().contains('sunday'),
+            orElse: () => reportProvider.reports.length > 1 ? reportProvider.reports[1] : reportProvider.reports.first,
+          );
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const GarageReportsListScreen(),
+              builder: (context) => GarageReportsListScreen(reportId: garageReport.id),
             ),
           );
         },
@@ -182,10 +194,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
         icon: Icons.assignment_turned_in,
         color: Colors.blue,
         onTap: () {
+          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+          final baptismReport = reportProvider.reports.firstWhere(
+            (report) => report.name.toLowerCase().contains('baptism'),
+            orElse: () => reportProvider.reports.length > 2 ? reportProvider.reports[2] : reportProvider.reports.first,
+          );
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const BaptismReportsListScreen(),
+              builder: (context) => BaptismReportsListScreen(reportId: baptismReport.id),
             ),
           );
         },
@@ -197,10 +214,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
         icon: Icons.assignment_turned_in,
         color: Colors.green.shade700,
         onTap: () {
+          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+          final salvationReport = reportProvider.reports.firstWhere(
+            (report) => report.name.toLowerCase().contains('salvation'),
+            orElse: () => reportProvider.reports.length > 3 ? reportProvider.reports[3] : reportProvider.reports.first,
+          );
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const SalvationReportsListScreen(),
+              builder: (context) => SalvationReportsListScreen(reportId: salvationReport.id),
             ),
           );
         },

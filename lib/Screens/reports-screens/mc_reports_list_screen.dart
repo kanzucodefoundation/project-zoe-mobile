@@ -12,7 +12,9 @@ import '../../widgets/custom_toast.dart';
 import 'mc_reports_display_screen.dart';
 
 class McReportsListScreen extends StatefulWidget {
-  const McReportsListScreen({super.key});
+  final int reportId;
+  
+  const McReportsListScreen({super.key, required this.reportId});
 
   @override
   State<McReportsListScreen> createState() => _McReportsListScreenState();
@@ -59,7 +61,7 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
 
       // Try to load from server first (primary data source)
       final serverSubmissions = await ReportsService.getMcReportSubmissions(
-        reportId: 1,
+        reportId: widget.reportId,
       );
       debugPrint('📡 Server submissions: ${serverSubmissions.submissions}');
 
@@ -945,7 +947,7 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => McReportsScreen(
-          reportId: submission['reportId'] ?? 1, // MC report ID
+          reportId: submission['reportId'] ?? widget.reportId, // MC report ID
           editingSubmission: submission, // Pass submission for editing
         ),
       ),
