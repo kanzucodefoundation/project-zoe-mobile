@@ -48,9 +48,8 @@ class ReportsService {
       debugPrint('✅ Groups response received: ${response.data}');
       debugPrint('📊 Response type: ${response.data.runtimeType}');
 
-      // Handle the new API response structure: { groups: [...], summary: {...} }
-      final Map<String, dynamic> responseData = response.data ?? {};
-      final List<dynamic> groupsData = responseData['groups'] ?? [];
+      // Handle the new API response structure: direct array
+      final List<dynamic> groupsData = response.data ?? [];
       debugPrint('📝 Parsed groups count: ${groupsData.length}');
 
       final result = groupsData
@@ -195,7 +194,19 @@ class ReportsService {
       final response = await _dio.get('/groups/me');
       debugPrint('✅ User groups response received: ${response.data}');
 
-      return GroupsResponse.fromJson(response.data);
+      // Handle direct array response and create GroupsResponse
+      final List<dynamic> groupsArray = response.data ?? [];
+      final groups = groupsArray
+          .map((groupData) => Group.fromJson(groupData as Map<String, dynamic>))
+          .toList();
+      
+      // Create a simple summary since the API no longer provides it
+      final summary = GroupsSummary(
+        totalGroups: groups.length,
+        totalMembers: 0, // Not available from direct array response
+      );
+      
+      return GroupsResponse(groups: groups, summary: summary);
     } on DioException catch (e) {
       debugPrint('❌ DioException fetching user groups: ${e.toString()}');
       debugPrint('💥 Error response: ${e.response?.data}');
@@ -213,16 +224,16 @@ class ReportsService {
       final response = await _dio.get(ReportEndpoints.getGroupsForMe);
       debugPrint('✅ My Groups response received: ${response.data}');
 
-      final groupsData = GroupsResponse.fromJson(
-        response.data as Map<String, dynamic>,
-      );
+      // Handle direct array response
+      final List<dynamic> groupsArray = response.data ?? [];
+      
+      debugPrint('📝 Parsed groups count: ${groupsArray.length}');
 
-      debugPrint('📝 Parsed groups count: ${groupsData.groups.length}');
-      debugPrint('📊 Total groups: ${groupsData.summary.totalGroups}');
-      debugPrint('👥 Total members: ${groupsData.summary.totalMembers}');
-
-      final result = groupsData.groups
-          .map((group) => {'id': group.id, 'name': group.name})
+      final result = groupsArray
+          .map((groupData) => {
+            'id': groupData['id'], 
+            'name': groupData['name'] ?? 'Unknown Group'
+          })
           .toList();
 
       return result;
