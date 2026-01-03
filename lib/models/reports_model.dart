@@ -37,7 +37,7 @@ class ReportField {
     required this.required,
     required this.hidden,
     this.options,
-    required this.order,
+    this.order = 0,
   });
 
   factory ReportField.fromJson(Map<String, dynamic> json) {
@@ -51,7 +51,7 @@ class ReportField {
       options: json['options'] != null
           ? List<String>.from(json['options'] as List)
           : null,
-      order: json['order'] as int,
+      order: json['order'] as int? ?? 0,
     );
   }
 
