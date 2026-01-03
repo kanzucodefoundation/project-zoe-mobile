@@ -657,6 +657,17 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
 
         final options = snapshot.data ?? [];
         
+        // Auto-select if there's only one option
+        if (options.length == 1 && _dynamicSelections[field.name] == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _dynamicSelections[field.name] = options.first;
+              });
+            }
+          });
+        }
+        
         // Get current selection for this field
         final currentSelection = _dynamicSelections[field.name];
         final selectedItem = currentSelection != null 
@@ -666,16 +677,20 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
               )
             : null;
 
+        final isAutoSelected = options.length == 1;
+        
         return Dropdown(
           key: ValueKey('dynamic_${field.name}'),
           hintText: options.isEmpty 
               ? 'No ${field.label.toLowerCase()} available'
-              : 'Select ${field.label.toLowerCase()}',
-          prefixIcon: Icons.group,
+              : isAutoSelected 
+                  ? '${selectedItem?['name']} (Auto-selected)'
+                  : 'Select ${field.label.toLowerCase()}',
+          prefixIcon: isAutoSelected ? Icons.check_circle : Icons.group,
           items: options,
           getDisplayText: (option) => option['name'] ?? 'Unknown',
           value: selectedItem,
-          onChanged: options.isEmpty ? null : (selected) {
+          onChanged: options.isEmpty || isAutoSelected ? null : (selected) {
             if (mounted) {
               setState(() {
                 _dynamicSelections[field.name] = selected;

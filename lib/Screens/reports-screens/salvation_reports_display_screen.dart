@@ -435,6 +435,17 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
 
         final options = snapshot.data ?? [];
         
+        // Auto-select if there's only one option
+        if (options.length == 1 && _dynamicSelections[field.name] == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _dynamicSelections[field.name] = options.first;
+              });
+            }
+          });
+        }
+        
         // Get current selection for this field
         final currentSelection = _dynamicSelections[field.name];
         final selectedItem = currentSelection != null 
@@ -444,20 +455,33 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
               )
             : null;
 
+        final isAutoSelected = options.length == 1;
+        final isDisabled = options.isEmpty || isAutoSelected;
+        
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(
+              color: isAutoSelected ? Colors.green.shade300 : Colors.grey.shade300
+            ),
             borderRadius: BorderRadius.circular(25),
+            color: isAutoSelected ? Colors.green.shade50 : null,
           ),
           child: DropdownButtonFormField<Map<String, dynamic>>(
             decoration: InputDecoration(
               hintText: options.isEmpty 
                   ? 'No ${field.label.toLowerCase()} available'
-                  : 'Select ${field.label.toLowerCase()}',
+                  : isAutoSelected 
+                      ? '${selectedItem?['name']} (Auto-selected)'
+                      : 'Select ${field.label.toLowerCase()}',
               hintStyle: TextStyle(
-                color: options.isEmpty ? Colors.red : Colors.grey[500], 
-                fontSize: 16
+                color: options.isEmpty 
+                    ? Colors.red 
+                    : isAutoSelected 
+                        ? Colors.green.shade700
+                        : Colors.grey[500], 
+                fontSize: 16,
+                fontWeight: isAutoSelected ? FontWeight.w500 : FontWeight.normal,
               ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
@@ -479,11 +503,15 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
                 value: option,
                 child: Text(
                   option['name']?.toString() ?? 'Unknown',
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isAutoSelected ? Colors.green.shade700 : Colors.black,
+                    fontWeight: isAutoSelected ? FontWeight.w500 : FontWeight.normal,
+                  ),
                 ),
               );
             }).toList(),
-            onChanged: options.isEmpty ? null : (selected) {
+            onChanged: isDisabled ? null : (selected) {
               if (mounted) {
                 setState(() {
                   _dynamicSelections[field.name] = selected;
@@ -492,7 +520,9 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
             },
             icon: options.isEmpty 
                 ? Icon(Icons.error_outline, color: Colors.red.shade400)
-                : const Icon(Icons.arrow_drop_down),
+                : isAutoSelected
+                    ? Icon(Icons.check_circle, color: Colors.green.shade600, size: 20)
+                    : const Icon(Icons.arrow_drop_down),
           ),
         );
       },
