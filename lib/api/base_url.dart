@@ -7,7 +7,7 @@ class BaseUrl {
       // 'http://localhost:3001';
       'https://07761466f565.ngrok-free.app';
   // 'http://10.254.115.203:3001';
-  // 'http://192.168.1.180:3001';
+  // 'http://192.168.1.17:4002';
 
   /// Get base URL for API endpoints
   static String get apiUrl => '$baseUrl/api';

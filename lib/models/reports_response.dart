@@ -6,8 +6,9 @@ class ReportsResponse {
   ReportsResponse({required this.reports});
 
   factory ReportsResponse.fromJson(Map<String, dynamic> json) {
+    final reportsList = json['reports'] as List<dynamic>? ?? [];
     return ReportsResponse(
-      reports: (json['reports'] as List<dynamic>)
+      reports: reportsList
           .map((e) => Report.fromJson(e as Map<String, dynamic>))
           .toList(),
     );

@@ -11,11 +11,16 @@ class ReportSubmissionsResponse {
   });
 
   factory ReportSubmissionsResponse.fromJson(Map<String, dynamic> json) {
+    final submissionsList = json['submissions'] as List? ?? [];
+    final paginationData = json['pagination'] as Map<String, dynamic>?;
+    
     return ReportSubmissionsResponse(
-      submissions: (json['submissions'] as List)
-          .map((e) => ReportSubmission.fromJson(e))
+      submissions: submissionsList
+          .map((e) => ReportSubmission.fromJson(e as Map<String, dynamic>))
           .toList(),
-      pagination: Pagination.fromJson(json['pagination']),
+      pagination: paginationData != null
+          ? Pagination.fromJson(paginationData)
+          : Pagination(total: 0, limit: 10, offset: 0, hasMore: false),
     );
   }
 }
@@ -46,10 +51,10 @@ class Pagination {
 
   factory Pagination.fromJson(Map<String, dynamic> json) {
     return Pagination(
-      total: json['total'],
-      limit: json['limit'],
-      offset: json['offset'],
-      hasMore: json['hasMore'],
+      total: json['total'] as int? ?? 0,
+      limit: json['limit'] as int? ?? 10,
+      offset: json['offset'] as int? ?? 0,
+      hasMore: json['hasMore'] as bool? ?? false,
     );
   }
 }

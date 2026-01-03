@@ -13,10 +13,12 @@ class McReport {
 
   factory McReport.fromJson(Map<String, dynamic> json) {
     return McReport(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      createdAt: DateTime.parse(json['createdAt']),
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(),
     );
   }
 

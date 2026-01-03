@@ -25,15 +25,17 @@ class Report {
 
   factory Report.fromJson(Map<String, dynamic> json) {
     return Report(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      description: json['description'] as String,
-      submissionFrequency: json['submissionFrequency'] as String,
-      active: json['active'] as bool,
-      status: json['status'] as String,
-      targetGroupCategory: TargetGroupCategory.fromJson(
-        json['targetGroupCategory'] as Map<String, dynamic>,
-      ),
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      submissionFrequency: json['submissionFrequency'] as String? ?? '',
+      active: json['active'] as bool? ?? false,
+      status: json['status'] as String? ?? '',
+      targetGroupCategory: json['targetGroupCategory'] != null
+          ? TargetGroupCategory.fromJson(
+              json['targetGroupCategory'] as Map<String, dynamic>,
+            )
+          : TargetGroupCategory(id: 0, name: ''),
       fieldCount: json['fieldCount'] as int?,
       fields: json['fields'] != null
           ? (json['fields'] as List<dynamic>)

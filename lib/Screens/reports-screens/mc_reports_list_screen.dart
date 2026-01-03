@@ -277,11 +277,11 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
     // debugPrint('🔎 Full submission: $submission');
 
     // Extract data from the correct structure: {reportId: 5, data: {...}}
-    final data = submission['data'];
+    final data = submission['data'] as Map<String, dynamic>?;
     Map<String, dynamic> reportData = {};
 
     if (data is Map) {
-      reportData = Map<String, dynamic>.from(data);
+      reportData = Map<String, dynamic>.from(data!);
     }
 
     // debugPrint('📊 Raw submission structure:');
@@ -297,10 +297,11 @@ class _McReportsListScreenState extends State<McReportsListScreen> {
     // Extract MC info using exact field names (preserving camelCase)
     String mcName = reportData['smallGroupName']?.toString() ?? 'Unknown MC';
     String date =
-        submission['submittedAt']?.toString().split('T')[0] ?? 'No Date';
+        (submission['submittedAt'] as String?)?.split('T').first ?? 'No Date';
     String host = reportData['mcHostHome']?.toString() ?? 'No Host';
+    final submittedByData = submission['submittedBy'] as Map<String, dynamic>?;
     String submittedBy =
-        submission['submittedBy']?['name']?.toString() ?? 'Unknown Person';
+        submittedByData?['name']?.toString() ?? 'Unknown Person';
 
     // debugPrint('✅ === FINAL EXTRACTED VALUES ===');
     // debugPrint('  - MC Name: "$mcName" (from key: smallGroupName)');

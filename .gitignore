@@ -13,6 +13,7 @@
 migrate_working_dir/
 .env
 .fvmrc
+.qodo
 
 # IntelliJ related
 *.iml

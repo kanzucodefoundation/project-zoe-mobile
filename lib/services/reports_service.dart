@@ -20,8 +20,8 @@ class ReportsService {
       final response = await _dio.get('/groups');
 
       // Handle the new API response structure: { groups: [...], summary: {...} }
-      final Map<String, dynamic> responseData = response.data ?? {};
-      final List<dynamic> groupsData = responseData['groups'] ?? [];
+      final Map<String, dynamic> responseData = response.data as Map<String, dynamic>? ?? {};
+      final List<dynamic> groupsData = responseData['groups'] as List<dynamic>? ?? [];
       debugPrint('📝 Parsed groups count: ${groupsData.length}');
 
       final result = groupsData
