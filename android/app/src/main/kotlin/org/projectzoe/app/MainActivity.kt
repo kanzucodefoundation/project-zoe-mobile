@@ -1,4 +1,4 @@
-package com.example.frontend
+package org.projectzoe.app
 
 import io.flutter.embedding.android.FlutterActivity
 
