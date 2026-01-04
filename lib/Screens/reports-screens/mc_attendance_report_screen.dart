@@ -54,6 +54,36 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     super.dispose();
   }
 
+  /// Process hidden dynamic group fields that need auto-selection
+  void _processHiddenDynamicFields() async {
+    if (_reportTemplate?.fields == null) return;
+
+    final hiddenDynamicFields = _reportTemplate!.fields!
+        .where((field) => 
+            field.hidden && 
+            field.type.toLowerCase() == 'select' &&
+            field.options != null && 
+            field.options!.isNotEmpty &&
+            field.options![0] is Map<String, dynamic> &&
+            (field.options![0] as Map<String, dynamic>)['type'] == 'dynamic_group_selector')
+        .toList();
+
+    for (final field in hiddenDynamicFields) {
+      try {
+        final options = await _resolveDynamicGroupOptions(field);
+        if (options.isNotEmpty) {
+          // Auto-select first option for hidden fields
+          setState(() {
+            _dynamicSelections[field.name] = options.first;
+          });
+          debugPrint('✅ Auto-selected hidden field ${field.name}: ${options.first['name']}');
+        }
+      } catch (e) {
+        debugPrint('❌ Error processing hidden field ${field.name}: $e');
+      }
+    }
+  }
+
   /// Load MC report template and data
   Future<void> _loadMcData() async {
     if (_hasInitialized) return; // 🔥 PREVENT MULTIPLE CALLS
@@ -76,6 +106,9 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         try {
           _reportTemplate = Report.fromJson(templateData.toJson());
           debugPrint('✅ Report template parsed successfully');
+          
+          // Process hidden dynamic fields after template is loaded
+          _processHiddenDynamicFields();
         } catch (parseError) {
           debugPrint('💀 Report.fromJson failed: $parseError');
           rethrow;

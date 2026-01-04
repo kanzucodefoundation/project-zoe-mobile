@@ -47,6 +47,36 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
     });
   }
 
+  /// Process hidden dynamic group fields that need auto-selection
+  void _processHiddenDynamicFields(SalvationReportsProvider provider) async {
+    if (provider.reportTemplate?.fields == null) return;
+
+    final hiddenDynamicFields = provider.reportTemplate!.fields!
+        .where((field) => 
+            field.hidden && 
+            field.type.toLowerCase() == 'select' &&
+            field.options != null && 
+            field.options!.isNotEmpty &&
+            field.options![0] is Map<String, dynamic> &&
+            (field.options![0] as Map<String, dynamic>)['type'] == 'dynamic_group_selector')
+        .toList();
+
+    for (final field in hiddenDynamicFields) {
+      try {
+        final options = await _resolveDynamicGroupOptions(field);
+        if (options.isNotEmpty) {
+          // Auto-select first option for hidden fields
+          setState(() {
+            _dynamicSelections[field.name] = options.first;
+          });
+          debugPrint('✅ Auto-selected hidden field ${field.name}: ${options.first['name']}');
+        }
+      } catch (e) {
+        debugPrint('❌ Error processing hidden field ${field.name}: $e');
+      }
+    }
+  }
+
   void _preFillFormForEditing() {
     final submission = widget.editingSubmission!;
     final data = submission['data'] as Map<String, dynamic>? ?? {};
@@ -99,6 +129,12 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
   Widget build(BuildContext context) {
     return Consumer2<SalvationReportsProvider, AuthProvider>(
       builder: (context, provider, authProvider, child) {
+        // Process hidden fields when template becomes available
+        if (provider.reportTemplate != null && _dynamicSelections.isEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _processHiddenDynamicFields(provider);
+          });
+        }
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(

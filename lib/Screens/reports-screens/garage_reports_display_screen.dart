@@ -48,6 +48,36 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     _loadReportData();
   }
 
+  /// Process hidden dynamic group fields that need auto-selection
+  void _processHiddenDynamicFields() async {
+    if (_reportTemplate?.fields == null) return;
+
+    final hiddenDynamicFields = _reportTemplate!.fields!
+        .where((field) => 
+            field.hidden && 
+            field.type.toLowerCase() == 'select' &&
+            field.options != null && 
+            field.options!.isNotEmpty &&
+            field.options![0] is Map<String, dynamic> &&
+            (field.options![0] as Map<String, dynamic>)['type'] == 'dynamic_group_selector')
+        .toList();
+
+    for (final field in hiddenDynamicFields) {
+      try {
+        final options = await _resolveDynamicGroupOptions(field);
+        if (options.isNotEmpty) {
+          // Auto-select first option for hidden fields
+          setState(() {
+            _dynamicSelections[field.name] = options.first;
+          });
+          debugPrint('✅ Auto-selected hidden field ${field.name}: ${options.first['name']}');
+        }
+      } catch (e) {
+        debugPrint('❌ Error processing hidden field ${field.name}: $e');
+      }
+    }
+  }
+
   @override
   void dispose() {
     // Dispose all text controllers
@@ -78,6 +108,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         _submissions.addAll(submissions);
         _isLoading = false;
       });
+
+      // Process hidden dynamic fields after template is loaded
+      _processHiddenDynamicFields();
 
       // If we're editing, pre-fill the form with existing data
       if (widget.editingSubmission != null) {
