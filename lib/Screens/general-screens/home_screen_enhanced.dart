@@ -152,9 +152,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  auth.user?.hierarchy.fellowshipGroups.isNotEmpty == true
-                      ? auth.user!.hierarchy.fellowshipGroups.first.name
-                      : 'Your fellowship awaits',
+                  _getUserGroupAndRole(auth),
                   style: AppTextStyles.body.copyWith(
                     color: AppColors.pureWhite.withOpacity(0.9),
                   ),
@@ -396,5 +394,22 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         .where((part) => part.isNotEmpty)
         .toList();
     return parts.isNotEmpty ? parts.first : 'User';
+  }
+
+  String _getUserGroupAndRole(AuthProvider auth) {
+    final user = auth.user;
+    if (user == null) return 'Your fellowship awaits';
+
+    // Simple approach: Just show the user's location
+    if (user.hierarchy.locationGroups.isNotEmpty) {
+      return user.hierarchy.locationGroups.first.name;
+    }
+
+    // Fallback: Show any group they belong to
+    if (user.hierarchy.myGroups.isNotEmpty) {
+      return user.hierarchy.myGroups.first.name;
+    }
+
+    return 'Your fellowship awaits';
   }
 }
