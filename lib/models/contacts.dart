@@ -144,7 +144,7 @@ class ContactDetails {
 
     return ContactDetails(
       id: json['id'] as int,
-      category: json['category'] as String,
+      category: json['category'] as String? ?? 'Unknown',
       person: ContactPerson.fromJson(json['person']),
       emails:
           (json['emails'] as List<dynamic>?)
@@ -196,8 +196,8 @@ class ContactPerson {
   factory ContactPerson.fromJson(Map<String, dynamic> json) {
     return ContactPerson(
       id: json['id'] as int,
-      firstName: json['firstName'] as String,
-      lastName: json['lastName'] as String,
+      firstName: json['firstName'] as String? ?? 'Unknown',
+      lastName: json['lastName'] as String? ?? '',
       ageGroup: json['ageGroup'] as String?,
       gender: json['gender'] as String?,
       civilStatus: json['civilStatus'] as String?,
@@ -224,8 +224,8 @@ class ContactEmail {
   factory ContactEmail.fromJson(Map<String, dynamic> json) {
     return ContactEmail(
       id: json['id'] as int,
-      category: json['category'] as String,
-      value: json['value'] as String,
+      category: json['category'] as String? ?? 'Email',
+      value: json['value'] as String? ?? '',
       isPrimary: json['isPrimary'] as bool? ?? false,
     );
   }
@@ -247,8 +247,8 @@ class ContactPhone {
   factory ContactPhone.fromJson(Map<String, dynamic> json) {
     return ContactPhone(
       id: json['id'] as int,
-      category: json['category'] as String,
-      value: json['value'] as String,
+      category: json['category'] as String? ?? 'Phone',
+      value: json['value'] as String? ?? '',
       isPrimary: json['isPrimary'] as bool? ?? false,
     );
   }
@@ -274,7 +274,7 @@ class ContactAddress {
   factory ContactAddress.fromJson(Map<String, dynamic> json) {
     return ContactAddress(
       id: json['id'] as int,
-      category: json['category'] as String,
+      category: json['category'] as String? ?? 'Address',
       isPrimary: json['isPrimary'] as bool? ?? false,
       country: json['country'] as String?,
       district: json['district'] as String?,
@@ -300,7 +300,7 @@ class GroupMembership {
     return GroupMembership(
       id: json['id'] as int,
       groupId: json['groupId'] as int,
-      role: json['role'] as String,
+      role: json['role'] as String? ?? 'Member',
       group: GroupModel.fromJson(json['group']),
     );
   }
@@ -320,8 +320,8 @@ class GroupModel {
   factory GroupModel.fromJson(Map<String, dynamic> json) {
     return GroupModel(
       id: json['id'] as int,
-      name: json['name'] as String,
-      categoryName: json['categoryName'] as String,
+      name: json['name'] as String? ?? 'Unknown Group',
+      categoryName: json['categoryName'] as String? ?? 'Unknown Category',
     );
   }
 }
