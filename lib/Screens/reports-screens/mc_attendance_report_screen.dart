@@ -23,7 +23,6 @@ class McAttendanceReportScreen extends StatefulWidget {
 class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
   Report? _reportTemplate;
   List<Map<String, dynamic>> _availableMcs = [];
-  final Map<int, List<Map<String, dynamic>>> _mcReports = {};
   bool _isLoading = true;
   String? _error;
 
@@ -126,9 +125,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
         setState(() {
           _isLoadingMcs = false;
         });
-
-        // Load reports for each MC
-        await _loadReportsForAllMcs();
       } catch (e) {
         setState(() {
           _isLoadingMcs = false;
@@ -152,39 +148,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
     }
   }
 
-  /// Load reports for all available MCs
-  Future<void> _loadReportsForAllMcs() async {
-    for (final mc in _availableMcs) {
-      try {
-        final reports = await ReportsService.getReportDetailsByGroupId(
-          mc['id'],
-        );
-
-        // Sort reports by date (newest first)
-        reports.sort((a, b) {
-          final dateA =
-              DateTime.tryParse(a['submittedAt']?.toString() ?? '') ??
-              DateTime(1970);
-          final dateB =
-              DateTime.tryParse(b['submittedAt']?.toString() ?? '') ??
-              DateTime(1970);
-          return dateB.compareTo(dateA);
-        });
-
-        if (mounted) {
-          setState(() {
-            _mcReports[mc['id']] = reports;
-          });
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            _mcReports[mc['id']] = [];
-          });
-        }
-      }
-    }
-  }
 
   // 🔥 ADD MANUAL REFRESH METHOD
   Future<void> _refreshData() async {
@@ -852,36 +815,6 @@ class _McAttendanceReportScreenState extends State<McAttendanceReportScreen> {
       );
 
       if (mounted) {
-        final selectedGroup = _dynamicSelections.values.first;
-        final newSubmissionData = {
-          'id': submission.id,
-          'reportId': widget.reportId ?? 1,
-          'groupId': selectedGroup['id'],
-          'groupName': selectedGroup['name'],
-          'submittedAt': DateTime.now().toIso8601String(),
-          'submittedBy': {'name': 'Current User'},
-          'data': formData,
-        };
-
-        final mcId = selectedGroup['id'];
-        if (_mcReports.containsKey(mcId)) {
-          _mcReports[mcId]!.insert(0, newSubmissionData);
-        } else {
-          _mcReports[mcId] = [newSubmissionData];
-        }
-
-        _mcReports[mcId]!.sort((a, b) {
-          final dateA =
-              DateTime.tryParse(a['submittedAt']?.toString() ?? '') ??
-              DateTime(1970);
-          final dateB =
-              DateTime.tryParse(b['submittedAt']?.toString() ?? '') ??
-              DateTime(1970);
-          return dateB.compareTo(dateA);
-        });
-
-        setState(() {});
-
         ToastHelper.showSuccess(
           context,
           'MC report submitted successfully! 🎉',

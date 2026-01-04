@@ -4,19 +4,17 @@ import '../services/reports_service.dart';
 
 class SalvationReportsProvider extends ChangeNotifier {
   Report? _reportTemplate;
-  final List<Map<String, dynamic>> _submissions = [];
   bool _isLoading = false;
   String? _error;
   bool _isSubmitting = false;
 
   // Getters
   Report? get reportTemplate => _reportTemplate;
-  List<Map<String, dynamic>> get submissions => List.unmodifiable(_submissions);
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isSubmitting => _isSubmitting;
 
-  /// Load report data including template and submissions
+  /// Load report template for creating new submissions
   Future<void> loadReportData(int reportId) async {
     _setLoading(true);
     _clearError();
@@ -24,15 +22,11 @@ class SalvationReportsProvider extends ChangeNotifier {
     try {
       final templateData = await ReportsService.getReportById(reportId);
       final template = Report.fromJson(templateData.toJson());
-      final submissions = await ReportsService.getReportSubmissions(reportId);
 
       _reportTemplate = template;
-      _submissions.clear();
-      _submissions.addAll(submissions);
-
       notifyListeners();
     } catch (e) {
-      _setError('Error loading report data: ${e.toString()}');
+      _setError('Error loading report template: ${e.toString()}');
     } finally {
       _setLoading(false);
     }
@@ -54,8 +48,6 @@ class SalvationReportsProvider extends ChangeNotifier {
         data: data,
       );
 
-      // Reload data to show the new submission
-      await loadReportData(reportId);
       return true;
     } catch (e) {
       _setError('Error submitting report: ${e.toString()}');
@@ -68,7 +60,6 @@ class SalvationReportsProvider extends ChangeNotifier {
   /// Clear all data
   void clearData() {
     _reportTemplate = null;
-    _submissions.clear();
     _clearError();
     notifyListeners();
   }

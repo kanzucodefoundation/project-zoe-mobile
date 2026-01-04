@@ -25,7 +25,6 @@ class BaptismReportsScreen extends StatefulWidget {
 
 class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
   Report? _reportTemplate;
-  final List<Map<String, dynamic>> _submissions = [];
   bool _isLoading = true;
   String? _error;
 
@@ -92,14 +91,9 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
     try {
       final templateData = await ReportsService.getReportById(widget.reportId);
       final template = Report.fromJson(templateData.toJson());
-      final submissions = await ReportsService.getReportSubmissions(
-        widget.reportId,
-      );
 
       setState(() {
         _reportTemplate = template;
-        _submissions.clear();
-        _submissions.addAll(submissions);
         _isLoading = false;
       });
 

@@ -27,7 +27,6 @@ class GarageReportsScreen extends StatefulWidget {
 
 class _GarageReportsScreenState extends State<GarageReportsScreen> {
   Report? _reportTemplate;
-  final List<Map<String, dynamic>> _submissions = [];
   bool _isLoading = true;
   String? _error;
 
@@ -94,18 +93,12 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
     });
 
     try {
-      // Load Garage report template (ID: 2)
+      // Load Garage report template
       final templateData = await ReportsService.getReportById(widget.reportId);
-
       final template = Report.fromJson(templateData.toJson());
-      final submissions = await ReportsService.getReportSubmissions(
-        widget.reportId,
-      );
 
       setState(() {
         _reportTemplate = template;
-        _submissions.clear();
-        _submissions.addAll(submissions);
         _isLoading = false;
       });
 
