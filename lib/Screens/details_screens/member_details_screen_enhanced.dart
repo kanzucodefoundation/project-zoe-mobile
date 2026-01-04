@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../models/contacts.dart';
 import '../../widgets/custom_toast.dart';
 import '../general-screens/add_contact_screen.dart';
+import '../general-screens/add_member_screen_enhanced.dart';
 
 /// Enhanced Member Details Screen using Project Zoe Design System
 class EnhancedMemberDetailsScreen extends StatefulWidget {
@@ -565,8 +566,9 @@ class _EnhancedMemberDetailsScreenState extends State<EnhancedMemberDetailsScree
 
   void _editMember(ContactPerson person) async {
     // Convert ContactPerson to Contact for editing
+    // Use widget.contactId (the actual contact ID) not person.id (which is the person ID)
     final contact = Contact(
-      id: person.id,
+      id: widget.contactId,
       name: '${person.firstName} ${person.lastName}',
       firstName: person.firstName,
       lastName: person.lastName,
@@ -583,7 +585,7 @@ class _EnhancedMemberDetailsScreenState extends State<EnhancedMemberDetailsScree
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AddContactScreen(editingContact: contact),
+        builder: (context) => EnhancedAddMemberScreen(editingContact: contact),
       ),
     );
 
