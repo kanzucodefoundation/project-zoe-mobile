@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "562471901898",
+    "project_id": "project-zoe-7f87a",
+    "storage_bucket": "project-zoe-7f87a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:562471901898:android:2910cb9abec86ebc87f233",
+        "android_client_info": {
+          "package_name": "org.projectzoe.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMlXnsqNpr3DjqQncjjyABqgfq_bt3awA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

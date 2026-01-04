@@ -18,6 +18,8 @@ import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
 import 'Screens/general-screens/settings_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 // Project Zoe Design System
 import 'core/theme/theme.dart';
@@ -32,6 +34,9 @@ void main() async {
   await notificationService.initNotification();
   // Load the .env file
   await dotenv.load(fileName: ".env");
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   
   runApp(const MyApp());
 }
