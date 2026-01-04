@@ -32,6 +32,7 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
   String? _selectedGender;
   String? _selectedAgeGroup;
   String? _selectedCivilStatus;
+  String? _selectedAddressCategory;
   Group? _selectedGroup;
   DateTime? _selectedDateOfBirth;
 
@@ -45,6 +46,9 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
   ];
   final List<String> _civilStatusOptions = [
     'Married', 'Single', 'Dating', 'Other'
+  ];
+  final List<String> _addressCategoryOptions = [
+    'Home', 'Work', 'Other'
   ];
 
   @override
@@ -74,6 +78,8 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
       _controllers['email'] = TextEditingController();
       _controllers['phone'] = TextEditingController();
       _controllers['address'] = TextEditingController();
+      _controllers['country'] = TextEditingController();
+      _controllers['district'] = TextEditingController();
       _controllers['placeOfWork'] = TextEditingController();
 
       // Load available groups from API
@@ -104,6 +110,8 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
     _controllers['email']?.text = contact.email ?? '';
     _controllers['phone']?.text = contact.phone ?? '';
     _controllers['address']?.text = '';
+    _controllers['country']?.text = '';
+    _controllers['district']?.text = '';
     _controllers['placeOfWork']?.text = '';
 
     if (contact.dateOfBirth != null && contact.dateOfBirth!.isNotEmpty) {
@@ -391,11 +399,67 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
                 },
               ),
               const SizedBox(height: AppSpacing.lg),
+              
+              // Address Section
+              Row(
+                children: [
+                  Icon(Icons.location_on, color: AppColors.secondaryText, size: 20),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    'Address Information',
+                    style: AppTextStyles.label.copyWith(
+                      color: AppColors.primaryText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              
+              // Address Category
+              ZoeDropdown<String>(
+                label: 'Address Category',
+                value: _selectedAddressCategory,
+                hint: 'Select address type',
+                items: _addressCategoryOptions.map((category) => 
+                  DropdownMenuItem(value: category, child: Text(category))
+                ).toList(),
+                onChanged: (value) => setState(() => _selectedAddressCategory = value),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              
+              // Country and District in a row
+              Row(
+                children: [
+                  Expanded(
+                    child: ZoeInput(
+                      label: 'Country *',
+                      controller: _controllers['country'],
+                      validator: (value) => value?.isEmpty == true
+                          ? 'Country is required'
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: ZoeInput(
+                      label: 'District *',
+                      controller: _controllers['district'],
+                      validator: (value) => value?.isEmpty == true
+                          ? 'District is required'
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              
+              // Full Address (Optional)
               ZoeInput(
-                label: 'Address',
+                label: 'Full Address (Optional)',
                 controller: _controllers['address'],
                 maxLines: 2,
-                prefixIcon: Icon(Icons.location_on, color: AppColors.secondaryText),
+                hint: 'e.g., Plot 15, John Doe Road, Ntinda',
               ),
             ],
           ),
@@ -561,6 +625,8 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
       final phoneText = _controllers['phone']!.text.trim();
       final emailText = _controllers['email']!.text.trim();
       final addressText = _controllers['address']!.text.trim();
+      final countryText = _controllers['country']!.text.trim();
+      final districtText = _controllers['district']!.text.trim();
 
       if (phoneText.isNotEmpty) {
         contactData['phones'] = [{'value': phoneText, 'isPrimary': true}];
@@ -568,8 +634,22 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
       if (emailText.isNotEmpty) {
         contactData['emails'] = [{'value': emailText, 'isPrimary': true}];
       }
-      if (addressText.isNotEmpty) {
-        contactData['addresses'] = [{'freeForm': addressText, 'isPrimary': true}];
+      
+      // Add address with required fields
+      if (countryText.isNotEmpty && districtText.isNotEmpty) {
+        final addressData = <String, dynamic>{
+          'category': _selectedAddressCategory ?? 'Home',
+          'isPrimary': true,
+          'country': countryText,
+          'district': districtText,
+        };
+        
+        // Add optional fields if provided
+        if (addressText.isNotEmpty) {
+          addressData['freeForm'] = addressText;
+        }
+        
+        contactData['addresses'] = [addressData];
       }
       if (_selectedGroup != null) {
         contactData['groups'] = [_selectedGroup!.id];
