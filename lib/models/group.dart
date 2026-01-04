@@ -33,20 +33,20 @@ class Group {
 
   factory Group.fromJson(Map<String, dynamic> json) {
     return Group(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      type: json['type'] as String,
-      categoryId: json['categoryId'] as int,
-      categoryName: json['categoryName'] as String,
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? 'Unknown Group',
+      type: json['type'] as String? ?? 'Unknown Type',
+      categoryId: json['categoryId'] as int? ?? 0,
+      categoryName: json['categoryName'] as String? ?? 'Unknown Category',
       role: json['role'] as String?,
-      privacy: json['privacy'] as String,
-      details: json['details'] as String,
+      privacy: json['privacy'] as String? ?? 'Private',
+      details: json['details'] as String? ?? '',
       parentId: json['parentId'] as int?,
       parent: json['parent'] != null
           ? GroupParent.fromJson(json['parent'] as Map<String, dynamic>)
           : null,
-      memberCount: json['memberCount'] as int,
-      activeMembers: json['activeMembers'] as int,
+      memberCount: json['memberCount'] as int? ?? 0,
+      activeMembers: json['activeMembers'] as int? ?? 0,
       metaData: json['metaData'] != null
           ? GroupMetaData.fromJson(json['metaData'] as Map<String, dynamic>)
           : null,
@@ -80,7 +80,10 @@ class GroupParent {
   GroupParent({required this.id, required this.name});
 
   factory GroupParent.fromJson(Map<String, dynamic> json) {
-    return GroupParent(id: json['id'] as int, name: json['name'] as String);
+    return GroupParent(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? 'Unknown Parent',
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -137,8 +140,8 @@ class GroupsSummary {
 
   factory GroupsSummary.fromJson(Map<String, dynamic> json) {
     return GroupsSummary(
-      totalGroups: json['totalGroups'] as int,
-      totalMembers: json['totalMembers'] as int,
+      totalGroups: json['totalGroups'] as int? ?? 0,
+      totalMembers: json['totalMembers'] as int? ?? 0,
     );
   }
 
