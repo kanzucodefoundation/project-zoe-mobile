@@ -34,7 +34,8 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, dynamic> _dynamicSelections = {}; // Store dynamic field selections
   final Map<String, Future<List<Map<String, dynamic>>>> _dynamicOptionsFutures = {}; // Cache futures
-  DateTime? _selectedDate;
+  final Map<String, DateTime> _selectedDates = {}; // Store dates by field name
+  DateTime? _selectedDate; // Keep for backward compatibility
   bool _isSubmitting = false;
   String? _selectedLocationId;
 
@@ -130,12 +131,14 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
 
     // Pre-fill text controllers
     data.forEach((key, value) {
-      if (key == 'date' && value != null) {
+      if (key.toLowerCase().contains('date') && value != null) {
         try {
-          _selectedDate = DateTime.parse(value.toString());
-          print('✅ Pre-filled date: $_selectedDate');
+          final date = DateTime.parse(value.toString());
+          _selectedDates[key] = date;
+          _selectedDate = date; // Keep for backward compatibility
+          print('✅ Pre-filled date field $key: $date');
         } catch (e) {
-          print('⚠️ Invalid date format: $value');
+          print('⚠️ Invalid date format for $key: $value');
         }
       } else if (value != null && value.toString().isNotEmpty) {
         // Create controller if doesn't exist and pre-fill
@@ -448,10 +451,15 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
       return CustomDatePicker(
         hintText: 'Select ${field.label.toLowerCase()}',
         prefixIcon: Icons.calendar_today,
-        selectedDate: _selectedDate,
+        selectedDate: _selectedDates[field.name] ?? _selectedDate,
         onDateSelected: (date) {
           setState(() {
-            _selectedDate = date;
+            if (date != null) {
+              _selectedDates[field.name] = date;
+            } else {
+              _selectedDates.remove(field.name);
+            }
+            _selectedDate = date; // Keep for backward compatibility
           });
         },
         validator: field.required
@@ -792,7 +800,13 @@ class _BaptismReportsScreenState extends State<BaptismReportsScreen> {
       data[entry.key] = entry.value.text;
     }
 
-    if (_selectedDate != null) {
+    // Add all selected dates using their correct field names
+    for (var entry in _selectedDates.entries) {
+      data[entry.key] = entry.value.toIso8601String();
+    }
+
+    // Fallback: if no field-specific dates but _selectedDate exists
+    if (_selectedDates.isEmpty && _selectedDate != null) {
       data['date'] = _selectedDate!.toIso8601String();
     }
 
