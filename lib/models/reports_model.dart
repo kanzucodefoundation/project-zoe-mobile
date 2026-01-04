@@ -8,8 +8,8 @@ class TargetGroupCategory {
 
   factory TargetGroupCategory.fromJson(Map<String, dynamic> json) {
     return TargetGroupCategory(
-      id: json['id'] as int,
-      name: json['name'] as String,
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
     );
   }
 
@@ -42,12 +42,12 @@ class ReportField {
 
   factory ReportField.fromJson(Map<String, dynamic> json) {
     return ReportField(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      type: json['type'] as String,
-      label: json['label'] as String,
-      required: json['required'] as bool,
-      hidden: json['hidden'] as bool,
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      type: json['type'] as String? ?? '',
+      label: json['label'] as String? ?? '',
+      required: json['required'] as bool? ?? false,
+      hidden: json['hidden'] as bool? ?? false,
       options: json['options'] != null
           ? List<dynamic>.from(json['options'] as List)
           : null,

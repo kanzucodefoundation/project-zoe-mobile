@@ -132,7 +132,9 @@ class _McReportsScreenState extends State<McReportsScreen> {
   }
 
   void _preFillFormForEditing() {
-    final submission = widget.editingSubmission!;
+    final submission = widget.editingSubmission;
+    if (submission == null) return;
+    
     final data = submission['data'] as Map<String, dynamic>? ?? {};
 
     // print('🔍 MC pre-fill data: $data');
@@ -157,19 +159,20 @@ class _McReportsScreenState extends State<McReportsScreen> {
         // For MC reports, we need to map to field IDs
         // Try to find the field by name first, then use a fallback
         if (_report?.fields != null) {
-          final field = _report!.fields!.firstWhere(
-            (field) => field.name == key,
-            orElse: () {
-              throw StateError('Field not found');
-            },
-          );
-          if (!_controllers.containsKey(field.id)) {
-            _controllers[field.id] = TextEditingController();
+          try {
+            final field = _report!.fields!.firstWhere(
+              (field) => field.name == key,
+            );
+            if (!_controllers.containsKey(field.id)) {
+              _controllers[field.id] = TextEditingController();
+            }
+            _controllers[field.id]!.text = value.toString();
+            // print(
+            //   '✅ Pre-filled MC field ${field.name} (ID: ${field.id}) with: ${value.toString()}',
+            // );
+          } catch (e) {
+            // Field not found, skip
           }
-          _controllers[field.id]!.text = value.toString();
-          // print(
-          //   '✅ Pre-filled MC field ${field.name} (ID: ${field.id}) with: ${value.toString()}',
-          // );
         }
       }
     });

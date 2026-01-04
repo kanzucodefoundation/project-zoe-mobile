@@ -23,17 +23,21 @@ class ReportSubmission {
 
   factory ReportSubmission.fromJson(Map<String, dynamic> json) {
     return ReportSubmission(
-      id: json['id'] as int,
-      reportId: json['reportId'] as int,
-      reportName: json['reportName'] as String,
-      groupId: json['groupId'] as int,
-      groupName: json['groupName'] as String,
-      submittedAt: json['submittedAt'] as String,
-      submittedBy: SubmittedBy.fromJson(
-        json['submittedBy'] as Map<String, dynamic>,
-      ),
-      data: Map<String, dynamic>.from(json['data'] as Map),
-      canEdit: json['canEdit'] as bool,
+      id: json['id'] as int? ?? 0,
+      reportId: json['reportId'] as int? ?? 0,
+      reportName: json['reportName'] as String? ?? '',
+      groupId: json['groupId'] as int? ?? 0,
+      groupName: json['groupName'] as String? ?? '',
+      submittedAt: json['submittedAt'] as String? ?? '',
+      submittedBy: json['submittedBy'] != null
+          ? SubmittedBy.fromJson(
+              json['submittedBy'] as Map<String, dynamic>,
+            )
+          : SubmittedBy(id: 0, name: 'Unknown'),
+      data: json['data'] != null
+          ? Map<String, dynamic>.from(json['data'] as Map)
+          : {},
+      canEdit: json['canEdit'] as bool? ?? false,
     );
   }
 
@@ -59,7 +63,10 @@ class SubmittedBy {
   SubmittedBy({required this.id, required this.name});
 
   factory SubmittedBy.fromJson(Map<String, dynamic> json) {
-    return SubmittedBy(id: json['id'] as int, name: json['name'] as String);
+    return SubmittedBy(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? 'Unknown',
+    );
   }
 
   Map<String, dynamic> toJson() {
