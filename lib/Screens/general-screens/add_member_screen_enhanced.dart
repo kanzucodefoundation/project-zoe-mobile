@@ -563,13 +563,13 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
       final addressText = _controllers['address']!.text.trim();
 
       if (phoneText.isNotEmpty) {
-        contactData['phones'] = [{'phone': phoneText}];
+        contactData['phones'] = [{'value': phoneText, 'isPrimary': true}];
       }
       if (emailText.isNotEmpty) {
-        contactData['emails'] = [{'email': emailText}];
+        contactData['emails'] = [{'value': emailText, 'isPrimary': true}];
       }
       if (addressText.isNotEmpty) {
-        contactData['addresses'] = [{'address': addressText}];
+        contactData['addresses'] = [{'freeForm': addressText, 'isPrimary': true}];
       }
       if (_selectedGroup != null) {
         contactData['groups'] = [_selectedGroup!.id];

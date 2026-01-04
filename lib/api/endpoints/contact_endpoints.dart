@@ -282,7 +282,7 @@ class ContactEndpoints {
   }
 
   /// Update an existing contact
-  /// Endpoint: PUT /api/crm/contacts/{id}
+  /// Endpoint: PATCH /api/crm/contacts/{id}
   static Future<Contact> updateContact(
     int contactId,
     Map<String, dynamic> contactData, {
@@ -294,7 +294,7 @@ class ContactEndpoints {
       // print('📞 API: Data: $contactData');
       // print('📞 API: Church: ${churchName ?? 'fellowship'}');
 
-      final response = await _apiClient.dio.put(
+      final response = await _apiClient.dio.patch(
         '/crm/contacts/$contactId',
         data: contactData,
         // options: Options(

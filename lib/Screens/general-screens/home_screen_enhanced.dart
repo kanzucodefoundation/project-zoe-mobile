@@ -199,10 +199,11 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           );
         }
 
-        // Default values if no data
-        final memberCount = provider.dashboardSummary?.group.memberCount ?? 45;
-        final attendance = provider.dashboardSummary?.thisWeek.attendance ?? 38;
-        final newMembers = provider.dashboardSummary?.thisWeek.newMembers ?? 2;
+        // Check if we have actual data or if backend is unavailable
+        final hasData = provider.dashboardSummary != null;
+        final memberCount = provider.dashboardSummary?.group.memberCount ?? 0;
+        final attendance = provider.dashboardSummary?.thisWeek.attendance ?? 0;
+        final newMembers = provider.dashboardSummary?.thisWeek.newMembers ?? 0;
         final salvations = provider.dashboardSummary?.thisWeek.salvations ?? 0;
 
         return Padding(
@@ -224,19 +225,19 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 children: [
                   Expanded(
                     child: ZoeStatCard(
-                      value: memberCount.toString(),
+                      value: hasData ? memberCount.toString() : '--',
                       label: 'Members',
                       icon: Icons.people,
-                      valueColor: AppColors.primaryText,
+                      valueColor: hasData ? AppColors.primaryText : AppColors.secondaryText,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.statCardSpacing),
                   Expanded(
                     child: ZoeStatCard(
-                      value: attendance.toString(),
+                      value: hasData ? attendance.toString() : '--',
                       label: 'Attendance',
                       icon: Icons.event,
-                      valueColor: AppColors.primaryGreen,
+                      valueColor: hasData ? AppColors.primaryGreen : AppColors.secondaryText,
                     ),
                   ),
                 ],
@@ -247,19 +248,19 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 children: [
                   Expanded(
                     child: ZoeStatCard(
-                      value: newMembers.toString(),
+                      value: hasData ? newMembers.toString() : '--',
                       label: 'New Members',
                       icon: Icons.person_add,
-                      valueColor: AppColors.primaryText,
+                      valueColor: hasData ? AppColors.primaryText : AppColors.secondaryText,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.statCardSpacing),
                   Expanded(
                     child: ZoeStatCard(
-                      value: salvations.toString(),
+                      value: hasData ? salvations.toString() : '--',
                       label: 'Salvations',
                       icon: Icons.favorite,
-                      valueColor: AppColors.harvestGold,
+                      valueColor: hasData ? AppColors.harvestGold : AppColors.secondaryText,
                     ),
                   ),
                 ],
