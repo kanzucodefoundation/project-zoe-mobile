@@ -33,11 +33,15 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
   String? _selectedAgeGroup;
   String? _selectedCivilStatus;
   String? _selectedAddressCategory;
+  String? _selectedCountry;
   Group? _selectedGroup;
   DateTime? _selectedDateOfBirth;
 
   // Available groups from API
   List<Group> _availableGroups = [];
+  
+  // Full contact details for editing
+  ContactDetails? _editingContactDetails;
 
   // Dropdown options
   final List<String> _genderOptions = ['Male', 'Female'];
@@ -49,6 +53,12 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
   ];
   final List<String> _addressCategoryOptions = [
     'Home', 'Work', 'Other'
+  ];
+  final List<String> _countryOptions = [
+    'Uganda', 'Kenya', 'Tanzania', 'Rwanda', 'Burundi', 'South Sudan',
+    'Democratic Republic of Congo', 'Ethiopia', 'Somalia', 'South Africa',
+    'Nigeria', 'Ghana', 'Zambia', 'Malawi', 'Zimbabwe', 'Botswana',
+    'United States', 'United Kingdom', 'Canada', 'Australia', 'Other'
   ];
 
   @override
@@ -88,8 +98,9 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
           .where((group) => group.categoryName == 'Missional Community')
           .toList();
 
-      // If editing, pre-fill the form
+      // If editing, load full contact details and pre-fill the form
       if (widget.editingContact != null) {
+        await _loadContactDetailsForEditing();
         _preFillFormForEditing();
       }
 
@@ -102,39 +113,100 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
     }
   }
 
+  Future<void> _loadContactDetailsForEditing() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final churchName = authProvider.user?.churchName ?? 'fellowship';
+      
+      _editingContactDetails = await ContactEndpoints.getContactDetails(
+        widget.editingContact!.id,
+        churchName: churchName,
+      );
+    } catch (e) {
+      // If we can't load details, we'll work with the basic contact info
+      print('Warning: Could not load full contact details for editing: $e');
+    }
+  }
+
   void _preFillFormForEditing() {
     final contact = widget.editingContact!;
+    final details = _editingContactDetails;
     
+    // Basic info from contact
     _controllers['firstName']?.text = contact.firstName;
     _controllers['lastName']?.text = contact.lastName;
-    _controllers['email']?.text = contact.email ?? '';
-    _controllers['phone']?.text = contact.phone ?? '';
-    _controllers['address']?.text = '';
-    _controllers['country']?.text = '';
-    _controllers['district']?.text = '';
-    _controllers['placeOfWork']?.text = '';
-
-    if (contact.dateOfBirth != null && contact.dateOfBirth!.isNotEmpty) {
-      try {
-        _selectedDateOfBirth = DateTime.parse(contact.dateOfBirth!);
-      } catch (e) {
-        _selectedDateOfBirth = null;
+    
+    // Contact info - use details if available, otherwise fall back to basic contact
+    if (details != null) {
+      // Fill phone from contact details
+      final primaryPhone = details.phones.where((p) => p.isPrimary).firstOrNull;
+      _controllers['phone']?.text = primaryPhone?.value ?? '';
+      
+      // Fill email from contact details  
+      final primaryEmail = details.emails.where((e) => e.isPrimary).firstOrNull;
+      _controllers['email']?.text = primaryEmail?.value ?? '';
+      
+      // Fill address from contact details
+      final primaryAddress = details.addresses.where((a) => a.isPrimary).firstOrNull;
+      if (primaryAddress != null) {
+        _controllers['address']?.text = primaryAddress.freeForm ?? '';
+        _controllers['district']?.text = primaryAddress.district ?? '';
+        _selectedCountry = primaryAddress.country;
+        _selectedAddressCategory = primaryAddress.category;
+      } else {
+        _controllers['address']?.text = '';
+        _controllers['district']?.text = '';
+        _selectedCountry = null;
+        _selectedAddressCategory = null;
       }
-    }
-
-    setState(() {
+      
+      // Fill work place from person details
+      _controllers['placeOfWork']?.text = details.person.placeOfWork ?? '';
+      _selectedCivilStatus = details.person.civilStatus;
+      
+      // Use person details for date of birth
+      if (details.person.dateOfBirth != null && details.person.dateOfBirth!.isNotEmpty) {
+        try {
+          _selectedDateOfBirth = DateTime.parse(details.person.dateOfBirth!);
+        } catch (e) {
+          _selectedDateOfBirth = null;
+        }
+      }
+      
+      // Use person details for gender and age group  
+      _selectedGender = details.person.gender;
+      _selectedAgeGroup = details.person.ageGroup;
+    } else {
+      // Fallback to basic contact info
+      _controllers['email']?.text = contact.email ?? '';
+      _controllers['phone']?.text = contact.phone ?? '';
+      _controllers['address']?.text = '';
+      _controllers['district']?.text = '';
+      _controllers['placeOfWork']?.text = '';
+      _selectedCountry = null;
+      _selectedAddressCategory = null;
+      _selectedCivilStatus = null;
+      
+      if (contact.dateOfBirth != null && contact.dateOfBirth!.isNotEmpty) {
+        try {
+          _selectedDateOfBirth = DateTime.parse(contact.dateOfBirth!);
+        } catch (e) {
+          _selectedDateOfBirth = null;
+        }
+      }
+      
       _selectedGender = contact.gender;
       _selectedAgeGroup = contact.ageGroup;
-      _selectedCivilStatus = null;
+    }
 
-      try {
-        _selectedGroup = _availableGroups.firstWhere(
-          (group) => group.name == contact.primaryGroup?.name,
-        );
-      } catch (e) {
-        _selectedGroup = null;
-      }
-    });
+    // Set selected group
+    try {
+      _selectedGroup = _availableGroups.firstWhere(
+        (group) => group.name == contact.primaryGroup?.name,
+      );
+    } catch (e) {
+      _selectedGroup = null;
+    }
   }
 
   @override
@@ -428,29 +500,26 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
               ),
               const SizedBox(height: AppSpacing.lg),
               
-              // Country and District in a row
-              Row(
-                children: [
-                  Expanded(
-                    child: ZoeInput(
-                      label: 'Country *',
-                      controller: _controllers['country'],
-                      validator: (value) => value?.isEmpty == true
-                          ? 'Country is required'
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: ZoeInput(
-                      label: 'District *',
-                      controller: _controllers['district'],
-                      validator: (value) => value?.isEmpty == true
-                          ? 'District is required'
-                          : null,
-                    ),
-                  ),
-                ],
+              // Country
+              ZoeDropdown<String>(
+                label: 'Country *',
+                value: _selectedCountry,
+                hint: 'Select country',
+                items: _countryOptions.map((country) => 
+                  DropdownMenuItem(value: country, child: Text(country))
+                ).toList(),
+                onChanged: (value) => setState(() => _selectedCountry = value),
+                validator: (value) => value == null ? 'Country is required' : null,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              
+              // District
+              ZoeInput(
+                label: 'District *',
+                controller: _controllers['district'],
+                validator: (value) => value?.isEmpty == true
+                    ? 'District is required'
+                    : null,
               ),
               const SizedBox(height: AppSpacing.lg),
               
@@ -625,7 +694,7 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
       final phoneText = _controllers['phone']!.text.trim();
       final emailText = _controllers['email']!.text.trim();
       final addressText = _controllers['address']!.text.trim();
-      final countryText = _controllers['country']!.text.trim();
+      final countryText = _selectedCountry ?? '';
       final districtText = _controllers['district']!.text.trim();
 
       if (phoneText.isNotEmpty) {
