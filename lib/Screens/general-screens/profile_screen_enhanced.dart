@@ -22,17 +22,18 @@ class EnhancedProfileScreen extends StatelessWidget {
               'Profile',
               style: AppTextStyles.h2,
             ),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  Icons.settings,
-                  color: AppColors.primaryText,
-                ),
-                onPressed: () {
-                  ToastHelper.showInfo(context, 'Settings coming soon');
-                },
-              ),
-            ],
+            // Temporarily commented out settings
+            // actions: [
+            //   IconButton(
+            //     icon: Icon(
+            //       Icons.settings,
+            //       color: AppColors.primaryText,
+            //     ),
+            //     onPressed: () {
+            //       ToastHelper.showInfo(context, 'Settings coming soon');
+            //     },
+            //   ),
+            // ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.screenPadding),
@@ -62,9 +63,7 @@ class EnhancedProfileScreen extends StatelessWidget {
     final user = authProvider.user;
     final userName = user?.fullName ?? 'User';
     final userRole = user?.primaryRole ?? 'Member';
-    final fellowshipName = user?.hierarchy.fellowshipGroups.isNotEmpty == true
-        ? user!.hierarchy.fellowshipGroups.first.name
-        : 'No fellowship assigned';
+    final fellowshipName = _getUserLocation(user);
 
     return ZoeCard(
       child: Column(
@@ -130,30 +129,31 @@ class EnhancedProfileScreen extends StatelessWidget {
 
   Widget _buildProfileOptions(BuildContext context, AuthProvider authProvider) {
     final profileOptions = [
-      _ProfileOption(
-        icon: Icons.edit,
-        title: 'Edit Profile',
-        subtitle: 'Update your personal information',
-        onTap: () => ToastHelper.showInfo(context, 'Edit profile coming soon'),
-      ),
-      _ProfileOption(
-        icon: Icons.notifications,
-        title: 'Notifications',
-        subtitle: 'Manage your notification preferences',
-        onTap: () => ToastHelper.showInfo(context, 'Notifications coming soon'),
-      ),
-      _ProfileOption(
-        icon: Icons.security,
-        title: 'Privacy & Security',
-        subtitle: 'Manage your account security',
-        onTap: () => ToastHelper.showInfo(context, 'Security settings coming soon'),
-      ),
-      _ProfileOption(
-        icon: Icons.help,
-        title: 'Help & Support',
-        subtitle: 'Get help and contact support',
-        onTap: () => ToastHelper.showInfo(context, 'Help coming soon'),
-      ),
+      // Temporarily commented out menu items
+      // _ProfileOption(
+      //   icon: Icons.edit,
+      //   title: 'Edit Profile',
+      //   subtitle: 'Update your personal information',
+      //   onTap: () => ToastHelper.showInfo(context, 'Edit profile coming soon'),
+      // ),
+      // _ProfileOption(
+      //   icon: Icons.notifications,
+      //   title: 'Notifications',
+      //   subtitle: 'Manage your notification preferences',
+      //   onTap: () => ToastHelper.showInfo(context, 'Notifications coming soon'),
+      // ),
+      // _ProfileOption(
+      //   icon: Icons.security,
+      //   title: 'Privacy & Security',
+      //   subtitle: 'Manage your account security',
+      //   onTap: () => ToastHelper.showInfo(context, 'Security settings coming soon'),
+      // ),
+      // _ProfileOption(
+      //   icon: Icons.help,
+      //   title: 'Help & Support',
+      //   subtitle: 'Get help and contact support',
+      //   onTap: () => ToastHelper.showInfo(context, 'Help coming soon'),
+      // ),
       _ProfileOption(
         icon: Icons.logout,
         title: 'Sign Out',
@@ -297,6 +297,22 @@ class EnhancedProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getUserLocation(user) {
+    if (user == null) return 'No location assigned';
+
+    // Simple approach: Just show the user's location
+    if (user.hierarchy.locationGroups.isNotEmpty) {
+      return user.hierarchy.locationGroups.first.name;
+    }
+
+    // Fallback: Show any group they belong to
+    if (user.hierarchy.myGroups.isNotEmpty) {
+      return user.hierarchy.myGroups.first.name;
+    }
+
+    return 'No location assigned';
   }
 
   void _showSignOutDialog(BuildContext context, AuthProvider authProvider) {
