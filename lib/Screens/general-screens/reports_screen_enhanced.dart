@@ -405,16 +405,41 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
         final List<_SubmissionItem> submissions = [];
 
         // Generate submissions dynamically from the same reports used for submit
+        final canViewSubmissions = authProvider.user?.canViewSubmissions ?? false;
+        
+        if (!canViewSubmissions) {
+          // Show a message if user lacks permission instead of hiding everything
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.lock_outline, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  'No Permission to View Submissions',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'You need REPORT_VIEW_SUBMISSIONS permission to view report submissions.',
+                  style: TextStyle(color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+
         for (final report in titleAndId) {
           final String title = report['title']?.toString() ?? '';
           final dynamic id = report['id'];
           
           // Get UI info for the report
           final uiInfo = _getReportUIInfo(title);
-          
-          // Only show reports that user can view submissions for
-          final canViewSubmissions = authProvider.user?.canViewSubmissions ?? false;
-          if (!canViewSubmissions) continue;
 
           submissions.add(_SubmissionItem(
             title: title,

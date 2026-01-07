@@ -46,7 +46,17 @@ class ContactsProvider with ChangeNotifier {
     } catch (e) {
       // Comment out debug print for production
       // print('👥 ContactsProvider: Error loading contacts: $e');
-      _error = 'Failed to load contacts: $e';
+      
+      // Provide better error messages for common issues
+      if (e.toString().contains('401')) {
+        _error = 'Access Denied: You need CRM_VIEW permission to view contacts. Please contact your administrator to grant you access to the member directory.';
+      } else if (e.toString().contains('403')) {
+        _error = 'Forbidden: You do not have permission to view the member directory.';
+      } else if (e.toString().contains('404')) {
+        _error = 'Member directory not found. Please check your connection.';
+      } else {
+        _error = 'Failed to load contacts: $e';
+      }
       _contacts = [];
     } finally {
       _setLoading(false);
