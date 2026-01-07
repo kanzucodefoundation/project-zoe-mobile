@@ -214,6 +214,7 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
     final List<_ReportItem> reportItems = [];
 
     // Process reports and create enhanced items
+    // Backend handles permission filtering - if report is returned, user can submit it
     for (final report in titleAndId) {
       final String title = report['title']?.toString() ?? '';
       final dynamic id = report['id'];
@@ -221,60 +222,36 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
       // Get UI info for the report
       final uiInfo = _getReportUIInfo(title);
       
-      bool hasPermission = false;
       Widget? targetScreen;
-      ReportStatus status = ReportStatus.available;
-      String description = 'Tap to submit';
-
-      // Determine permissions and target screen based on type
-      if (uiInfo.displayScreenType == DisplayScreenType.mcReports) {
-        hasPermission = authProvider.isMcShepherdPermissions;
-        if (hasPermission) {
+      
+      // Route to appropriate submission screens
+      switch (uiInfo.displayScreenType) {
+        case DisplayScreenType.mcReports:
           targetScreen = McAttendanceReportScreen(reportId: id);
-        }
-      } else {
-        hasPermission = authProvider.user?.canSubmitReports ?? false;
-        if (hasPermission) {
-          // For now, route to appropriate screens - TODO: create generic submission screen
-          switch (uiInfo.displayScreenType) {
-            case DisplayScreenType.garageReports:
-              targetScreen = GarageReportsScreen(reportId: id);
-              break;
-            case DisplayScreenType.baptismReports:
-              targetScreen = BaptismReportsScreen(reportId: id);
-              break;
-            case DisplayScreenType.salvationReports:
-              targetScreen = SalvationReportsScreen(reportId: id);
-              break;
-            case DisplayScreenType.mcReports:
-              // Already handled above
-              break;
-          }
-        }
-      }
-
-      if (!hasPermission) {
-        status = ReportStatus.noPermission;
-        description = 'No permission';
+          break;
+        case DisplayScreenType.garageReports:
+          targetScreen = GarageReportsScreen(reportId: id);
+          break;
+        case DisplayScreenType.baptismReports:
+          targetScreen = BaptismReportsScreen(reportId: id);
+          break;
+        case DisplayScreenType.salvationReports:
+          targetScreen = SalvationReportsScreen(reportId: id);
+          break;
       }
 
       reportItems.add(_ReportItem(
         title: title,
-        description: hasPermission ? uiInfo.description : 'No permission',
+        description: uiInfo.description,
         icon: uiInfo.icon,
-        iconColor: hasPermission ? uiInfo.iconColor : AppColors.secondaryText,
-        status: status,
-        onTap: hasPermission
-            ? (targetScreen != null
-                  ? () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => targetScreen!),
-                      )
-                  : () => ToastHelper.showInfo(context, '$title coming soon'))
-            : () => ToastHelper.showWarning(
+        iconColor: uiInfo.iconColor,
+        status: ReportStatus.available,
+        onTap: targetScreen != null
+            ? () => Navigator.push(
                   context,
-                  'You do not have permission to access this report',
-                ),
+                  MaterialPageRoute(builder: (_) => targetScreen!),
+                )
+            : () => ToastHelper.showInfo(context, '$title coming soon'),
       ));
     }
 
@@ -296,9 +273,7 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
     return ZoeCard(
       onTap: item.onTap,
       padding: const EdgeInsets.all(AppSpacing.md), // Consistent padding
-      backgroundColor: item.status == ReportStatus.noPermission
-          ? AppColors.softBorders.withOpacity(0.3)
-          : AppColors.cardBackground,
+      backgroundColor: AppColors.cardBackground,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -319,9 +294,7 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
             child: Text(
               item.title,
               style: AppTextStyles.label.copyWith(
-                color: item.status == ReportStatus.noPermission
-                    ? AppColors.secondaryText
-                    : AppColors.primaryText,
+                color: AppColors.primaryText,
                 fontWeight: FontWeight.w600,
                 fontSize: 13, // Slightly smaller font
               ),
@@ -335,9 +308,7 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
             child: Text(
               item.description,
               style: AppTextStyles.caption.copyWith(
-                color: item.status == ReportStatus.noPermission
-                    ? AppColors.secondaryText
-                    : AppColors.secondaryText,
+                color: AppColors.secondaryText,
                 fontSize: 11, // Smaller font for description
               ),
               textAlign: TextAlign.center,
@@ -405,34 +376,7 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
         final List<_SubmissionItem> submissions = [];
 
         // Generate submissions dynamically from the same reports used for submit
-        final canViewSubmissions = authProvider.user?.canViewSubmissions ?? false;
-        
-        if (!canViewSubmissions) {
-          // Show a message if user lacks permission instead of hiding everything
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.lock_outline, size: 64, color: Colors.grey),
-                SizedBox(height: 16),
-                Text(
-                  'No Permission to View Submissions',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'You need REPORT_VIEW_SUBMISSIONS permission to view report submissions.',
-                  style: TextStyle(color: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
-        }
+        // Backend handles permission filtering - if report is returned, user can view its submissions
 
         for (final report in titleAndId) {
           final String title = report['title']?.toString() ?? '';
@@ -568,7 +512,6 @@ enum ReportStatus {
   available,
   submitted,
   overdue,
-  noPermission,
 }
 
 // Helper class for report UI info

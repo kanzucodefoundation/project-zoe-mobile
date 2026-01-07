@@ -99,48 +99,80 @@ class UserGroup {
 /// User hierarchy model containing group permissions
 class UserHierarchy {
   final List<UserGroup> myGroups;
+  final List<UserGroup> canManageGroups;
+  final List<UserGroup> canViewGroups;
+  
+  // Keep legacy fields for backward compatibility
   final List<int> canManageGroupIds;
   final List<int> canViewGroupIds;
 
-  const UserHierarchy({
+  UserHierarchy({
     required this.myGroups,
-    required this.canManageGroupIds,
-    required this.canViewGroupIds,
+    required this.canManageGroups,
+    required this.canViewGroups,
+    this.canManageGroupIds = const [],
+    this.canViewGroupIds = const [],
   });
 
   /// Create empty hierarchy for users without hierarchy data
-  const UserHierarchy.empty()
+  UserHierarchy.empty()
     : myGroups = const [],
+      canManageGroups = const [],
+      canViewGroups = const [],
       canManageGroupIds = const [],
       canViewGroupIds = const [];
 
   factory UserHierarchy.fromJson(Map<String, dynamic> json) {
+    // Handle new format with full group objects
+    final canManageGroups = (json['canManageGroups'] as List<dynamic>?)
+        ?.map((group) => UserGroup.fromJson(group as Map<String, dynamic>))
+        .toList() ?? const <UserGroup>[];
+        
+    final canViewGroups = (json['canViewGroups'] as List<dynamic>?)
+        ?.map((group) => UserGroup.fromJson(group as Map<String, dynamic>))
+        .toList() ?? const <UserGroup>[];
+
+    // Handle legacy format with IDs only (for backward compatibility)
+    final canManageGroupIds = (json['canManageGroupIds'] as List<dynamic>?)
+        ?.map((id) => id as int)
+        .toList() ?? canManageGroups.map((g) => g.id).toList();
+        
+    final canViewGroupIds = (json['canViewGroupIds'] as List<dynamic>?)
+        ?.map((id) => id as int)
+        .toList() ?? canViewGroups.map((g) => g.id).toList();
+
     return UserHierarchy(
       myGroups: (json['myGroups'] as List<dynamic>?)
           ?.map((group) => UserGroup.fromJson(group as Map<String, dynamic>))
           .toList() ?? const [],
-      canManageGroupIds: (json['canManageGroupIds'] as List<dynamic>?)
-          ?.map((id) => id as int)
-          .toList() ?? const [],
-      canViewGroupIds: (json['canViewGroupIds'] as List<dynamic>?)
-          ?.map((id) => id as int)
-          .toList() ?? const [],
+      canManageGroups: canManageGroups,
+      canViewGroups: canViewGroups,
+      canManageGroupIds: canManageGroupIds,
+      canViewGroupIds: canViewGroupIds,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'myGroups': myGroups.map((group) => group.toJson()).toList(),
+      'canManageGroups': canManageGroups.map((group) => group.toJson()).toList(),
+      'canViewGroups': canViewGroups.map((group) => group.toJson()).toList(),
       'canManageGroupIds': canManageGroupIds,
       'canViewGroupIds': canViewGroupIds,
     };
   }
 
   /// Check if user can manage a specific group
-  bool canManageGroup(int groupId) => canManageGroupIds.contains(groupId);
+  bool canManageGroup(int groupId) {
+    return canManageGroups.any((g) => g.id == groupId) || 
+           canManageGroupIds.contains(groupId);
+  }
 
   /// Check if user can view a specific group
-  bool canViewGroup(int groupId) => canViewGroupIds.contains(groupId);
+  bool canViewGroup(int groupId) {
+    return canViewGroups.any((g) => g.id == groupId) || 
+           canViewGroupIds.contains(groupId);
+  }
 
   /// Get groups by type (fellowship, zone, etc.)
   List<UserGroup> getGroupsByType(String type) {
@@ -230,7 +262,7 @@ class User {
   final List<String> permissions; // Optional - not in all endpoints
   final UserHierarchy hierarchy; // Optional - not in all endpoints
 
-  const User({
+  User({
     required this.id,
     required this.contactId,
     required this.username,
@@ -240,8 +272,8 @@ class User {
     required this.isActive,
     required this.roles,
     this.permissions = const [],
-    this.hierarchy = const UserHierarchy.empty(),
-  });
+    UserHierarchy? hierarchy,
+  }) : hierarchy = hierarchy ?? UserHierarchy.empty();
 
   /// Get primary role
   String get primaryRole => roles.isNotEmpty ? roles.first : 'Unknown';
@@ -340,7 +372,7 @@ class User {
           .map((role) => role as String)
           .toList(),
       permissions: const [], // Empty permissions
-      hierarchy: const UserHierarchy.empty(), // Empty hierarchy
+      hierarchy: UserHierarchy.empty(), // Empty hierarchy
     );
   }
 
@@ -352,7 +384,7 @@ class User {
         hierarchy ??
         (json.containsKey('hierarchy')
             ? UserHierarchy.fromJson(json['hierarchy'] as Map<String, dynamic>)
-            : const UserHierarchy.empty());
+            : UserHierarchy.empty());
 
     return User(
       id: json['id'] as int,
@@ -445,7 +477,7 @@ class AuthResponse {
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     final hierarchy = json.containsKey('hierarchy') 
         ? UserHierarchy.fromJson(json['hierarchy'] as Map<String, dynamic>)
-        : const UserHierarchy.empty();
+        : UserHierarchy.empty();
     final user = User.fromJson(json['user'] as Map<String, dynamic>, hierarchy);
 
     return AuthResponse(

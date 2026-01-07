@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/contacts_provider.dart';
 import '../../models/contacts.dart';
 import '../../models/group.dart';
+import '../../models/user.dart';
 import '../../services/reports_service.dart';
 import '../../api/endpoints/contact_endpoints.dart';
 
@@ -36,9 +37,16 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
   String? _selectedCountry;
   Group? _selectedGroup;
   DateTime? _selectedDateOfBirth;
+  
+  // New group assignment fields
+  UserGroup? _selectedAssignmentGroup;
+  String? _selectedGroupRole;
 
   // Available groups from API
   List<Group> _availableGroups = [];
+  
+  // Available groups user can manage (for assignment)
+  List<UserGroup> _manageableGroups = [];
   
   // Full contact details for editing
   ContactDetails? _editingContactDetails;
@@ -60,6 +68,9 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
     'Nigeria', 'Ghana', 'Zambia', 'Malawi', 'Zimbabwe', 'Botswana',
     'United States', 'United Kingdom', 'Canada', 'Australia', 'Other'
   ];
+  
+  // Group role options
+  final List<String> _groupRoleOptions = ['Member', 'Leader'];
 
   @override
   void initState() {
@@ -97,6 +108,15 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
       _availableGroups = groupsResponse.groups
           .where((group) => group.categoryName == 'Missional Community')
           .toList();
+          
+      // Load manageable groups from auth provider for assignment
+      if (mounted) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        _manageableGroups = authProvider.user?.hierarchy.canManageGroups ?? [];
+        
+        // Default group role to "Member"
+        _selectedGroupRole = 'Member';
+      }
 
       // If editing, load full contact details and pre-fill the form
       if (widget.editingContact != null) {
@@ -267,6 +287,11 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
 
             // Additional Information Section
             _buildAdditionalInfoSection(),
+            
+            const SizedBox(height: AppSpacing.sectionSpacing),
+
+            // Group Assignment Section  
+            _buildGroupAssignmentSection(),
             
             const SizedBox(height: AppSpacing.xxxl),
 
@@ -622,6 +647,111 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
     );
   }
 
+  Widget _buildGroupAssignmentSection() {
+    return ZoeCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Group Assignment',
+            style: AppTextStyles.h3.copyWith(
+              color: AppColors.primaryText,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Assign this member to a group and role',
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.secondaryText,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // Group Dropdown
+          ZoeDropdown<UserGroup>(
+            label: 'Group',
+            value: _selectedAssignmentGroup,
+            items: _manageableGroups
+                .map((group) => DropdownMenuItem<UserGroup>(
+                      value: group,
+                      child: Text(group.name),
+                    ))
+                .toList(),
+            onChanged: (UserGroup? value) {
+              setState(() => _selectedAssignmentGroup = value);
+            },
+            validator: (value) {
+              if (_manageableGroups.isNotEmpty && value == null) {
+                return 'Please select a group';
+              }
+              return null;
+            },
+            hint: _manageableGroups.isEmpty 
+                ? 'No groups available to manage'
+                : 'Select a group',
+          ),
+          
+          const SizedBox(height: AppSpacing.md),
+
+          // Group Role Dropdown  
+          ZoeDropdown<String>(
+            label: 'Group Role',
+            value: _selectedGroupRole,
+            items: _groupRoleOptions
+                .map((role) => DropdownMenuItem<String>(
+                      value: role,
+                      child: Text(role),
+                    ))
+                .toList(),
+            onChanged: (String? value) {
+              setState(() => _selectedGroupRole = value);
+            },
+            validator: (value) {
+              if (_manageableGroups.isNotEmpty && _selectedAssignmentGroup != null &&
+                  (value == null || value.isEmpty)) {
+                return 'Please select a role';
+              }
+              return null;
+            },
+            hint: 'Select member role',
+          ),
+
+          if (_manageableGroups.isEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.harvestGold.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
+                border: Border.all(
+                  color: AppColors.harvestGold.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: AppColors.harvestGold,
+                    size: 20,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'You don\'t have permission to manage any groups. The member will be added without group assignment.',
+                      style: AppTextStyles.small.copyWith(
+                        color: AppColors.primaryText,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildSubmitButton(bool isEditing) {
     return ZoeButton.primary(
       label: isEditing ? 'Update Member' : 'Add Member',
@@ -720,8 +850,22 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
         
         contactData['addresses'] = [addressData];
       }
+      
+      // Add legacy group assignment (keep for backward compatibility)
       if (_selectedGroup != null) {
         contactData['groups'] = [_selectedGroup!.id];
+      }
+      
+      // Add new group assignment with role
+      if (_selectedAssignmentGroup != null && _selectedGroupRole != null) {
+        contactData['assignment'] = {
+          'groups': [
+            {
+              'groupId': _selectedAssignmentGroup!.id,
+              'role': _selectedGroupRole!,
+            }
+          ]
+        };
       }
 
       // Submit to API

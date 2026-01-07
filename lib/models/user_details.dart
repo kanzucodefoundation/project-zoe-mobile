@@ -201,7 +201,7 @@ class UserDetails {
       isActive: isActive,
       roles: roles,
       permissions: permissions,
-      hierarchy: hierarchy ?? const UserHierarchy.empty(),
+      hierarchy: hierarchy ?? UserHierarchy.empty(),
     );
   }
 
