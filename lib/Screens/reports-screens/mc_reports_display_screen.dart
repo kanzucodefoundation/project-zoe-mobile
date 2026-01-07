@@ -31,6 +31,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
   final Map<int, TextEditingController> _controllers = {};
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
+  bool _isViewOnly = false;
 
   // MC dropdown data
   List<Map<String, dynamic>> _availableMcs = [];
@@ -47,6 +48,10 @@ class _McReportsScreenState extends State<McReportsScreen> {
   }
 
   Future<void> _init() async {
+    // Check if this is view-only mode based on canEdit flag
+    _isViewOnly = widget.editingSubmission != null && 
+                  (widget.editingSubmission!['canEdit'] == false);
+    
     await Future.wait([_loadReportData(), _loadAvailableMcs()]);
   }
 
@@ -189,13 +194,35 @@ class _McReportsScreenState extends State<McReportsScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          widget.editingSubmission != null ? 'Edit MC Report' : 'MC Reports',
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                _getScreenTitle(),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            if (_isViewOnly) 
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'VIEW ONLY',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
       body: _isLoading
@@ -399,7 +426,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
             const SizedBox(height: 20),
             ...visibleFields.map((field) => _buildFieldItem(field)),
             const SizedBox(height: 24),
-            _buildSubmitButton(),
+            if (!_isViewOnly) _buildSubmitButton(),
           ],
         ),
       ),
@@ -419,7 +446,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
     // Build different input types based on field type
     if (fieldType == 'date') {
       input = GestureDetector(
-        onTap: () => _selectDate(context),
+        onTap: _isViewOnly ? null : () => _selectDate(context),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
@@ -453,6 +480,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
       input = TextFormField(
         controller: controller,
         keyboardType: TextInputType.number,
+        enabled: !_isViewOnly,
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
@@ -493,6 +521,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
         controller: controller,
         keyboardType: TextInputType.multiline,
         maxLines: 4,
+        enabled: !_isViewOnly,
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
@@ -575,7 +604,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
                       ),
                     );
                   }).toList(),
-                  onChanged: (value) {
+                  onChanged: _isViewOnly ? null : (value) {
                     if (value != null) {
                       final selectedMc = _availableMcs.firstWhere(
                         (mc) => mc['id']?.toString() == value,
@@ -620,7 +649,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
                 ),
               );
             }).toList(),
-            onChanged: (value) {
+            onChanged: _isViewOnly ? null : (value) {
               if (value != null) {
                 if (mounted) {
                   setState(() {
@@ -636,6 +665,7 @@ class _McReportsScreenState extends State<McReportsScreen> {
       // Default text input
       input = TextFormField(
         controller: controller,
+        enabled: !_isViewOnly,
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
@@ -963,6 +993,13 @@ class _McReportsScreenState extends State<McReportsScreen> {
       print('❌ Error storing submission locally: $e');
       print('❌ Stack trace: ${StackTrace.current}');
     }
+  }
+
+  String _getScreenTitle() {
+    if (widget.editingSubmission != null) {
+      return _isViewOnly ? 'View MC Report' : 'Edit MC Report';
+    }
+    return 'MC Reports';
   }
 
   @override

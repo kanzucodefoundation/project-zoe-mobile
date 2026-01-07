@@ -37,6 +37,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   final Map<String, Future<List<Map<String, dynamic>>>> _dynamicOptionsFutures = {}; // Cache futures
   DateTime? _selectedDate;
   bool _isSubmitting = false;
+  bool _isViewOnly = false;
 
   String? _selectedLocationId;
   String? _selectedServiceType;
@@ -44,6 +45,9 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
   @override
   void initState() {
     super.initState();
+    // Check if this is view-only mode based on canEdit flag
+    _isViewOnly = widget.editingSubmission != null && 
+                  (widget.editingSubmission!['canEdit'] == false);
     _loadReportData();
   }
 
@@ -163,15 +167,35 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () => Navigator.pop(context),
             ),
-            title: Text(
-              widget.editingSubmission != null
-                  ? 'Edit Garage Report'
-                  : 'Garage Reports',
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _getScreenTitle(),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                if (_isViewOnly) 
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'VIEW ONLY',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           body: _isLoading
@@ -373,15 +397,16 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
 
             const SizedBox(height: 24),
 
-            // Submit button
-            SubmitButton(
-              text: _isSubmitting
-                  ? 'Submitting...'
-                  : widget.editingSubmission != null
-                  ? 'Update Report'
-                  : 'Submit Report',
-              onPressed: _isSubmitting ? () {} : _submitReport,
-              backgroundColor: Colors.black,
+            // Submit button (only show if not view-only)
+            if (!_isViewOnly)
+              SubmitButton(
+                text: _isSubmitting
+                    ? 'Submitting...'
+                    : widget.editingSubmission != null
+                    ? 'Update Report'
+                    : 'Submit Report',
+                onPressed: _isSubmitting ? () {} : _submitReport,
+                backgroundColor: Colors.black,
               textColor: Colors.white,
             ),
           ],
@@ -471,7 +496,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
                 ),
               );
             }).toList(),
-            onChanged: (value) {
+            onChanged: _isViewOnly ? null : (value) {
               setState(() {
                 _selectedServiceType = value;
               });
@@ -489,7 +514,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         hintText: 'Select ${field.label.toLowerCase()}',
         prefixIcon: Icons.calendar_today,
         selectedDate: _selectedDate,
-        onDateSelected: (date) {
+        onDateSelected: _isViewOnly ? null : (date) {
           setState(() {
             _selectedDate = date;
           });
@@ -524,6 +549,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         child: TextFormField(
           controller: _controllers[field.name],
           maxLines: 4,
+          enabled: !_isViewOnly,
           validator: field.required
               ? (value) {
                   if (value == null || value.isEmpty) {
@@ -788,7 +814,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
                 ),
               );
             }).toList(),
-            onChanged: isDisabled ? null : (selected) {
+            onChanged: (isDisabled || _isViewOnly) ? null : (selected) {
               if (mounted) {
                 setState(() {
                   _dynamicSelections[field.name] = selected;
@@ -876,7 +902,7 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
               ),
             );
           }).toList(),
-          onChanged: (value) {
+          onChanged: _isViewOnly ? null : (value) {
             if (value != null) {
               if (mounted) {
                 setState(() {
@@ -1001,5 +1027,12 @@ class _GarageReportsScreenState extends State<GarageReportsScreen> {
         });
       }
     }
+  }
+
+  String _getScreenTitle() {
+    if (widget.editingSubmission != null) {
+      return _isViewOnly ? 'View Garage Report' : 'Edit Garage Report';
+    }
+    return 'Garage Reports';
   }
 }

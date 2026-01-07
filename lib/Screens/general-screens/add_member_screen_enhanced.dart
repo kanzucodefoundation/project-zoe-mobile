@@ -288,10 +288,11 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
             // Additional Information Section
             _buildAdditionalInfoSection(),
             
-            const SizedBox(height: AppSpacing.sectionSpacing),
-
-            // Group Assignment Section  
-            _buildGroupAssignmentSection(),
+            // Group Assignment Section (only show if user has manageable groups)
+            if (_manageableGroups.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sectionSpacing),
+              _buildGroupAssignmentSection(),
+            ],
             
             const SizedBox(height: AppSpacing.xxxl),
 
@@ -681,14 +682,10 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
               setState(() => _selectedAssignmentGroup = value);
             },
             validator: (value) {
-              if (_manageableGroups.isNotEmpty && value == null) {
-                return 'Please select a group';
-              }
+              if (value == null) return 'Please select a group';
               return null;
             },
-            hint: _manageableGroups.isEmpty 
-                ? 'No groups available to manage'
-                : 'Select a group',
+            hint: 'Select a group',
           ),
           
           const SizedBox(height: AppSpacing.md),
@@ -707,46 +704,11 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
               setState(() => _selectedGroupRole = value);
             },
             validator: (value) {
-              if (_manageableGroups.isNotEmpty && _selectedAssignmentGroup != null &&
-                  (value == null || value.isEmpty)) {
-                return 'Please select a role';
-              }
+              if (value == null || value.isEmpty) return 'Please select a role';
               return null;
             },
             hint: 'Select member role',
           ),
-
-          if (_manageableGroups.isEmpty) ...[
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.harvestGold.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppSpacing.sm),
-                border: Border.all(
-                  color: AppColors.harvestGold.withOpacity(0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: AppColors.harvestGold,
-                    size: 20,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      'You don\'t have permission to manage any groups. The member will be added without group assignment.',
-                      style: AppTextStyles.small.copyWith(
-                        color: AppColors.primaryText,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );

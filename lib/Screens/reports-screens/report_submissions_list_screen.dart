@@ -224,23 +224,7 @@ class _ReportSubmissionsListScreenState extends State<ReportSubmissionsListScree
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
-        actions: [
-          Consumer<AuthProvider>(
-            builder: (context, authProvider, child) {
-              final canSubmit = authProvider.user?.canSubmitReports ?? false;
-              return canSubmit
-                  ? EditReportButton(
-                      onPressed: () {
-                        // TODO: Navigate to edit report screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Edit report functionality coming soon')),
-                        );
-                      },
-                    )
-                  : const SizedBox.shrink();
-            },
-          ),
-        ],
+        // Remove edit button from submissions list - users view individual submissions, not edit the template
       ),
       body: Column(
         children: [
@@ -377,7 +361,7 @@ class _ReportSubmissionsListScreenState extends State<ReportSubmissionsListScree
                                 return Card(
                                   margin: const EdgeInsets.only(bottom: 12),
                                   child: ListTile(
-                                    title: Text(submission['submitterName'] ?? 'Unknown Submitter'),
+                                    title: Text(_getSubmitterName(submission)),
                                     subtitle: Text(submission['submittedAt']?.toString().split(' ')[0] ?? 'No date'),
                                     trailing: Icon(
                                       submission['isLocal'] == true ? Icons.cloud_off : Icons.cloud_done,
@@ -400,5 +384,35 @@ class _ReportSubmissionsListScreenState extends State<ReportSubmissionsListScree
         ],
       ),
     );
+  }
+
+  String _getSubmitterName(Map<String, dynamic> submission) {
+    // Try different possible field names for submitter
+    if (submission['submitterName'] != null) {
+      return submission['submitterName'];
+    }
+    
+    if (submission['submittedBy'] != null) {
+      final submittedBy = submission['submittedBy'];
+      if (submittedBy is Map<String, dynamic> && submittedBy['name'] != null) {
+        return submittedBy['name'];
+      }
+      if (submittedBy is String) {
+        return submittedBy;
+      }
+    }
+    
+    // Fallback to other possible field names
+    if (submission['submitter'] != null) {
+      final submitter = submission['submitter'];
+      if (submitter is Map<String, dynamic> && submitter['name'] != null) {
+        return submitter['name'];
+      }
+      if (submitter is String) {
+        return submitter;
+      }
+    }
+    
+    return 'Unknown Submitter';
   }
 }

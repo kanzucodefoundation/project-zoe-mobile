@@ -32,10 +32,14 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
   DateTime? _selectedDate;
   String? _selectedLocationId;
   String? _selectedContextOption;
+  bool _isViewOnly = false;
 
   @override
   void initState() {
     super.initState();
+    // Check if this is view-only mode based on canEdit flag
+    _isViewOnly = widget.editingSubmission != null && 
+                  (widget.editingSubmission!['canEdit'] == false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<SalvationReportsProvider>();
       provider.loadReportData(widget.reportId);
@@ -144,15 +148,35 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () => Navigator.pop(context),
             ),
-            title: Text(
-              widget.editingSubmission != null
-                  ? 'Edit Salvation Report'
-                  : 'Salvation Reports',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _getScreenTitle(),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                if (_isViewOnly) 
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'VIEW ONLY',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           body: provider.isLoading
@@ -370,12 +394,13 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
               (field) => _buildTemplateFieldWithInput(field),
             ),
             const SizedBox(height: 24),
-            SubmitButton(
-              text: provider.isSubmitting ? 'Submitting...' : 'Submit Report',
-              onPressed: provider.isSubmitting ? () {} : _submitReport,
-              backgroundColor: Colors.black,
-              textColor: Colors.white,
-            ),
+            if (!_isViewOnly)
+              SubmitButton(
+                text: provider.isSubmitting ? 'Submitting...' : 'Submit Report',
+                onPressed: provider.isSubmitting ? () {} : _submitReport,
+                backgroundColor: Colors.black,
+                textColor: Colors.white,
+              ),
           ],
         ),
       ),
@@ -513,7 +538,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
                 ),
               );
             }).toList(),
-            onChanged: isDisabled ? null : (selected) {
+            onChanged: (isDisabled || _isViewOnly) ? null : (selected) {
               if (mounted) {
                 setState(() {
                   _dynamicSelections[field.name] = selected;
@@ -607,7 +632,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
               ),
             );
           }).toList(),
-          onChanged: (value) {
+          onChanged: _isViewOnly ? null : (value) {
             if (value != null) {
               if (mounted) {
                 setState(() {
@@ -720,7 +745,7 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
                 ),
               );
             }).toList(),
-            onChanged: (value) {
+            onChanged: _isViewOnly ? null : (value) {
               if (value != null) {
                 if (mounted) {
                   setState(() {
@@ -883,5 +908,12 @@ class _SalvationReportsScreenState extends State<SalvationReportsScreen> {
         );
       }
     }
+  }
+
+  String _getScreenTitle() {
+    if (widget.editingSubmission != null) {
+      return _isViewOnly ? 'View Salvation Report' : 'Edit Salvation Report';
+    }
+    return 'Salvation Reports';
   }
 }
