@@ -8,12 +8,9 @@ import '../../providers/report_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../reports-screens/mc_attendance_report_screen.dart';
 import '../reports-screens/garage_reports_display_screen.dart';
-import '../reports-screens/mc_reports_list_screen.dart';
-import '../reports-screens/garage_reports_list_screen.dart';
-import '../reports-screens/baptism_reports_list_screen.dart';
-import '../reports-screens/salvation_reports_list_screen.dart';
 import '../reports-screens/baptism_reports_display_screen.dart';
 import '../reports-screens/salvation_reports_display_screen.dart';
+import '../reports-screens/report_submissions_list_screen.dart';
 
 /// Enhanced Reports screen using Project Zoe Design System
 class EnhancedReportsScreen extends StatefulWidget {
@@ -146,6 +143,47 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
     );
   }
 
+  // Helper method to get basic UI properties for reports
+  _ReportUIInfo _getReportUIInfo(String title) {
+    final lowerTitle = title.toLowerCase();
+    
+    // Simple icon/color assignment based on keywords
+    if (lowerTitle.contains('attendance') || lowerTitle.contains('mc') || lowerTitle.contains('missional')) {
+      return _ReportUIInfo(
+        icon: Icons.people,
+        iconColor: AppColors.primaryGreen,
+        description: 'Fellowship report',
+        displayScreenType: DisplayScreenType.mcReports,
+        enableLocalStorage: true,
+      );
+    } else if (lowerTitle.contains('baptism')) {
+      return _ReportUIInfo(
+        icon: Icons.water_drop,
+        iconColor: AppColors.harvestGold,
+        description: 'Baptism report',
+        displayScreenType: DisplayScreenType.baptismReports,
+        enableLocalStorage: false,
+      );
+    } else if (lowerTitle.contains('salvation')) {
+      return _ReportUIInfo(
+        icon: Icons.favorite,
+        iconColor: AppColors.harvestGold,
+        description: 'Salvation report',
+        displayScreenType: DisplayScreenType.salvationReports,
+        enableLocalStorage: false,
+      );
+    } else {
+      // Default for all other reports (Sunday service, etc.)
+      return _ReportUIInfo(
+        icon: Icons.church,
+        iconColor: AppColors.primaryGreen,
+        description: 'Service report',
+        displayScreenType: DisplayScreenType.garageReports,
+        enableLocalStorage: false,
+      );
+    }
+  }
+
   Widget _buildSubmitReportsGrid(
     ReportProvider reportProvider,
     AuthProvider authProvider,
@@ -179,61 +217,52 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
     for (final report in titleAndId) {
       final String title = report['title']?.toString() ?? '';
       final dynamic id = report['id'];
-      final lowerTitle = title.toLowerCase();
-
-      IconData icon = Icons.description;
-      Color iconColor = AppColors.primaryText;
-      Widget? targetScreen;
+      
+      // Get UI info for the report
+      final uiInfo = _getReportUIInfo(title);
+      
       bool hasPermission = false;
-      String description = 'Tap to submit';
+      Widget? targetScreen;
       ReportStatus status = ReportStatus.available;
+      String description = 'Tap to submit';
 
-      // Enhanced categorization with brand colors
-      if (lowerTitle.contains('attendance')) {
-        icon = Icons.people;
+      // Determine permissions and target screen based on type
+      if (uiInfo.displayScreenType == DisplayScreenType.mcReports) {
         hasPermission = authProvider.isMcShepherdPermissions;
-        description = 'Fellowship attendance report';
-        iconColor = AppColors.primaryGreen;
         if (hasPermission) {
           targetScreen = McAttendanceReportScreen(reportId: id);
         }
-      } else if (lowerTitle.contains('sunday')) {
-        icon = Icons.church;
+      } else {
         hasPermission = authProvider.user?.canSubmitReports ?? false;
-        description = 'Sunday service report';
-        iconColor = AppColors.primaryGreen;
         if (hasPermission) {
-          targetScreen = GarageReportsScreen(reportId: id);
-        }
-      } else if (lowerTitle.contains('baptism')) {
-        icon = Icons.water_drop;
-        hasPermission = authProvider.user?.canSubmitReports ?? false;
-        description = 'Baptism celebration';
-        iconColor = AppColors.harvestGold;
-        if (hasPermission) {
-          targetScreen = BaptismReportsScreen(reportId: id);
-        }
-      } else if (lowerTitle.contains('salvation')) {
-        icon = Icons.favorite;
-        hasPermission = authProvider.user?.canSubmitReports ?? false;
-        description = 'Salvation testimony';
-        iconColor = AppColors.harvestGold;
-        if (hasPermission) {
-          targetScreen = SalvationReportsScreen(reportId: id);
+          // For now, route to appropriate screens - TODO: create generic submission screen
+          switch (uiInfo.displayScreenType) {
+            case DisplayScreenType.garageReports:
+              targetScreen = GarageReportsScreen(reportId: id);
+              break;
+            case DisplayScreenType.baptismReports:
+              targetScreen = BaptismReportsScreen(reportId: id);
+              break;
+            case DisplayScreenType.salvationReports:
+              targetScreen = SalvationReportsScreen(reportId: id);
+              break;
+            case DisplayScreenType.mcReports:
+              // Already handled above
+              break;
+          }
         }
       }
 
       if (!hasPermission) {
         status = ReportStatus.noPermission;
-        iconColor = AppColors.secondaryText;
         description = 'No permission';
       }
 
       reportItems.add(_ReportItem(
         title: title,
-        description: description,
-        icon: icon,
-        iconColor: iconColor,
+        description: hasPermission ? uiInfo.description : 'No permission',
+        icon: uiInfo.icon,
+        iconColor: hasPermission ? uiInfo.iconColor : AppColors.secondaryText,
         status: status,
         onTap: hasPermission
             ? (targetScreen != null
@@ -364,86 +393,66 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
   }
 
   Widget _buildSubmissionsList() {
-    final List<_SubmissionItem> submissions = [
-      _SubmissionItem(
-        title: 'Fellowship Attendance',
-        description: 'View all fellowship reports',
-        icon: Icons.people,
-        color: AppColors.primaryGreen,
-        onTap: () {
-          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
-          final mcReport = reportProvider.reports.firstWhere(
-            (report) => report.name.toLowerCase().contains('mc') || 
-                       report.name.toLowerCase().contains('missional'),
-            orElse: () => reportProvider.reports.first,
+    return Consumer2<ReportProvider, AuthProvider>(
+      builder: (context, reportProvider, authProvider, child) {
+        if (reportProvider.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(),
           );
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => McReportsListScreen(reportId: mcReport.id)),
-          );
-        },
-      ),
-      _SubmissionItem(
-        title: 'Sunday Services',
-        description: 'View all Sunday service reports',
-        icon: Icons.church,
-        color: AppColors.primaryGreen,
-        onTap: () {
-          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
-          final garageReport = reportProvider.reports.firstWhere(
-            (report) => report.name.toLowerCase().contains('service') ||
-                       report.name.toLowerCase().contains('sunday'),
-            orElse: () => reportProvider.reports.length > 1 ? reportProvider.reports[1] : reportProvider.reports.first,
-          );
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => GarageReportsListScreen(reportId: garageReport.id)),
-          );
-        },
-      ),
-      _SubmissionItem(
-        title: 'Baptisms',
-        description: 'View all baptism reports',
-        icon: Icons.water_drop,
-        color: AppColors.harvestGold,
-        onTap: () {
-          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
-          final baptismReport = reportProvider.reports.firstWhere(
-            (report) => report.name.toLowerCase().contains('baptism'),
-            orElse: () => reportProvider.reports.length > 2 ? reportProvider.reports[2] : reportProvider.reports.first,
-          );
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => BaptismReportsListScreen(reportId: baptismReport.id)),
-          );
-        },
-      ),
-      _SubmissionItem(
-        title: 'Salvations',
-        description: 'View all salvation reports',
-        icon: Icons.favorite,
-        color: AppColors.harvestGold,
-        onTap: () {
-          final reportProvider = Provider.of<ReportProvider>(context, listen: false);
-          final salvationReport = reportProvider.reports.firstWhere(
-            (report) => report.name.toLowerCase().contains('salvation'),
-            orElse: () => reportProvider.reports.length > 3 ? reportProvider.reports[3] : reportProvider.reports.first,
-          );
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => SalvationReportsListScreen(reportId: salvationReport.id)),
-          );
-        },
-      ),
-    ];
+        }
 
-    return Column(
-      children: submissions
-          .map((submission) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: _buildSubmissionCard(submission),
-              ))
-          .toList(),
+        final titleAndId = reportProvider.titleAndId;
+        final List<_SubmissionItem> submissions = [];
+
+        // Generate submissions dynamically from the same reports used for submit
+        for (final report in titleAndId) {
+          final String title = report['title']?.toString() ?? '';
+          final dynamic id = report['id'];
+          
+          // Get UI info for the report
+          final uiInfo = _getReportUIInfo(title);
+          
+          // Only show reports that user can view submissions for
+          final canViewSubmissions = authProvider.user?.canViewSubmissions ?? false;
+          if (!canViewSubmissions) continue;
+
+          submissions.add(_SubmissionItem(
+            title: title,
+            description: 'View all ${title.toLowerCase()} submissions',
+            icon: uiInfo.icon,
+            color: uiInfo.iconColor,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ReportSubmissionsListScreen(
+                  reportId: id,
+                  reportName: title,
+                  displayScreenType: uiInfo.displayScreenType,
+                  enableLocalStorage: uiInfo.enableLocalStorage,
+                ),
+              ),
+            ),
+          ));
+        }
+
+        if (submissions.isEmpty) {
+          return const Center(
+            child: Text(
+              'No submission reports available',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
+        }
+
+        return Column(
+          children: submissions
+              .map((submission) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: _buildSubmissionCard(submission),
+                  ))
+              .toList(),
+        );
+      },
     );
   }
 
@@ -535,4 +544,21 @@ enum ReportStatus {
   submitted,
   overdue,
   noPermission,
+}
+
+// Helper class for report UI info
+class _ReportUIInfo {
+  final IconData icon;
+  final Color iconColor;
+  final String description;
+  final DisplayScreenType displayScreenType;
+  final bool enableLocalStorage;
+
+  _ReportUIInfo({
+    required this.icon,
+    required this.iconColor,
+    required this.description,
+    required this.displayScreenType,
+    required this.enableLocalStorage,
+  });
 }
