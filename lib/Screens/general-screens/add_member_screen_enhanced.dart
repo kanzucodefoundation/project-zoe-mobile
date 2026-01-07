@@ -114,8 +114,11 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         _manageableGroups = authProvider.user?.hierarchy.canManageGroups ?? [];
         
-        // Default group role to "Member"
-        _selectedGroupRole = 'Member';
+        // Auto-select first manageable group and default role
+        if (_manageableGroups.isNotEmpty) {
+          _selectedAssignmentGroup = _manageableGroups.first;
+          _selectedGroupRole = 'Member';
+        }
       }
 
       // If editing, load full contact details and pre-fill the form
@@ -296,8 +299,11 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
             
             const SizedBox(height: AppSpacing.xxxl),
 
-            // Submit Button
-            _buildSubmitButton(isEditing),
+            // Submit Button (only show if user has manageable groups)
+            if (_manageableGroups.isNotEmpty) 
+              _buildSubmitButton(isEditing)
+            else
+              _buildNoPermissionMessage(),
             
             const SizedBox(height: AppSpacing.xxxl),
           ],
@@ -723,6 +729,36 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
     );
   }
 
+  Widget _buildNoPermissionMessage() {
+    return ZoeCard(
+      backgroundColor: AppColors.cardBackground,
+      child: Column(
+        children: [
+          Icon(
+            Icons.group_off,
+            size: AppSpacing.iconXl,
+            color: AppColors.secondaryText,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            'No Groups to Manage',
+            style: AppTextStyles.h3.copyWith(
+              color: AppColors.primaryText,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'You don\'t have permission to manage any groups. Contact your administrator to add members.',
+            style: AppTextStyles.body.copyWith(
+              color: AppColors.secondaryText,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _selectDateOfBirth() async {
     final now = DateTime.now();
     final firstDate = DateTime(now.year - 100);
@@ -813,21 +849,27 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
         contactData['addresses'] = [addressData];
       }
       
-      // Add legacy group assignment (keep for backward compatibility)
-      if (_selectedGroup != null) {
-        contactData['groups'] = [_selectedGroup!.id];
-      }
-      
-      // Add new group assignment with role
+      // Add group assignment using new groups array format
+      // Since UI auto-selects first manageable group and hides submit button when none exist,
+      // we should always have a group assignment here
       if (_selectedAssignmentGroup != null && _selectedGroupRole != null) {
-        contactData['assignment'] = {
-          'groups': [
-            {
-              'groupId': _selectedAssignmentGroup!.id,
-              'role': _selectedGroupRole!,
-            }
-          ]
-        };
+        contactData['groups'] = [
+          {
+            'id': _selectedAssignmentGroup!.id,
+            'role': _selectedGroupRole!,
+          }
+        ];
+      } else if (_selectedGroup != null) {
+        // Legacy group assignment (without role) - convert to new format
+        contactData['groups'] = [
+          {
+            'id': _selectedGroup!.id,
+            'role': 'Member', // Default role for legacy assignments
+          }
+        ];
+      } else {
+        // This should not happen since UI prevents submission without manageable groups
+        throw Exception('No group selected. Please select a group to assign the member to.');
       }
 
       // Submit to API
