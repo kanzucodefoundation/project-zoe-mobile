@@ -5,6 +5,7 @@ import '../Screens/general-screens/home_screen_enhanced.dart';
 import '../Screens/general-screens/reports_screen_enhanced.dart';
 import '../Screens/general-screens/profile_screen_enhanced.dart';
 import '../core/theme/theme.dart';
+import 'offline_indicator.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -20,7 +21,14 @@ class _MainScaffoldState extends State<MainScaffold> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
-      body: _getBody(),
+      body: Column(
+        children: [
+          // Global offline indicator
+          const OfflineIndicator(),
+          // Main app content
+          Expanded(child: _getBody()),
+        ],
+      ),
       bottomNavigationBar: EnhancedBottomNavBar(
         selectedIndex: _currentIndex,
         onTabChange: _onNavTap,

@@ -6,6 +6,8 @@ import '../../widgets/custom_toast.dart';
 import '../../services/reports_service.dart';
 import '../../providers/report_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/connectivity_service.dart';
+import '../../widgets/offline_indicator.dart';
 import '../reports-screens/mc_attendance_report_screen.dart';
 import '../reports-screens/garage_reports_display_screen.dart';
 import '../reports-screens/baptism_reports_display_screen.dart';
@@ -188,6 +190,14 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
     ReportProvider reportProvider,
     AuthProvider authProvider,
   ) {
+    // Check connectivity for submit reports
+    final connectivityService = Provider.of<ConnectivityService>(context, listen: false);
+    if (connectivityService.isOffline) {
+      return const OfflineMessage(
+        message: 'Reports require an internet connection. Please check your connection to submit reports.',
+      );
+    }
+
     if (reportProvider.isLoading) {
       return GridView.builder(
         shrinkWrap: true,
@@ -364,8 +374,15 @@ class _EnhancedReportsScreenState extends State<EnhancedReportsScreen> {
   }
 
   Widget _buildSubmissionsList() {
-    return Consumer2<ReportProvider, AuthProvider>(
-      builder: (context, reportProvider, authProvider, child) {
+    return Consumer3<ReportProvider, AuthProvider, ConnectivityService>(
+      builder: (context, reportProvider, authProvider, connectivityService, child) {
+        // Show offline message if no connection
+        if (connectivityService.isOffline) {
+          return const OfflineMessage(
+            message: 'Unable to load submissions while offline. Please check your internet connection.',
+          );
+        }
+
         if (reportProvider.isLoading) {
           return const Center(
             child: CircularProgressIndicator(),

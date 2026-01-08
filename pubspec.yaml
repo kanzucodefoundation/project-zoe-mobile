@@ -36,6 +36,9 @@ dependencies:
   # Typography
   google_fonts: ^6.2.1
   firebase_core: ^4.3.0
+  
+  # Network connectivity
+  connectivity_plus: ^6.0.5
 
 dev_dependencies:
   flutter_test:

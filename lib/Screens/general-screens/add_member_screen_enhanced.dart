@@ -10,6 +10,8 @@ import '../../models/group.dart';
 import '../../models/user.dart';
 import '../../services/reports_service.dart';
 import '../../api/endpoints/contact_endpoints.dart';
+import '../../services/connectivity_service.dart';
+import '../../widgets/offline_indicator.dart';
 
 /// Enhanced Add Member Form using Project Zoe Design System
 class EnhancedAddMemberScreen extends StatefulWidget {
@@ -791,6 +793,13 @@ class _EnhancedAddMemberScreenState extends State<EnhancedAddMemberScreen> {
 
   Future<void> _submitContact() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Check internet connectivity before submission
+    final connectivityService = Provider.of<ConnectivityService>(context, listen: false);
+    if (connectivityService.isOffline) {
+      ToastHelper.showError(context, 'No internet connection. Please check your connection and try again.');
+      return;
+    }
 
     setState(() => _isSubmitting = true);
 

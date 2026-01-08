@@ -4,6 +4,7 @@ import 'package:project_zoe/Screens/general-screens/users.dart';
 import 'package:project_zoe/providers/contacts_provider.dart';
 import 'package:project_zoe/providers/dashboard_provider.dart';
 import 'package:project_zoe/services/notification_service.dart';
+import 'package:project_zoe/services/connectivity_service.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/report_provider.dart';
@@ -32,6 +33,10 @@ void main() async {
   ApiClient().initialize();
   //Initialize Notification Service
   await notificationService.initNotification();
+  
+  // Initialize Connectivity Service
+  await ConnectivityService().initialize();
+  
   // Load the .env file
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
@@ -58,6 +63,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<DashboardProvider>(
           create: (_) => DashboardProvider(),
+        ),
+        ChangeNotifierProvider<ConnectivityService>(
+          create: (_) => ConnectivityService(),
         ),
       ],
       child: MaterialApp(

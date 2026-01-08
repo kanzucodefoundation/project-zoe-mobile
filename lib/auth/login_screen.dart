@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../components/text_field.dart';
 import '../components/long_button.dart';
+import '../services/connectivity_service.dart';
+import '../widgets/offline_indicator.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,6 +29,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
+      // Check internet connectivity before login attempt
+      final connectivityService = Provider.of<ConnectivityService>(context, listen: false);
+      if (connectivityService.isOffline) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No internet connection. Please check your connection and try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       // Clear any previous errors
       final authProvider = context.read<AuthProvider>();
       authProvider.clearError();

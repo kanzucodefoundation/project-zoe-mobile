@@ -8,6 +8,8 @@ import '../../models/contacts.dart';
 import '../details_screens/contact_details_screen.dart';
 import 'add_contact_screen.dart';
 import '../../widgets/custom_toast.dart';
+import '../../services/connectivity_service.dart';
+import '../../widgets/offline_indicator.dart';
 
 /// Enhanced Members screen using Project Zoe Design System
 class EnhancedMembersScreen extends StatefulWidget {
@@ -43,12 +45,12 @@ class _EnhancedMembersScreenState extends State<EnhancedMembersScreen> {
         });
         return provider;
       },
-      child: Consumer2<ContactsProvider, AuthProvider>(
-        builder: (context, provider, authProvider, _) {
+      child: Consumer3<ContactsProvider, AuthProvider, ConnectivityService>(
+        builder: (context, provider, authProvider, connectivityService, _) {
           return Scaffold(
             backgroundColor: AppColors.scaffoldBackground,
             appBar: _buildAppBar(provider, authProvider),
-            body: _buildBody(provider, authProvider),
+            body: _buildBody(provider, authProvider, connectivityService),
           );
         },
       ),
@@ -94,7 +96,14 @@ class _EnhancedMembersScreenState extends State<EnhancedMembersScreen> {
     );
   }
 
-  Widget _buildBody(ContactsProvider provider, AuthProvider authProvider) {
+  Widget _buildBody(ContactsProvider provider, AuthProvider authProvider, ConnectivityService connectivityService) {
+    // Show offline message if no connection
+    if (connectivityService.isOffline) {
+      return const OfflineMessage(
+        message: 'Unable to load members while offline. Please check your internet connection.',
+      );
+    }
+
     return RefreshIndicator(
       color: AppColors.primaryGreen,
       onRefresh: () async {
@@ -224,26 +233,30 @@ class _EnhancedMembersScreenState extends State<EnhancedMembersScreen> {
           
           const SizedBox(height: AppSpacing.lg),
           
-          // Add Member Button
-          ZoeButton.primary(
-            label: 'Add Member',
-            width: double.infinity,
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddContactScreen(),
-                ),
-              );
+          // Add Member Button - check connectivity before navigation
+          Consumer<ConnectivityService>(
+            builder: (context, connectivityService, child) {
+              return ZoeButton.primary(
+                label: 'Add Member',
+                width: double.infinity,
+                onPressed: connectivityService.isOffline ? null : () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddContactScreen(),
+                    ),
+                  );
 
-              // Refresh members list if a member was created successfully
-              if (result == true) {
-                final churchName = authProvider.user?.churchName ?? 'fellowship';
-                await provider.loadContacts(churchName: churchName);
-                if (mounted) {
-                  ToastHelper.showInfo(context, 'Member added successfully!');
-                }
-              }
+                  // Refresh members list if a member was created successfully
+                  if (result == true) {
+                    final churchName = authProvider.user?.churchName ?? 'fellowship';
+                    await provider.loadContacts(churchName: churchName);
+                    if (mounted) {
+                      ToastHelper.showInfo(context, 'Member added successfully!');
+                    }
+                  }
+                },
+              );
             },
           ),
         ],
